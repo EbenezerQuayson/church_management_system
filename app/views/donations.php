@@ -1,0 +1,187 @@
+<?php
+// Donations Page
+
+require_once __DIR__ . '/../../config/session.php';
+require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../models/Donation.php';
+require_once __DIR__ . '/../models/Member.php';
+
+requireLogin();
+
+$donation = new Donation();
+$member_model = new Member();
+$donations = $donation->getAll();
+$members = $member_model->getAll();
+$monthly_total = $donation->getTotalByMonth();
+$message = '';
+$message_type = '';
+
+$member_id = !empty($_POST['member_id']) ? (int)$_POST['member_id'] : null;
+
+// Handle form submission
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+    $data = [
+        'member_id' => $member_id,
+        'amount' => $_POST['amount'] ?? 0,
+        'donation_type' => $_POST['donation_type'] ?? 'General',
+        'donation_date' => $_POST['donation_date'] ?? date('Y-m-d'),
+        'notes' => trim($_POST['notes'] ?? ''),
+    ];
+
+    if (empty($data['amount']) || $data['amount'] <= 0) {
+        $message = 'Amount is required and must be greater than 0';
+        $message_type = 'error';
+    } else {
+        if ($donation->create($data)) {
+            $message = 'Donation recorded successfully!';
+            $message_type = 'success';
+            $donations = $donation->getAll();
+        } else {
+            $message = 'Failed to record donation';
+            $message_type = 'error';
+        }
+    }
+}
+?>
+<?php include 'header.php'; ?>
+<div class="main-content">
+    <?php include 'sidebar.php'; ?>
+    
+    <div class="container-fluid">
+        <!-- Page Title -->
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold" style="color: var(--primary-color);">Donations</h2>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDonationModal">
+                <i class="fas fa-gift"></i> Record Donation
+            </button>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card stat-card stat-card-green">
+                    <div class="card-body">
+                        <div class="stat-icon">
+                            <i class="fas fa-hand-holding-heart"></i>
+                        </div>
+                        <p class="stat-value">$<?php echo number_format($monthly_total['total'], 2); ?></p>
+                        <p class="stat-label">This Month</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card stat-card-blue">
+                    <div class="card-body">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <p class="stat-value"><?php echo count($donations); ?></p>
+                        <p class="stat-label">Total Donations</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Display -->
+        <?php if ($message): ?>
+            <div class="alert alert-<?php echo $message_type === 'error' ? 'danger' : 'success'; ?> alert-dismissible fade show" role="alert">
+                <?php echo htmlspecialchars($message); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        <?php endif; ?>
+
+        <!-- Donations Table -->
+        <div class="card">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover">
+                        <thead style="background-color: var(--primary-color); color: white;">
+                            <tr>
+                                <th>Member</th>
+                                <th>Amount</th>
+                                <th>Type</th>
+                                <th>Date</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <?php foreach ($donations as $d): ?>
+                                <tr>
+                                    <td><?php echo htmlspecialchars(
+                                        $d['first_name'] ?? null !== null && $d['last_name'] ?? null !== null ? 
+                                        $d['first_name'] . ' ' . $d['last_name'] :
+                                        'Anonymous'
+                                    ); ?></td>
+                                    <td><strong>$<?php echo number_format($d['amount'], 2); ?></strong></td>
+                                    <td><?php echo ucfirst($d['donation_type']); ?></td>
+                                    <td><?php echo date('M d, Y', strtotime($d['donation_date'])); ?></td>
+                                    <td>
+                                        <button class="btn btn-sm btn-outline-primary">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </td>
+                                </tr>
+                            <?php endforeach; ?>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Donation Modal -->
+<div class="modal fade" id="addDonationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title"><i class="fas fa-gift"></i> Record Donation</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="member_id" class="form-label">Member (Optional)</label>
+                        <select class="form-select" name="member_id">
+                            <option value="">Anonymous</option>
+                            <?php foreach ($members as $m): ?>
+                                <option value="<?php echo $m['id']; ?>"><?php echo htmlspecialchars($m['first_name'] . ' ' . $m['last_name']); ?></option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="amount" class="form-label">Amount *</label>
+                        <div class="input-group">
+                            <span class="input-group-text">$</span>
+                            <input type="number" class="form-control" name="amount" step="0.01" placeholder="0.00" required>
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="donation_type" class="form-label">Type</label>
+                        <select class="form-select" name="donation_type">
+                            <option value="General">General Offering</option>
+                            <option value="Tithe">Tithe</option>
+                            <option value="Building Fund">Building Fund</option>
+                            <option value="Missions">Missions</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+                    <div class="mb-3">
+                        <label for="donation_date" class="form-label">Date</label>
+                        <input type="date" class="form-control" name="donation_date" value="<?php echo date('Y-m-d'); ?>">
+                    </div>
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" name="notes" rows="2"></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Record Donation</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<?php include 'footer.php'; ?>
