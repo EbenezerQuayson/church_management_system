@@ -30,13 +30,17 @@ if(isset($_POST['edit_event'])){
         $message = 'Title and date are required';
         $message_type = 'error';
     } else {
-        if ($event->update($eventId, $data)) {
-            $message = 'Event updated successfully!';
-            $message_type = 'success';
-            $events = $event->getAll();
+        if ($event->edit($eventId, $data)) {
+            // $message = 'Event updated successfully!';
+            // $message_type = 'success';
+            // $events = $event->getAll();
+            header("Location: events.php?msg=updated");
+            exit();
         } else {
-            $message = 'Failed to update event';
-            $message_type = 'error';
+            // $message = 'Failed to update event';
+            // $message_type = 'error';
+            header("Location: events.php?msg=update_failed");
+            exit();
         }
     }
 }
@@ -57,12 +61,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['edit_event'])) {
         $message_type = 'error';
     } else {
         if ($event->create($data)) {
-            $message = 'Event created successfully!';
-            $message_type = 'success';
-            $events = $event->getAll();
+                // $message = 'Event created successfully!';
+                // $message_type = 'success';
+                // $events = $event->getAll();
+                header("Location: events.php?msg=created");
+                exit();
         } else {
-            $message = 'Failed to create event';
-            $message_type = 'error';
+                    // $message = 'Failed to create event';
+                    // $message_type = 'error';
+                    header("Location: events.php?msg=create_failed");
+                    exit();
         }
     }
 }
@@ -84,13 +92,36 @@ if(isset($_GET['delete'])){
 }
 
 if(isset($_GET['msg'])){
-    if($_GET['msg'] == 'deleted'){
-        $message = 'Event deleted successfully!';
-        $message_type = 'success';
-    } elseif($_GET['msg'] == 'delete_failed'){
-        $message = 'Failed to delete event';
-        $message_type = 'error';
-    }
+    switch($_GET['msg']){
+        case 'created':
+            $message = 'Event created successfully!';
+            $message_type = 'success';
+            break;
+        case 'create_failed':
+            $message = 'Failed to create event';
+            $message_type = 'error';
+            break;
+        case 'updated':
+            $message = 'Event updated successfully!';
+            $message_type = 'success';
+            break;
+        case 'update_failed':
+            $message = 'Failed to update event';
+            $message_type = 'error';
+            break;
+        case 'deleted':
+            $message = 'Event deleted successfully!';
+            $message_type = 'success';
+            break;
+        case 'delete_failed':
+            $message = 'Failed to delete event';
+            $message_type = 'error';
+            break;
+    
+    default:
+        $message= '';
+        $message_type= '';
+   }
 }
 
 

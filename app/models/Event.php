@@ -62,7 +62,7 @@ class Event {
         return $stmt->execute();
     }
 
-    public function update($id, $data) {
+    public function edit($id, $data) {
         $sql = "UPDATE {$this->table} SET title = :title, description = :description, 
                 event_date = :event_date, location = :location, capacity = :capacity, 
                 organizer_id = :organizer_id, status = :status, updated_at=NOW() WHERE id = :id";
