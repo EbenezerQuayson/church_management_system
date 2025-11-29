@@ -30,21 +30,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-// ----- Edit Event Modal Population -----
-document.querySelectorAll('.editBtn').forEach(btn => {
-    btn.addEventListener('click', function () {
-        document.getElementById('edit_event_id').value = this.dataset.id;
-        document.getElementById('edit_title').value = this.dataset.title;
-        document.getElementById('edit_description').value = this.dataset.description;
-        document.getElementById('edit_event_date').value = this.dataset.date.replace(" ", "T");
-        document.getElementById('edit_location').value = this.dataset.location;
-        document.getElementById('edit_capacity').value = this.dataset.capacity;
-        document.getElementById('edit_status').value = this.dataset.status;
-
-        new bootstrap.Modal(document.getElementById('editEventModal')).show();
-    });
-});
-
 
 </script>
 
