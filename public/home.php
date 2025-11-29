@@ -103,7 +103,7 @@ try {
             <div class="row align-items-center g-4">
                 <div class="col-lg-6">
                     <div class="about-image-wrapper">
-                        <img src="/placeholder.svg?height=400&width=500" alt="Church Sanctuary" class="img-fluid rounded-3">
+                        <img src="<?php echo BASE_URL; ?>/assets/images/church-sanctuary.jpg" alt="Church Sanctuary" class="img-fluid rounded-3">
                     </div>
                 </div>
                 <div class="col-lg-6">
