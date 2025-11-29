@@ -30,7 +30,9 @@ A comprehensive church management system built with PHP and MySQL, featuring aut
 
 4. **Access the Application**
    - Login page: `http://yourserver.com/public/login.php`
-   - Default credentials to be created by the administrator
+   - Default credentials for admin is:
+     - Email: `admin@church.com`
+     - Password: `password`
 
 ## Folder Structure
 
@@ -49,8 +51,10 @@ A comprehensive church management system built with PHP and MySQL, featuring aut
 │   └── session.php          # Session management
 ├── public/
 │   └── login.php            # Login page
+    └── register.php         # Registration page(present for testing sake)
+    └── home.php             # Home Page
 ├── scripts/
-│   └── 01-database-schema.sql  # Database schema
+│   └── church_management_system.sql  # Database schema
 └── README.md                # This file
 \`\`\`
 
