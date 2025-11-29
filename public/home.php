@@ -3,6 +3,7 @@
 session_start();
 require_once __DIR__ . '/../config/config.php';
 
+
 // Get church settings from database if available
 $db = null;
 $church_name = 'The Methodist Church Ghana';
@@ -10,6 +11,7 @@ $church_motto = 'Your Kingdom Come';
 $primary_color = '#003DA5';
 $secondary_color = '#CC0000';
 $accent_color = '#F4C43F';
+$church_tagline = 'Growing in faith, serving our community, and living Christ\'s love.';
 
 try {
     require_once(__DIR__ . '/../config/database.php');
@@ -23,6 +25,8 @@ try {
         if ($setting['setting_key'] === 'secondary_color') $secondary_color = $setting['setting_value'];
         if ($setting['setting_key'] === 'accent_color') $accent_color = $setting['setting_value'];
     }
+
+    $events = $db->fetchAll("SELECT * FROM events WHERE status = 'scheduled' AND event_date >= CURDATE() ORDER BY event_date ");
 } catch (Exception $e) {
     // Database not available, use defaults
 }
@@ -242,15 +246,33 @@ try {
                 <p class="section-subtitle">Stay updated with what's happening at our church</p>
             </div>
             <div class="row g-4">
-                <div class="col-md-6 col-lg-4">
+                <!-- <div class="col-md-6 col-lg-4">
                     <div class="news-card">
                         <div class="news-date">Dec 25</div>
                         <h5 class="news-title">Christmas Celebration Service</h5>
                         <p class="text-muted small mb-3">Join us for a special Christmas worship service celebrating the birth of Christ with music, prayers, and fellowship.</p>
                         <a href="#" class="btn btn-sm btn-primary">Read More</a>
                     </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
+                </div> -->
+                <?php if (!empty($events)): ?>
+                    <?php foreach ($events as $event): ?>
+                        <div class="col-md-6 col-lg-4">
+                        <div class="news-card">
+                            <div class="news-date"><?php echo date('M d', strtotime($event['event_date'])); ?></div>
+                            <h5 class="news-title"><?php echo htmlspecialchars($event['title']); ?></h5>
+                            <p class="text-muted small mb-3"><?php echo htmlspecialchars($event['description']); ?></p>
+                            <a href="#" class="btn btn-sm btn-primary">Read More</a>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="col-12">
+                        <div class="alert alert-info text-center" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>No upcoming events at this time. Please check back soon!
+                        </div>
+                    </div>
+                <?php endif; ?>
+                <!-- <div class="col-md-6 col-lg-4">
                     <div class="news-card">
                         <div class="news-date">Jan 5</div>
                         <h5 class="news-title">New Year Prayers & Fasting</h5>
@@ -266,7 +288,7 @@ try {
                         <a href="#" class="btn btn-sm btn-primary">Read More</a>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
     </section>
 
@@ -278,10 +300,10 @@ try {
                     <h2 class="text-white mb-3">Ready to Join Our Community?</h2>
                     <p class="text-white-50 mb-4">Whether you're looking for spiritual growth, community service, or a welcoming family, there's a place for you here.</p>
                     <div class="cta-buttons">
-                        <a href="/public/register.php" class="btn btn-light btn-lg me-3 mb-2">
+                        <a href="<?php echo BASE_URL ?>/public/register.php" class="btn btn-light btn-lg me-3 mb-2">
                             <i class="fas fa-user-plus me-2"></i>Register
                         </a>
-                        <a href="/public/login.php" class="btn btn-outline-light btn-lg mb-2">
+                        <a href="<?php echo BASE_URL ?>/public/login.php" class="btn btn-outline-light btn-lg mb-2">
                             <i class="fas fa-sign-in-alt me-2"></i>Login
                         </a>
                     </div>
@@ -300,7 +322,7 @@ try {
                             <img src="<?php echo BASE_URL ?>/assets/images/methodist-logo.png" alt="Logo" style="height: 30px;" class="me-2">
                             The Methodist Church
                         </h5>
-                        <p class="text-muted small">Your Kingdom Come - Growing in faith, serving our community, and living Christ's love.</p>
+                        <b><p class="text-muted small">Your Kingdom Come - Growing in faith, serving our community, and living Christ's love.</p></b>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-3">
@@ -339,7 +361,7 @@ try {
             <hr class="footer-divider">
             <div class="row">
                 <div class="col-md-6">
-                    <p class="text-muted small mb-0">&copy; 2025 The Methodist Church Ghana. All rights reserved.</p>
+                    <b><p class="text-muted small mb-0">&copy; 2025 The Methodist Church Ghana. All rights reserved.</p></b>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <p class="text-muted small mb-0">
@@ -352,6 +374,6 @@ try {
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/assets/js/main.js"></script>
+    <script src="<?php echo BASE_URL ?>?>/assets/js/main.js"></script>
 </body>
 </html>
