@@ -13,8 +13,8 @@ $message = '';
 $message_type = '';
 
 
-//Handle update event
-if(isset($_POST['update_event'])){
+//Handle edit event
+if(isset($_POST['edit_event'])){
     $eventId = (int)$_POST['event_id'];
     $data = [
         'title' => trim($_POST['title'] ?? ''),
@@ -39,9 +39,9 @@ if(isset($_POST['update_event'])){
             $message_type = 'error';
         }
     }
-
+}
 // Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['edit_event'])) {
     $data = [
         'title' => trim($_POST['title'] ?? ''),
         'description' => trim($_POST['description'] ?? ''),
@@ -68,20 +68,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 //soft delete event
 if(isset($_GET['delete'])){
-    $eventId = (int)$_GET['delete'];
+    $eventId = $_GET['delete'];
     if($event->hardDelete($eventId)){
+        // $message = 'Event deleted successfully!';
+        // $message_type = 'success';
+        header("Location: events.php?msg=deleted");
+        exit();
+    } else {
+        // $message = 'Failed to delete event';
+        // $message_type = 'error';
+        header("Location: events.php?msg=delete_failed");
+        exit();
+    }
+    // $events = $event->getAll();
+}
+
+if(isset($_GET['msg'])){
+    if($_GET['msg'] == 'deleted'){
         $message = 'Event deleted successfully!';
         $message_type = 'success';
-       
-    } else {
+    } elseif($_GET['msg'] == 'delete_failed'){
         $message = 'Failed to delete event';
         $message_type = 'error';
     }
-    $events = $event->getAll();
 }
 
 
-}
+
 
 ?>
 <?php include 'header.php'; ?>
@@ -141,12 +154,7 @@ if(isset($_GET['delete'])){
 >
     <i class="fas fa-edit"></i>
 </button>
-
-                                        <button class="btn btn-sm btn-outline-danger"
-                                        onclick="if(confirm('Are you sure you want to cancel this event?')) {
-                                            window.location.href = '?delete=<?php echo $e['id']; ?>';
-                                        }">
-                                            <i class="fas fa-trash"></i>
+ <button class="btn btn-sm btn-outline-danger" onclick=confirmDelete(<?php echo $e['id']; ?>)><i class="fas fa-trash"></i>
                                         </button>
                                     </td>
                                 </tr>
@@ -171,16 +179,16 @@ if(isset($_GET['delete'])){
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="title" class="form-label">Event Title *</label>
-                        <input type="text" class="form-control" name="title" required>
+                        <input type="text" class="form-control" name="title" id="title" required>
                     </div>
                     <div class="mb-3">
                         <label for="description" class="form-label">Description</label>
-                        <textarea class="form-control" name="description" rows="3"></textarea>
+                        <textarea class="form-control" name="description" rows="3" id="description"></textarea>
                     </div>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                             <label for="event_date" class="form-label">Date & Time *</label>
-                            <input type="datetime-local" class="form-control" name="event_date" required>
+                            <input type="datetime-local" class="form-control" name="event_date" id="event_date" required>
                         </div>
                         <div class="col-md-6 mb-3">
                             <label for="location" class="form-label">Location</label>
@@ -277,3 +285,11 @@ if(isset($_GET['delete'])){
 
 
 <?php include 'footer.php'; ?>
+<script>
+    function confirmDelete(eventId) {
+        if (confirm('Are you sure you want to delete this event?')) {
+            window.location.href = '?delete=' + eventId;
+            console.log("Deleting event with ID: " + eventId);
+        }
+    }
+</script>
