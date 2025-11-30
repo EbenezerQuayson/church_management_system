@@ -12,7 +12,9 @@ $primary_color = '#003DA5';
 $secondary_color = '#CC0000';
 $accent_color = '#F4C43F';
 $church_tagline = 'Growing in faith, serving our community, and living Christ\'s love.';
-
+$church_address = '123 Church Street, City, Country';
+$church_email = 'info@church.com';
+$church_phone = '+1 (555) 123-4567';
 try {
     require_once(__DIR__ . '/../config/database.php');
     $db = Database::getInstance();
@@ -23,7 +25,9 @@ try {
         if ($setting['setting_key'] === 'church_motto') $church_motto = $setting['setting_value'];
         if ($setting['setting_key'] === 'primary_color') $primary_color = $setting['setting_value'];
         if ($setting['setting_key'] === 'secondary_color') $secondary_color = $setting['setting_value'];
-        if ($setting['setting_key'] === 'accent_color') $accent_color = $setting['setting_value'];
+        if ($setting['setting_key'] === 'church_address') $church_address = $setting['setting_value'];
+        if ($setting['setting_key'] === 'church_email') $church_email = $setting['setting_value'];
+        if ($setting['setting_key'] === 'church_phone') $church_phone = $setting['setting_value'];
     }
 
     $events = $db->fetchAll("SELECT * FROM events WHERE status = 'scheduled' AND event_date >= CURDATE() ORDER BY event_date ");
@@ -103,7 +107,7 @@ try {
             <div class="row align-items-center g-4">
                 <div class="col-lg-6">
                     <div class="about-image-wrapper">
-                        <img src="/placeholder.svg?height=400&width=500" alt="Church Sanctuary" class="img-fluid rounded-3">
+                        <img src="<?php echo BASE_URL; ?>/assets/images/church_sanctuary.jpg" alt="Church Sanctuary" class="img-fluid rounded-3">
                     </div>
                 </div>
                 <div class="col-lg-6">
@@ -320,9 +324,9 @@ try {
                     <div class="footer-section">
                         <h5 class="footer-title">
                             <img src="<?php echo BASE_URL ?>/assets/images/methodist-logo.png" alt="Logo" style="height: 30px;" class="me-2">
-                            The Methodist Church
+                            <?php echo htmlspecialchars($church_name)?>
                         </h5>
-                        <b><p class="text-muted small">Your Kingdom Come - Growing in faith, serving our community, and living Christ's love.</p></b>
+                        <p class="text-muted small"><?php echo htmlspecialchars($church_motto)?> - <?php echo htmlspecialchars($church_tagline)?></p>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-3">
@@ -340,9 +344,9 @@ try {
                     <div class="footer-section">
                         <h5 class="footer-title">Contact Us</h5>
                         <ul class="footer-links small">
-                            <li><i class="fas fa-map-marker-alt me-2"></i>123 Church Street, City, Country</li>
-                            <li><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</li>
-                            <li><i class="fas fa-envelope me-2"></i>info@methodistchurch.org</li>
+                            <li><i class="fas fa-map-marker-alt me-2"></i><?php echo htmlspecialchars($church_address)?></li>
+                            <li><i class="fas fa-phone me-2"></i><?php echo htmlspecialchars($church_phone)?></li>
+                            <li><i class="fas fa-envelope me-2"></i><?php echo htmlspecialchars($church_email)?></li>
                         </ul>
                     </div>
                 </div>
