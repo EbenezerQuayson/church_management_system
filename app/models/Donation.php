@@ -60,7 +60,7 @@ class Donation {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function getById($id) {
+    public function find($id) {
     $sql = "SELECT d.*, m.first_name, m.last_name 
             FROM donations d 
             LEFT JOIN members m ON d.member_id = m.id

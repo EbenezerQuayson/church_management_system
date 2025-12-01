@@ -10,7 +10,7 @@ if (!isset($_GET['id'])) {
 $donation = new Donation();
 $memberModel = new Member();
 
-$data = $donation->getById($_GET['id']);
+$data = $donation->find($_GET['id']);
 
 if (!$data) {
     die("Donation not found.");

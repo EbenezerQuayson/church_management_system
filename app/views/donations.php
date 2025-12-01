@@ -146,11 +146,22 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
                                     <td><strong>¢<?php echo number_format($d['amount'], 2); ?></strong></td>
                                     <td><?php echo ucfirst($d['donation_type']); ?></td>
                                     <td><?php echo date('M d, Y', strtotime($d['donation_date'])); ?></td>
-                                    <td>
-                                        <button class="btn btn-sm btn-outline-primary viewDonationBtn" data-donation-id="<?php echo $d['id']; ?>">
-                                            <i class="fas fa-eye"></i>
-                                        </button>
-                                    </td>
+                                    <td><button class="btn btn-sm btn-outline-primary viewDonationBtn"
+    data-donation-id="<?= $d['id']; ?>"
+    data-member="<?php 
+        if ($d['member_id'] === null && $d['notes'] === 'service_total') echo 'Service Total';
+        elseif ($d['first_name']) echo $d['first_name'] . ' ' . $d['last_name'];
+        else echo 'Anonymous';
+    ?>"
+    data-amount="<?= $d['amount']; ?>"
+    data-type="<?= $d['donation_type']; ?>"
+    data-date="<?= $d['donation_date']; ?>"
+    data-notes="<?= htmlspecialchars($d['notes']); ?>"
+    data-bs-target="#donationDetails"
+    data-bs-toggle="modal">
+    <i class="fas fa-eye"></i>
+</button>
+                                        </td>
                                 </tr>
                             <?php endforeach; ?>
                         </tbody>
@@ -218,7 +229,7 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
     </div>
 </div>
 <!-- Donation Details Modal -->
-<div class="modal fade" id="donationDetailsModal" tabindex="-1">
+<div class="modal fade" data-bs-dismiss="modal" tabindex="-1" id="donationDetails">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
 
@@ -230,7 +241,25 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
             <div class="modal-body">
 
                 <div id="donationDetailsContent">
-                    <p class="text-center text-muted">Loading...</p>
+                    <!-- <p class="text-center text-muted">Loading...</p> -->
+   
+    <!-- Hidden details -->
+     <table class="table table-bordered" id="donationDetailsTable">
+    <tr><th>Member</th><td id="detail_member"></td></tr>
+    <tr><th>Amount</th><td id="detail_amount"></td></tr>
+    <tr><th>Type</th><td id="detail_type"></td></tr>
+    <tr><th>Date</th><td id="detail_date"></td></tr>
+    <tr><th>Notes</th><td id="detail_notes"></td></tr>
+</table>
+
+    <!-- <div id="details-<?= $don['id'] ?>" class="donation-details hidden">
+        <p><strong>Member:</strong> <?= $don['member_id'] ?></p>
+        <p><strong>Amount:</strong> <?= $don['amount'] ?></p>
+        <p><strong>Date:</strong> <?= $don['donation_date'] ?></p>
+        <p><strong>Type:</strong> <?= $don['donation_type'] ?></p>
+        <p><strong>Purpose:</strong> <?= $don['notes'] ?></p>
+    </div> -->
+
                 </div>
 
             </div>
@@ -250,6 +279,117 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
         </div>
     </div>
 </div>
+
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+
+    document.querySelectorAll(".viewDonationBtn").forEach(btn => {
+        btn.addEventListener("click", function () {
+
+            document.getElementById("detail_member").textContent = this.dataset.member;
+            document.getElementById("detail_amount").textContent = "¢" + parseFloat(this.dataset.amount).toFixed(2);
+            document.getElementById("detail_type").textContent = this.dataset.type;
+            document.getElementById("detail_date").textContent = this.dataset.date;
+            document.getElementById("detail_notes").textContent = this.dataset.notes || "-";
+
+            // Buttons
+            document.getElementById("editDonationBtn").onclick = () => {
+                window.location.href = "edit_donation.php?id=" + this.dataset.donationId;
+            };
+
+            document.getElementById("deleteDonationBtn").onclick = () => {
+                if (confirm("Are you sure?")) {
+                    window.location.href = "delete_donation.php?id=" + this.dataset.donationId;
+                }
+            };
+
+            document.getElementById("printDonationBtn").onclick = () => {
+                window.open("print_donation.php?id=" + this.dataset.donationId, "_blank");
+            };
+
+        });
+    });
+
+});
+</script>
+
+
+
+
+<!-- 
+<script>
+document.addEventListener("DOMContentLoaded", function () {
+
+    // When eye button is clicked
+    document.querySelectorAll(".viewDonationBtn").forEach(btn => {
+        btn.addEventListener("click", function () {
+
+            const id = this.dataset.id;
+
+            // Show modal immediately
+            const modal = new bootstrap.Modal(document.getElementById('donationDetailsModal'));
+            modal.show();
+
+            // Show loading
+            document.getElementById("donationDetailsContent").innerHTML =
+                '<p class="text-center text-muted">Loading...</p>';
+
+            // Fetch details
+            // fetch('<?php echo BASE_URL; ?>/app/ajax/get_donation.php?id=' + id)
+            // .then(res => res.json())
+            // .then(res => {
+            //     if (res.status === 'success') {
+            //         let d = res.data;
+
+            //         // Handle service total
+            //         let member = "Anonymous";
+            //         if (d.member_id === null && d.notes === 'service_total') {
+            //             member = "Service Total";
+            //         } else if (d.first_name) {
+            //             member = d.first_name + " " + d.last_name;
+            //         }
+
+            //         document.getElementById("donationDetailsContent").innerHTML = `
+            //             <table class="table table-bordered">
+            //                 <tr><th>Member</th><td>${member}</td></tr>
+            //                 <tr><th>Amount</th><td>¢${parseFloat(d.amount).toFixed(2)}</td></tr>
+            //                 <tr><th>Type</th><td>${d.donation_type}</td></tr>
+            //                 <tr><th>Date</th><td>${d.donation_date}</td></tr>
+            //                 <tr><th>Notes</th><td>${d.notes || "-"}</td></tr>
+            //             </table>
+            //         `;
+
+            //         // Attach actions
+            //         document.getElementById("editDonationBtn").onclick = () => {
+            //             window.location.href = "edit_donation.php?id=" + d.id;
+            //         };
+
+            //         document.getElementById("deleteDonationBtn").onclick = () => {
+            //             if (confirm("Are you sure you want to delete this donation?")) {
+            //                 window.location.href = "delete_donation.php?id=" + d.id;
+            //             }
+            //         };
+
+            //         document.getElementById("printDonationBtn").onclick = () => {
+            //             window.open("print_donation.php?id=" + d.id, "_blank");
+            //         };
+
+            //     } else {
+            //         document.getElementById("donationDetailsContent").innerHTML =
+            //             '<p class="text-danger">Error loading donation details.</p>';
+            //     }
+            // });
+
+        });
+    });
+
+});
+</script> -->
+
+
+</body>
+</html>
 
 
 <?php include 'footer.php'; ?>
