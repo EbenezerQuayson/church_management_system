@@ -13,21 +13,36 @@ $member_model = new Member();
 $donations = $donation->getAll();
 $members = $member_model->getAll();
 $monthly_total = $donation->getTotalByMonth();
+$total_amount = $donation->getTotalAmount();
 $message = '';
 $message_type = '';
 
-$member_id = !empty($_POST['member_id']) ? (int)$_POST['member_id'] : null;
-
+// $member_id = !empty($_POST['member_id']) ? (int)$_POST['member_id'] : null;
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+    // Determine member_id
+    if (!empty($_POST['member_id']) && $_POST['member_id'] !== 'service_total') {
+        $member_id = (int) $_POST['member_id'];
+    } else {
+        $member_id = null; // anonymous or service total
+    }
+
+    // Build data array
     $data = [
-        'member_id' => $member_id,
-        'amount' => $_POST['amount'] ?? 0,
-        'donation_type' => $_POST['donation_type'] ?? 'General',
-        'donation_date' => $_POST['donation_date'] ?? date('Y-m-d'),
-        'notes' => trim($_POST['notes'] ?? ''),
+        'member_id'      => $member_id,
+        'amount'         => $_POST['amount'] ?? 0,
+        'donation_type'  => $_POST['donation_type'] ?? 'General',
+        'donation_date'  => $_POST['donation_date'] ?? date('Y-m-d'),
+        'notes'          => trim($_POST['notes'] ?? ''),
     ];
 
+    // If Service Total selected, override notes BEFORE saving
+    if (!empty($_POST['member_id']) && $_POST['member_id'] === 'service_total') {
+        $data['notes'] = 'service_total';
+    }
+
+    // Validate
     if (empty($data['amount']) || $data['amount'] <= 0) {
         $message = 'Amount is required and must be greater than 0';
         $message_type = 'error';
@@ -42,6 +57,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         }
     }
 }
+
 ?>
 <?php include 'header.php'; ?>
 <div class="main-content">
@@ -64,8 +80,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <div class="stat-icon">
                             <i class="fas fa-hand-holding-heart"></i>
                         </div>
-                        <p class="stat-value">$<?php echo number_format($monthly_total['total'], 2); ?></p>
+                        <p class="stat-value">¢<?php echo number_format($monthly_total['total'], 2); ?></p>
                         <p class="stat-label">This Month</p>
+                    </div>
+                </div>
+            </div>
+             <div class="col-md-4">
+                <div class="card stat-card stat-card-orange">
+                    <div class="card-body">
+                        <div class="stat-icon">
+                            <i class="fas fa-hand-holding-heart"></i>
+                        </div>
+                        <p class="stat-value">¢<?php echo number_format($total_amount['total'], 2); ?></p>
+                        <p class="stat-label">Total Amount</p>
                     </div>
                 </div>
             </div>
@@ -107,16 +134,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <tbody>
                             <?php foreach ($donations as $d): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars(
-                                        $d['first_name'] ?? null !== null && $d['last_name'] ?? null !== null ? 
-                                        $d['first_name'] . ' ' . $d['last_name'] :
-                                        'Anonymous'
-                                    ); ?></td>
-                                    <td><strong>$<?php echo number_format($d['amount'], 2); ?></strong></td>
+                                    <td><?php 
+if ($d['member_id'] === null && $d['notes'] === 'service_total') {
+    echo "Service Total";
+} elseif ($d['first_name']) {
+    echo htmlspecialchars($d['first_name'] . ' ' . $d['last_name']);
+} else {
+    echo "Anonymous";
+}
+ ?></td>
+                                    <td><strong>¢<?php echo number_format($d['amount'], 2); ?></strong></td>
                                     <td><?php echo ucfirst($d['donation_type']); ?></td>
                                     <td><?php echo date('M d, Y', strtotime($d['donation_date'])); ?></td>
                                     <td>
-                                        <button class="btn btn-sm btn-outline-primary">
+                                        <button class="btn btn-sm btn-outline-primary viewDonationBtn" data-donation-id="<?php echo $d['id']; ?>">
                                             <i class="fas fa-eye"></i>
                                         </button>
                                     </td>
@@ -144,6 +175,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label for="member_id" class="form-label">Member (Optional)</label>
                         <select class="form-select" name="member_id">
                             <option value="">Anonymous</option>
+                            <option value="service_total">Service Total</option>
                             <?php foreach ($members as $m): ?>
                                 <option value="<?php echo $m['id']; ?>"><?php echo htmlspecialchars($m['first_name'] . ' ' . $m['last_name']); ?></option>
                             <?php endforeach; ?>
@@ -152,7 +184,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="mb-3">
                         <label for="amount" class="form-label">Amount *</label>
                         <div class="input-group">
-                            <span class="input-group-text">$</span>
+                            <span class="input-group-text">¢</span>
                             <input type="number" class="form-control" name="amount" step="0.01" placeholder="0.00" required>
                         </div>
                     </div>
@@ -160,6 +192,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                         <label for="donation_type" class="form-label">Type</label>
                         <select class="form-select" name="donation_type">
                             <option value="General">General Offering</option>
+                            <option value="Service Offering">Service Offering</option>
+                            <option value="Service Tithe">Service Tithe</option>
                             <option value="Tithe">Tithe</option>
                             <option value="Building Fund">Building Fund</option>
                             <option value="Missions">Missions</option>
@@ -183,5 +217,39 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </div>
+<!-- Donation Details Modal -->
+<div class="modal fade" id="donationDetailsModal" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+
+            <div class="modal-header" style="background-color: var(--primary-color); color:white;">
+                <h5 class="modal-title"><i class="fas fa-gift"></i> Donation Details</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+
+                <div id="donationDetailsContent">
+                    <p class="text-center text-muted">Loading...</p>
+                </div>
+
+            </div>
+
+            <div class="modal-footer d-flex justify-content-between">
+
+                <div>
+                    <button id="editDonationBtn" class="btn btn-warning"><i class="fas fa-edit"></i> Edit</button>
+                    <button id="deleteDonationBtn" class="btn btn-danger"><i class="fas fa-trash"></i> Delete</button>
+                </div>
+
+                <button id="printDonationBtn" class="btn btn-primary">
+                    <i class="fas fa-print"></i> Print Receipt
+                </button>
+            </div>
+
+        </div>
+    </div>
+</div>
+
 
 <?php include 'footer.php'; ?>

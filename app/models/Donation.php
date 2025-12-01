@@ -52,5 +52,24 @@ class Donation {
         $stmt->execute();
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
+
+    public function getTotalAmount() {
+        $sql = "SELECT COALESCE(SUM(amount), 0) as total FROM {$this->table}";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    public function getById($id) {
+    $sql = "SELECT d.*, m.first_name, m.last_name 
+            FROM donations d 
+            LEFT JOIN members m ON d.member_id = m.id
+            WHERE d.id = :id";
+
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute(['id' => $id]);
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 }
 ?>

@@ -13,7 +13,7 @@ $db = Database::getInstance();
 $members_count = $db->fetch("SELECT COUNT(*) as count FROM members WHERE status = 'active'");
 $events_count = $db->fetch("SELECT COUNT(*) as count FROM events WHERE status = 'scheduled'");
 $ministries_count = $db->fetch("SELECT COUNT(*) as count FROM ministries WHERE status = 'active'");
-$donations_total = $db->fetch("SELECT COALESCE(SUM(amount), 0) as total FROM donations WHERE MONTH(donation_date) = MONTH(NOW()) AND YEAR(donation_date) = YEAR(NOW())");
+$donations_total = $db->fetch("SELECT COALESCE(SUM(amount), 0) as total FROM donations");
 
 // Get recent activities
 $recent_members = $db->fetchAll("SELECT * FROM members ORDER BY created_at DESC LIMIT 5");
@@ -78,8 +78,8 @@ $recent_events = $db->fetchAll("SELECT * FROM events ORDER BY created_at DESC LI
                         <div class="stat-icon">
                             <i class="fas fa-hand-holding-heart"></i>
                         </div>
-                        <p class="stat-value">$<?php echo number_format($donations_total['total'], 0); ?></p>
-                        <p class="stat-label">This Month</p>
+                        <p class="stat-value">¢<?php echo number_format($donations_total['total'], 0); ?></p>
+                        <p class="stat-label">Total Amount</p>
                     </div>
                 </div>
             </div>
