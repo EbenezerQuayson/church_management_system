@@ -143,12 +143,11 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
     echo "Anonymous";
 }
  ?></td>
-                                    <td><strong>¢<?php echo number_format($d['amount'], 2); ?></strong></td>
-                                    <td><?php echo ucfirst($d['donation_type']); ?></td>
-                                    <td><?php echo date('M d, Y', strtotime($d['donation_date'])); ?></td>
-                                    <td><button class="btn btn-sm btn-outline-primary viewDonationBtn"
-    data-donation-id="<?= $d['id']; ?>"
-    data-member="<?php 
+     <td><strong>¢<?php echo number_format($d['amount'], 2); ?></strong></td>
+     <td><?php echo ucfirst($d['donation_type']); ?></td>
+     <td><?php echo date('M d, Y', strtotime($d['donation_date'])); ?></td>
+     <td><button class="btn btn-sm btn-outline-primary viewDonationBtn"data-donation-id="<?= $d['id']; ?>" 
+     data-member="<?php 
         if ($d['member_id'] === null && $d['notes'] === 'service_total') echo 'Service Total';
         elseif ($d['first_name']) echo $d['first_name'] . ' ' . $d['last_name'];
         else echo 'Anonymous';
@@ -305,7 +304,7 @@ document.addEventListener("DOMContentLoaded", () => {
             };
 
             document.getElementById("printDonationBtn").onclick = () => {
-                window.open("print_donation.php?id=" + this.dataset.donationId, "_blank");
+                window.open("receipt.php?id=" + this.dataset.donationId, "_blank");
             };
 
         });
