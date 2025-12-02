@@ -167,8 +167,7 @@ body {
 }
 
 .sidebar-menu a.active {
-  background: white;
-  /* linear-gradient(90deg, rgba(0, 61, 165, 0.1) 0%, transparent 100%); */
+  background: linear-gradient(90deg, rgba(0, 61, 165, 0.1) 0%, transparent 100%);
   color: var(--primary-color);
   font-weight: 600;
 }
@@ -563,7 +562,6 @@ body {
   .sidebar.show {
     transform: translateX(0);
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.3);
-   
   }
 
   .main-content {
