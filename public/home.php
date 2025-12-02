@@ -15,6 +15,11 @@ $church_tagline = 'Growing in faith, serving our community, and living Christ\'s
 $church_address = '123 Church Street, City, Country';
 $church_email = 'info@church.com';
 $church_phone = '+1 (555) 123-4567';
+$church_facebook = '#';
+$church_instagram = '#';
+$church_tiktok = '#';
+$church_youtube = '#';
+$church_x = '#';
 try {
     require_once(__DIR__ . '/../config/database.php');
     $db = Database::getInstance();
@@ -354,10 +359,11 @@ try {
                     <div class="footer-section">
                         <h5 class="footer-title">Follow Us</h5>
                         <div class="social-links">
-                            <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                            <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                            <a href="<?php echo htmlspecialchars($church_facebook) ?>" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                            <a href="<?php echo htmlspecialchars($church_x) ?>" class="social-link"><i class="fab fa-x"></i></a> <!-- Twitter renamed to X (yet to find the correct icon) -->
+                            <a href="<?php echo htmlspecialchars($church_instagram) ?>" class="social-link"><i class="fab fa-instagram"></i></a>
+                            <a href="<?php echo htmlspecialchars($church_youtube) ?>" class="social-link"><i class="fab fa-youtube"></i></a>
+                            <a href="<?php echo htmlspecialchars($church_tiktok) ?>" class="social-link"><i class="fab fa-tiktok"></i></a>
                         </div>
                     </div>
                 </div>

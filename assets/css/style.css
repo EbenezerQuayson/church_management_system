@@ -623,3 +623,107 @@ body {
   background-color: #fef3c7;
   color: #92400e;
 }
+
+
+
+/* Receipt Container */
+.receipt-wrapper {
+    max-width: 420px;
+    margin: 0 auto;
+    background: #ffffff;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+    font-family: "Segoe UI", sans-serif;
+    color: #2d3748;
+}
+
+/* Header */
+.receipt-header {
+    text-align: center;
+    border-bottom: 3px solid #003da5;
+    padding-bottom: 15px;
+    margin-bottom: 20px;
+}
+
+.receipt-header img {
+    width: 90px;
+    margin-bottom: 10px;
+}
+
+.receipt-header h2 {
+    margin: 0;
+    font-size: 22px;
+    font-weight: 700;
+    color: #003da5;
+}
+
+/* Receipt Details */
+.receipt-details table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+}
+
+.receipt-details table th {
+    text-align: left;
+    padding: 8px 0;
+    color: #003da5;
+    font-weight: 600;
+}
+
+.receipt-details table td {
+    padding: 8px 0;
+}
+
+.receipt-details table tr:not(:last-child) td {
+    border-bottom: 1px solid #e2e8f0;
+}
+
+/* Footer */
+.receipt-footer {
+    text-align: center;
+    margin-top: 25px;
+    font-size: 14px;
+    color: #555;
+}
+
+.receipt-footer strong {
+    color: #cc0000;
+}
+
+/* Print Button */
+.print-btn {
+    display: inline-block;
+    background: #003da5;
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    font-weight: 600;
+    margin: 15px auto;
+    transition: 0.3s ease;
+}
+
+.print-btn:hover {
+    background: #002b78;
+}
+
+/* Print Styles (Hide Layout Elements) */
+@media print {
+    .print-btn,
+    .navbar,
+    footer {
+        display: none !important;
+    }
+
+    body {
+        background: #fff !important;
+    }
+
+    .receipt-wrapper {
+        box-shadow: none;
+        border-radius: 0;
+    }
+}
