@@ -67,9 +67,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Page Title -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold" style="color: var(--primary-color);">Donations</h2>
+            <div>
+             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportSummaryModal">
+                <i class="fas fa-file-export"></i> Export Summary
+            </button>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDonationModal">
                 <i class="fas fa-gift"></i> Record Donation
             </button>
+</div>
         </div>
 
         <!-- Summary Cards -->
@@ -227,6 +232,7 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
         </div>
     </div>
 </div>
+
 <!-- Donation Details Modal -->
 <div class="modal fade" data-bs-dismiss="modal" tabindex="-1" id="donationDetails">
     <div class="modal-dialog modal-lg">
@@ -279,6 +285,31 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
     </div>
 </div>
 
+<!-- Export Summary Modal -->
+ <div class="modal fade" id="exportSummaryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Export Financial Summary</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <p>Select the format you want to export the summary in:</p>
+
+        <div class="d-grid gap-2">
+          <button class="btn btn-success" id="exportCsvBtn">Export as CSV</button>
+          <button class="btn btn-secondary" id="exportPdfBtn">Export as PDF</button>
+          <button class="btn btn-warning" id="exportExcelBtn">Export as Excel</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
@@ -311,6 +342,22 @@ document.addEventListener("DOMContentLoaded", () => {
     });
 
 });
+
+// Export Buttons
+document.getElementById("exportCsvBtn").addEventListener("click", function() {
+    window.location.href = "export/export_summary_csv.php";
+});
+
+document.getElementById("exportPdfBtn").addEventListener("click", function() {
+    window.location.href = "export/export_summary_pdf.php";
+});
+
+document.getElementById("exportExcelBtn").addEventListener("click", function() {
+    window.location.href = "export/export_summary_excel.php";
+});
+
+
+
 </script>
 
 
