@@ -15,4 +15,5 @@ foreach ($records as $r) {
     fputcsv($output, [$r['donation_date'], $r['amount'], $r['donation_type'], $r['notes']]);
 }
 
+
 ?>
