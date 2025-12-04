@@ -43,7 +43,7 @@ $jsDonationData = json_encode($monthlyTotals);
         <!-- Page Title -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold" style="color: var(--primary-color);">Dashboard</h2>
-            <span class="text-muted">Welcome back, <?php echo htmlspecialchars($_SESSION['user_name']); ?>!</span>
+            <span class="text-muted dashboard-greetings">Welcome back, <?php echo htmlspecialchars($_SESSION['user_name']); ?>!</span>
         </div>
 
         <!-- Summary Cards -->
