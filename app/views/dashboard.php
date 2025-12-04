@@ -92,7 +92,7 @@ $jsDonationData = json_encode($monthlyTotals);
                 <div class="card stat-card stat-card-orange">
                     <div class="card-body">
                         <div class="stat-icon">
-                            <i class="fas fa-hand-holding-heart"></i>
+                            <i class="bi bi-cash-stack"></i>
                         </div>
                         <p class="stat-value">¢<?php echo number_format($donations_total['total'], 0); ?></p>
                         <p class="stat-label">Total Amount</p>
