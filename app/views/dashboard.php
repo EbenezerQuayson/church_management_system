@@ -9,17 +9,33 @@ requireLogin();
 
 $db = Database::getInstance();
 
+
+
 // Get statistics
 $members_count = $db->fetch("SELECT COUNT(*) as count FROM members WHERE status = 'active'");
 $events_count = $db->fetch("SELECT COUNT(*) as count FROM events WHERE status = 'scheduled'");
 $ministries_count = $db->fetch("SELECT COUNT(*) as count FROM ministries WHERE status = 'active'");
 $donations_total = $db->fetch("SELECT COALESCE(SUM(amount), 0) as total FROM donations");
-
+$totalMales = $db->fetch("SELECT COUNT(*) AS total FROM members WHERE status ='active' AND gender='Male'");
+$totalFemales = $db->fetch("SELECT COUNT(*) AS total FROM members WHERE status ='active' AND gender='Female'");
 // Get recent activities
 $recent_members = $db->fetchAll("SELECT * FROM members ORDER BY created_at DESC LIMIT 5");
 $recent_events = $db->fetchAll("SELECT * FROM events ORDER BY created_at DESC LIMIT 5");
+
+//Chart Data
+$monthlyDonations = $db->fetchAll("SELECT MONTH(donation_date) AS month, COUNT(*) AS total FROM donations GROUP BY MONTH(donation_date)");
+$monthlyTotals = array_fill(0, 12, 0);
+foreach ($monthlyDonations as $d){
+    $monthlyTotals[$d['month'] - 1] = (int)$d['total'];
+}
+
+//Convert to JSON for JS
+$jsDonationData = json_encode($monthlyTotals);
 ?>
 <?php include 'header.php'; ?>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
 <div class="main-content">
     <?php include 'sidebar.php'; ?>
     
@@ -83,6 +99,32 @@ $recent_events = $db->fetchAll("SELECT * FROM events ORDER BY created_at DESC LI
                     </div>
                 </div>
             </div>
+
+            <!-- Total Males -->
+             <div class="col-md-6 col-lg-3">
+            <div class="card stat-card stat-card-teal">
+                <div class="card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-male"></i>
+                    </div>
+                    <h3 class="stat-value" id="totalMaleMembers"><?php echo $totalMales['total']; ?></h3>
+                    <p class="stat-label">Total Male Christians</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Females -->
+             <div class="col-md-6 col-lg-3">
+            <div class="card stat-card stat-card-pink">
+                <div class="card-body">
+                    <div class="stat-icon">
+                        <i class="fas fa-female"></i>
+                    </div>
+                    <h3 class="stat-value" id="totalFemaleMembers"><?php echo $totalFemales['total'];?></h3>
+                    <p class="stat-label">Total Female</p>
+                </div>
+            </div>
+        </div>
         </div>
 
         <!-- Quick Links -->
@@ -109,6 +151,24 @@ $recent_events = $db->fetchAll("SELECT * FROM events ORDER BY created_at DESC LI
                 </div>
             </div>
         </div>
+
+        <!-- Charts Row -->
+          <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="chart-container">
+                <h5 class="mb-3"><i class="bi bi-bar-chart"></i> Church Expenses Chart</h5>
+                <canvas id="donationsChart"></canvas>
+            </div>
+        </div>
+        <div class="col-lg-4">
+            <div class="chart-container">
+                <h5 class="mb-3"><i class="bi bi-pie-chart"></i> Church Population Chart</h5>
+                <canvas id="ministryChart">
+
+                </canvas>
+            </div>
+        </div>
+    </div>
 
         <!-- Recent Activities -->
         <div class="row g-4 mt-2">
@@ -166,5 +226,67 @@ $recent_events = $db->fetchAll("SELECT * FROM events ORDER BY created_at DESC LI
         </div>
     </div>
 </div>
+
+<script>
+    const donationData =<?php echo $jsDonationData;?>;
+    const ctx = document.getElementById("donationsChart");
+    const ctx1 = document.getElementById("ministryChart");
+    const totalMales = <?php echo $totalMales['total']?>;
+    const totalFemales = <?php echo $totalFemales['total']?>;
+
+
+    console.log(donationData);
+
+    // Chart for Donations
+    new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+            datasets: [{
+                label: "Monthly Donations",
+                data: donationData,
+                backgroundColor: [
+              "rgba(74, 144, 226, 0.8)",
+              "rgba(123, 104, 238, 0.8)",
+              "rgba(240, 147, 251, 0.8)",
+              "rgba(67, 233, 123, 0.8)",
+              "rgba(79, 172, 254, 0.8)",
+              "rgba(255, 193, 7, 0.8)",
+            ],
+                borderWidth: 2
+            }]
+        },
+
+       options: {
+         responsive: true,
+         maintainAspectRatio: true,
+         scales: {
+           y: {
+             beginAtZero: true,
+              ticks: {
+                precision: 0,
+            //    stepSize: 5,
+              },
+           },
+         },
+         plugins: {
+           legend: { position: "bottom" },
+         },
+       },
+});
+
+//Chart for Gender
+new Chart(ctx1,{
+    type:'doughnut',
+    data:{
+        labels:['Male', 'Female'],
+        datasets:[{
+            data:[totalMales, totalFemales],
+            borderWidth:1
+        }]
+    }
+});
+
+</script>
 
 <?php include 'footer.php'; ?>
