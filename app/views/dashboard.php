@@ -86,11 +86,11 @@ $recent_events = $db->fetchAll("SELECT * FROM events ORDER BY created_at DESC LI
         </div>
 
         <!-- Quick Links -->
-        <div class="row mb-4">
+        <div class="row mb-4 g-4">
             <div class="col-12">
                 <div class="card">
-                    <div class="card-body">
-                        <h5 class="card-title mb-3">Quick Actions</h5>
+                    <div class="card-body ">
+                        <h5 class="card-title mb-3 ">Quick Actions</h5>
                         <div class="d-flex gap-2 flex-wrap">
                             <a href="<?php echo BASE_URL; ?>/app/views/members.php" class="btn btn-outline-primary">
                                 <i class="fas fa-user-plus"></i> Add Member
@@ -111,12 +111,12 @@ $recent_events = $db->fetchAll("SELECT * FROM events ORDER BY created_at DESC LI
         </div>
 
         <!-- Recent Activities -->
-        <div class="row">
-            <div class="col-md-6 mb-4">
+        <div class="row g-4 mt-2">
+            <div class="col-lg-6">
                 <div class="chart-container">
                     <h5><i class="fas fa-users"></i> Recent Members</h5>
                     <div class="table-responsive">
-                        <table class="table table-sm">
+                        <table class="table table-hover mb-0">
                             <thead>
                                 <tr style="background: var(--primary-color); color: white;">
                                     <th>Name</th>
@@ -138,11 +138,11 @@ $recent_events = $db->fetchAll("SELECT * FROM events ORDER BY created_at DESC LI
                 </div>
             </div>
 
-            <div class="col-md-6 mb-4">
+            <div class="col-lg-6">
                 <div class="chart-container">
                     <h5><i class="fas fa-calendar"></i> Recent Events</h5>
                     <div class="table-responsive">
-                        <table class="table table-sm">
+                        <table class="table table-hover mb-0">
                             <thead>
                                 <tr style="background: var(--primary-color); color: white;">
                                     <th>Title</th>
