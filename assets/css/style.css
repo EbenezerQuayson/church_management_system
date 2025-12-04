@@ -398,6 +398,30 @@ body {
   color: white;
 }
 
+.stat-card-pink{
+  background: linear-gradient(135deg, #e83e8c, #be2c73);
+    color: #fff;
+}
+
+.stat-card-gold{
+  background: linear-gradient(135deg, #f1c40f, #b7950b);
+    color: #fff;
+}
+
+.stat-card-cyan{
+  background: linear-gradient(135deg, #17a2b8, #0f6674);
+    color: #fff;
+}
+
+.stat-card-teal{
+   background: linear-gradient(135deg, #20c997, #0d786d);
+    color: #fff;
+}
+
+.stat-card-lime{
+   background: linear-gradient(135deg, #a8e063, #56ab2f);
+    color: #fff;
+}
 /* Tables */
 .table-responsive {
   border-radius: 10px;
