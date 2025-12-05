@@ -1,5 +1,6 @@
 <?php
 // Ministries Page
+$activePage = 'ministries';
 
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
@@ -11,9 +12,109 @@ $ministries = $db->fetchAll("SELECT * FROM ministries WHERE status = 'active' OR
 $message = '';
 $message_type = '';
 
-// Handle form submission
+//Logic to prevent resubmission after any refresh
+if(isset($_GET['msg'])){
+    switch($_GET['msg']){
+        case 'added':
+            $message='Ministry Added Successfully!';
+            $message_type='success';
+            break;
+        case 'add_failed':
+            $message = 'Failed to create Ministry';
+            $message_type='error';
+            break;
+        case 'updated':
+            $message = 'Ministry Updated Successfully!';
+            $message_type='success';
+            break;
+        case 'update_failed':
+            $message = 'Failed to update Ministry';
+            $message_type='error';
+            break;
+        case 'delete':
+            $message = 'Ministry Deleted Successfully!';
+            $message_type='success';
+            break;
+        case 'delete_failed':
+            $message = 'Failed to delte Ministry';
+            $message_type='error';
+            break;
+        default:
+            $message = '';
+            $message_type = '';
+            break;
+
+    }
+}
+
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
-    $data = [
+
+    $action = $_POST['action'] ?? '';
+
+    // deleting ministry
+    if ($action === 'delete') {
+        $id = $_POST['id'] ?? null;
+
+        if ($id) {
+            $stmt = $db->getConnection()->prepare("DELETE FROM ministries WHERE id = :id LIMIT 1");
+            $stmt->bindParam(':id', $id);
+
+            if ($stmt->execute()) {
+                // $message = "Ministry deleted successfully!";
+                // $message_type = "success";
+                header("Location: ministries.php?msg=deleted");
+                exit();
+            } else {
+                // $message = "Failed to delete ministry.";
+                // $message_type = "error";
+                header("Location: ministries.php?msg=delete_failed");
+                exit();
+            }
+        }
+    }
+
+    // editing ministry..
+    else if ($action === 'edit') {
+
+        $id = $_POST['id'];
+        
+        $sql = "UPDATE ministries SET 
+                    name = :name,
+                    description = :description,
+                    meeting_day = :meeting_day,
+                    meeting_time = :meeting_time,
+                    location = :location,
+                    leader_email = :leader_email,
+                    status = :status
+                WHERE id = :id";
+
+        $stmt = $db->getConnection()->prepare($sql);
+
+        $stmt->bindParam(':name', $_POST['name']);
+        $stmt->bindParam(':description', $_POST['description']);
+        $stmt->bindParam(':meeting_day', $_POST['meeting_day']);
+        $stmt->bindParam(':meeting_time', $_POST['meeting_time']);
+        $stmt->bindParam(':location', $_POST['location']);
+        $stmt->bindParam(':leader_email', $_POST['leader_email']);
+        $stmt->bindParam(':status', $_POST['status']);
+        $stmt->bindParam(':id', $id);
+
+        if ($stmt->execute()) {
+            // $message = "Ministry updated successfully!";
+            // $message_type = "success";
+              header("Location: ministries.php?msg=updated");
+                exit();
+        } else {
+            // $message = "Failed to update ministry.";
+            // $message_type = "error";
+              header("Location: ministries.php?msg=update_failed");
+                exit();
+        }
+    }
+
+    // Adding new ministry....
+    else if ($action === 'add') {
+         $data = [
         'name' => trim($_POST['name'] ?? ''),
         'description' => trim($_POST['description'] ?? ''),
         'leader_id' => $_POST['leader_id'] ?? null,
@@ -42,15 +143,23 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':status', $data['status']);
 
         if ($stmt->execute()) {
-            $message = 'Ministry created successfully!';
-            $message_type = 'success';
+            // $message = 'Ministry created successfully!';
+            // $message_type = 'success';
+              header("Location: ministries.php?msg=added");
+              exit();
             $ministries = $db->fetchAll("SELECT * FROM ministries WHERE status = 'active' ORDER BY name");
         } else {
-            $message = 'Failed to create ministry';
-            $message_type = 'error';
+            // $message = 'Failed to create ministry';
+            // $message_type = 'error';
+              header("Location: ministries.php?msg=add_failed");
+                exit();
         }
     }
+    }
+    // refresh ministries list after any change
+    $ministries = $db->fetchAll("SELECT * FROM ministries WHERE status = 'active' ORDER BY name");
 }
+
 ?>
 <?php include 'header.php'; ?>
 <div class="main-content">
@@ -120,6 +229,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             <form method="POST">
                 <div class="modal-body">
                     <div class="mb-3">
+                        <input type="hidden" name="action" value="add">
                         <label for="name" class="form-label">Ministry Name *</label>
                         <input type="text" class="form-control" name="name" required>
                     </div>
@@ -163,5 +273,195 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         </div>
     </div>
 </div>
+
+<!-- Ministry Details  -->
+<?php foreach ($ministries as $m): ?>
+<div class="modal fade" id="ministryDetailsModal<?php echo $m['id']; ?>" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title">
+                    <i class="fas fa-handshake"></i> 
+                    <?php echo htmlspecialchars($m['name']); ?> — Details
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+    <div class="mb-4">
+        <h6 class="fw-bold text-uppercase small text-secondary mb-2">
+            <i class="fas fa-info-circle me-1"></i> Overview
+        </h6>
+        <div class="p-3 rounded" style="background: #f8f9fa;">
+            <p class="mb-0 text-muted">
+                <?php echo nl2br(htmlspecialchars($m['description'] ?: 'No description provided.')); ?>
+            </p>
+        </div>
+    </div>
+    <div class="mb-4">
+        <h6 class="fw-bold text-uppercase small text-secondary mb-2">
+            <i class="fas fa-calendar-alt me-1"></i> Meeting Information
+        </h6>
+        <div class="row g-3">
+            <div class="col-md-6">
+                <div class="border rounded p-3 h-100">
+                    <small class="text-muted d-block mb-1">Meeting Day</small>
+                    <span class="fw-semibold">
+                        <?php echo ucfirst($m['meeting_day']) ?: 'Not set'; ?>
+                    </span>
+                </div>
+            </div>
+            <div class="col-md-6">
+                <div class="border rounded p-3 h-100">
+                    <small class="text-muted d-block mb-1">Meeting Time</small>
+                    <span class="fw-semibold">
+                        <?php echo $m['meeting_time'] ? date('g:i A', strtotime($m['meeting_time'])) : 'Not set'; ?>
+                    </span>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="mb-4">
+        <h6 class="fw-bold text-uppercase small text-secondary mb-2">
+            <i class="fas fa-map-marked-alt me-1"></i> Location
+        </h6>
+        <div class="border rounded p-3">
+            <span class="fw-semibold text-muted">
+                <?php echo htmlspecialchars($m['location'] ?: 'Not set'); ?>
+            </span>
+        </div>
+    </div>
+    <div class="mb-4">
+        <h6 class="fw-bold text-uppercase small text-secondary mb-2">
+            <i class="fas fa-user-tie me-1"></i> Leadership
+        </h6>
+        <div class="border rounded p-3">
+            <small class="text-muted d-block mb-1">Leader Email</small>
+            <span class="fw-semibold">
+                <?php echo htmlspecialchars($m['leader_email'] ?: 'Not provided'); ?>
+            </span>
+        </div>
+    </div>
+    <div>
+        <h6 class="fw-bold text-uppercase small text-secondary mb-2">
+            <i class="fas fa-check-circle me-1"></i> Status
+        </h6>
+        <div class="border rounded p-3">
+            <span class="badge bg-<?php echo $m['status'] === 'active' ? 'success' : 'secondary'; ?> px-3 py-2">
+                <?php echo ucfirst($m['status']); ?>
+            </span>
+        </div>
+    </div>
+
+</div>
+         <div class="modal-footer d-flex justify-content-between">
+    <!--Delete -->
+    <form method="POST" onsubmit="return confirm('Are you sure you want to delete this ministry?');">
+    <input type="hidden" name="action" value="delete">
+    <input type="hidden" name="id" value="<?php echo $m['id']; ?>">
+    <button type="submit" class="btn btn-danger">
+        <i class="fas fa-trash-alt me-1"></i> Delete
+    </button>
+</form>
+
+    <!--Close + Edit -->
+    <div>
+        <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">
+            Close
+        </button>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editMinistryModal<?php echo $m['id']; ?>">
+            <i class="fas fa-edit me-1"></i> Edit
+        </button>
+    </div>
+
+</div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Ministry Modal -->
+<div class="modal fade" id="editMinistryModal<?php echo $m['id']; ?>" tabindex="-1">
+    <div class="modal-dialog modal-lg">
+        <form method="POST"  class="modal-content">
+            <input type="hidden" name="action" value="edit">
+<input type="hidden" name="id" value="<?php echo $m['id']; ?>">
+
+            
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title">
+                    <i class="fas fa-edit"></i> Edit Ministry — <?php echo htmlspecialchars($m['name']); ?>
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                
+                <input type="hidden" name="id" value="<?php echo $m['id']; ?>">
+
+                <div class="mb-3">
+                    <label class="form-label">Ministry Name *</label>
+                    <input type="text" class="form-control" name="name" value="<?php echo htmlspecialchars($m['name']); ?>" required>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" name="description" rows="3"><?php echo htmlspecialchars($m['description']); ?></textarea>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Meeting Day</label>
+                        <select class="form-select" name="meeting_day">
+                            <option value="">Select Day</option>
+                            <?php 
+                                $days = ["monday","tuesday","wednesday","thursday","friday","saturday","sunday"];
+                                foreach($days as $day):
+                            ?>
+                                <option value="<?php echo $day; ?>" <?php echo ($m['meeting_day'] == $day) ? 'selected' : ''; ?>>
+                                    <?php echo ucfirst($day); ?>
+                                </option>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="form-label">Meeting Time</label>
+                        <input type="time" class="form-control" name="meeting_time" value="<?php echo $m['meeting_time']; ?>">
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Location</label>
+                    <input type="text" class="form-control" name="location" value="<?php echo htmlspecialchars($m['location']); ?>">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Leader Email</label>
+                    <input type="email" class="form-control" name="leader_email" value="<?php echo htmlspecialchars($m['leader_email']); ?>">
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Status</label>
+                    <select class="form-select" name="status">
+                        <option value="active" <?php echo ($m['status'] == 'active') ? 'selected' : ''; ?>>Active</option>
+                        <option value="inactive" <?php echo ($m['status'] == 'inactive') ? 'selected' : ''; ?>>Inactive</option>
+                    </select>
+                </div>
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save me-1"></i> Save Changes
+                </button>
+            </div>
+
+        </form>
+    </div>
+</div>
+
+<?php endforeach; ?>
 
 <?php include 'footer.php'; ?>

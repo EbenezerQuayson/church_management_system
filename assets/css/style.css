@@ -121,6 +121,50 @@ body {
   font-size: 0.75rem;
   color: #718096;
 }
+/* Menu Groups */
+.sidebar-menu-groups {
+  padding: 0.5rem 0;
+}
+
+.menu-group{
+  margin-bottom: 0.5rem;
+}
+
+.menu-group-header{
+  padding: 0.875rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  color: #4a5568;
+  font-weight: 600;
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.menu-group-header:hover {
+  background: #f7fafc;
+  color: var(--primary-color);
+}
+
+.menu-group-header i:first-child {
+  font-size: 0.75rem;
+  transition: transform 0.3s ease;
+}
+
+.menu-group-header[aria-expanded="true"] i:first-child {
+  transform: rotate(180deg);
+}
+
+
+.menu-link {
+  color: inherit;
+  text-decoration: none;
+}
+
 
 .sidebar-menu {
   list-style: none;
@@ -190,13 +234,90 @@ body {
   color: #e53e3e;
   margin-top: 1rem;
   padding-top: 1rem;
-  border-top: 1px solid #e9ecef;
+  /* border-top: 1px solid #e9ecef; */
 }
 
 .sidebar-menu a.logout-link:hover {
   background: rgba(229, 62, 62, 0.1);
   color: #c53030;
 }
+
+/* Modern Icon Styling */
+.sidebar-menu a i::before {
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.2));
+}
+
+/* Smooth Active State Animation */
+.sidebar-menu a.active {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* Sidebar Entry Animation */
+@keyframes sidebarFadeIn {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.sidebar-menu li {
+  animation: sidebarFadeIn 0.4s ease-out backwards;
+}
+
+.sidebar-menu li:nth-child(1) {
+  animation-delay: 0.05s;
+}
+.sidebar-menu li:nth-child(2) {
+  animation-delay: 0.1s;
+}
+.sidebar-menu li:nth-child(3) {
+  animation-delay: 0.15s;
+}
+.sidebar-menu li:nth-child(4) {
+  animation-delay: 0.2s;
+}
+.sidebar-menu li:nth-child(5) {
+  animation-delay: 0.25s;
+}
+.sidebar-menu li:nth-child(6) {
+  animation-delay: 0.3s;
+}
+.sidebar-menu li:nth-child(7) {
+  animation-delay: 0.35s;
+}
+.sidebar-menu li:nth-child(8) {
+  animation-delay: 0.4s;
+}
+.sidebar-menu li:nth-child(9) {
+  animation-delay: 0.45s;
+}
+
+/* Settings Menu Item Special Styling */
+.sidebar-menu a[href*="settings"] {
+  margin-top: 0;
+  padding-top: 1rem;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.sidebar-menu a[href*="settings"]::before {
+  display: none;
+}
+
 
 /* Top Navigation Bar */
 .top-navbar {
@@ -296,11 +417,17 @@ body {
 /* Main Content */
 .main-content {
   margin-left: var(--sidebar-width);
-  margin-top: 60px;
+  margin-top: 0;
   padding: 2rem;
-  min-height: calc(100vh - 60px);
+  min-height: calc(100vh - 10px);
   background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 30%, #e2e8f0 60%, #f1f5f9 100%);
   background-attachment: fixed;
+}
+
+.dashboard-greetings{
+  font-size: 0.9rem;
+  text-align: right;
+  white-space: normal;
 }
 
 /* Cards */
@@ -398,6 +525,30 @@ body {
   color: white;
 }
 
+.stat-card-pink{
+  background: linear-gradient(135deg, #e83e8c, #be2c73);
+    color: #fff;
+}
+
+.stat-card-gold{
+  background: linear-gradient(135deg, #f1c40f, #b7950b);
+    color: #fff;
+}
+
+.stat-card-cyan{
+  background: linear-gradient(135deg, #17a2b8, #0f6674);
+    color: #fff;
+}
+
+.stat-card-teal{
+   background: linear-gradient(135deg, #20c997, #0d786d);
+    color: #fff;
+}
+
+.stat-card-lime{
+   background: linear-gradient(135deg, #a8e063, #56ab2f);
+    color: #fff;
+}
 /* Tables */
 .table-responsive {
   border-radius: 10px;
@@ -523,7 +674,7 @@ body {
   left: 0;
   right: 0;
   height: 4px;
-  background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%);
+  /* background: linear-gradient(90deg, var(--primary-color) 0%, var(--secondary-color) 100%); */
   border-radius: 20px 20px 0 0;
 }
 
@@ -566,9 +717,14 @@ body {
 
   .main-content {
     margin-left: 0;
-    margin-top: 60px;
+    margin-top: 0px;
     padding: 1rem;
   }
+
+  .dashboard-greetings{
+    font-size:0.8rem;
+  }
+  
 
   .top-navbar {
     padding: 1rem;
