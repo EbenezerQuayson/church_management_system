@@ -18,46 +18,138 @@ $total_amount = $donation->getTotalAmount();
 $message = '';
 $message_type = '';
 
-// $member_id = !empty($_POST['member_id']) ? (int)$_POST['member_id'] : null;
+//Logic to prevent resubmission after refresh
+if(isset($_GET['msg'])){
+    switch($_GET['msg']){
+        case 'added':
+            $message = 'Donation recorded successfully!';
+            $message_type = 'success';
+            break;
+        case 'add_failed':
+            $message = 'Failed to record donation';
+            $message_type = 'error';
+            break;
+        case 'updated':
+            $message = 'Donation updated successfully!';
+            $message_type = 'success';
+            break;
+        case 'update_failed':
+            $message = 'Failed to update donation';
+            $message_type = 'error';
+            break;
+        case 'deleted':
+            $message = 'Donation deleted successfully!';
+            $message_type = 'success';
+            break;
+        case 'delete_failed':
+            $message = 'Failed to delete donation';
+            $message_type = 'error';
+            break;
+        default:
+            $message = '';
+            $message_type = '';
+            break;
+    }
+}
+
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
-    // Determine member_id
+    $action = $_POST['action'] ?? 'create';
+
+    // Normalize Member ID
     if (!empty($_POST['member_id']) && $_POST['member_id'] !== 'service_total') {
         $member_id = (int) $_POST['member_id'];
     } else {
-        $member_id = null; // anonymous or service total
+        $member_id = null;
     }
 
-    // Build data array
-    $data = [
+    // Shared Data
+    $commonData = [
         'member_id'      => $member_id,
         'amount'         => $_POST['amount'] ?? 0,
         'donation_type'  => $_POST['donation_type'] ?? 'General',
         'donation_date'  => $_POST['donation_date'] ?? date('Y-m-d'),
-        'notes'          => trim($_POST['notes'] ?? ''),
+        'notes'          => trim($_POST['notes'] ?? '')
     ];
 
-    // If Service Total selected, override notes BEFORE saving
+    // Replace notes if service total
     if (!empty($_POST['member_id']) && $_POST['member_id'] === 'service_total') {
-        $data['notes'] = 'service_total';
+        $commonData['notes'] = 'service_total';
     }
 
-    // Validate
-    if (empty($data['amount']) || $data['amount'] <= 0) {
-        $message = 'Amount is required and must be greater than 0';
-        $message_type = 'error';
-    } else {
-        if ($donation->create($data)) {
-            $message = 'Donation recorded successfully!';
-            $message_type = 'success';
+    /* ------------------------------
+       CREATE DONATION
+    ------------------------------ */
+    if ($action === 'create') {
+
+        if ($commonData['amount'] <= 0) {
+            $message = 'Amount must be greater than 0';
+            $message_type = 'error';
+        } else {
+            if ($donation->create($commonData)) {
+                // $message = 'Donation recorded successfully';
+                // $message_type = 'success';
+                 header("Location: donations.php?msg=added");
+                 exit();
+                $donations = $donation->getAll();
+            } else {
+                // $message = 'Failed to record donation';
+                // $message_type = 'error';
+                header("Location: donations.php?msg=add_failed");
+                exit();
+            }
+        }
+    }
+
+    /* ------------------------------
+       EDIT DONATION
+    ------------------------------ */
+    if ($action === 'edit') {
+
+        $id = (int) $_POST['id'];
+
+        if ($commonData['amount'] <= 0) {
+            $message = 'Amount must be greater than 0';
+            $message_type = 'error';
+        } else {
+            if ($donation->update($id, $commonData)) {
+                // $message = 'Donation updated successfully';
+                // $message_type = 'success';
+                header("Location: donations.php?msg=updated");
+                exit();
+                $donations = $donation->getAll();
+            } else {
+                // $message = 'Failed to update donation';
+                // $message_type = 'error';
+                 header("Location: donations.php?msg=update_failed");
+                 exit();
+            }
+        }
+    }
+
+    /* ------------------------------
+       DELETE DONATION
+    ------------------------------ */
+    if ($action === 'delete') {
+
+        $id = (int) $_POST['id'];
+
+        if ($donation->delete($id)) {
+            // $message = 'Donation deleted successfully';
+            // $message_type = 'success';
+             header("Location: donations.php?msg=delete");
+             exit();
             $donations = $donation->getAll();
         } else {
-            $message = 'Failed to record donation';
-            $message_type = 'error';
+            // $message = 'Failed to delete donation';
+            // $message_type = 'error';
+             header("Location: donations.php?msg=delete_failed");
+             exit();
         }
     }
 }
+
 
 ?>
 <?php include 'header.php'; ?>
@@ -237,7 +329,7 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
 </div>
 
 <!-- Donation Details Modal -->
-<div class="modal fade" data-bs-dismiss="modal" tabindex="-1" id="donationDetails">
+<div class="modal fade" tabindex="-1" id="donationDetails">
     <div class="modal-dialog modal-lg">
         <div class="modal-content">
 
@@ -288,7 +380,7 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
     </div>
 </div>
 <!-- Edit Donation Modal -->
-<div class="modal fade" id="editDonationModal" tabindex="-1">
+<div class="modal fade" data-bs-dismiss="modal" id="editDonationModal" tabindex="-1">
     <div class="modal-dialog">
         <form method="POST" class="modal-content" id="editDonationForm">
             <input type="hidden" name="action" value="edit">
