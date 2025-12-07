@@ -63,12 +63,12 @@ function isCollapsed($group, $current){
     <div class="sidebar-menu-groups" >
         <!--Christian Management -->
 <div class="menu-group">
-    <div class="menu-group-header"2
+    <div class="menu-group-header"
         aria-expanded="<?= isCollapsed('christianManagement', $activePage) ? 'true' : 'false' ?>"
         aria-controls="christianManagement"
         role="button"
     >
-        <i class="bi bi-chevron-down"></i>
+        <i class="bi bi-chevron-up"></i>
         <span>Christian Management</span>
     </div>
 

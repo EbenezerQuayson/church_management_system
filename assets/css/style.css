@@ -155,9 +155,6 @@ body {
   transition: transform 0.3s ease;
 }
 
-.menu-group-header[aria-expanded="true"] i:first-child {
-  transform: rotate(-180deg);
-}
 
 .menu-group-header i {
     transition: transform 0.3s ease;
@@ -166,6 +163,8 @@ body {
 .menu-group-header i.rotate {
     transform: rotate(180deg);
 }
+
+
 
 
 
