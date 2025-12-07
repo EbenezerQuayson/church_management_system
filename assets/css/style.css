@@ -165,7 +165,13 @@ body {
 }
 
 
+.logout-link {
+  color: #e53e3e;
+}
 
+.logout-link:hover {
+  color: #c53030;
+}
 
 
 .menu-link {
@@ -192,6 +198,7 @@ body {
   text-decoration: none;
   transition: all 0.2s ease;
   position: relative;
+  border-radius: 0;
   font-weight: 500;
   font-size: 0.9375rem;
 }
@@ -242,7 +249,7 @@ body {
   color: #e53e3e;
   margin-top: 1rem;
   padding-top: 1rem;
-  /* border-top: 1px solid #e9ecef; */
+  border-top: 1px solid #e9ecef;
 }
 
 .sidebar-menu a.logout-link:hover {
@@ -325,6 +332,8 @@ body {
 .sidebar-menu a[href*="settings"]::before {
   display: none;
 }
+
+
 
 
 /* Top Navigation Bar */

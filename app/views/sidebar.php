@@ -39,15 +39,8 @@ function isCollapsed($group, $current){
 
 ?>
 <!-- Sidebar -->
-<div class="sidebar sidebar-menu-groups" id="sidebar">
-    <!-- Sidebar Header -->
-    <div class="sidebar-header">
-        <div class="church-logo-placeholder">
-            <i class="fas fa-cross"></i>
-        </div>
-        <h4><?php echo htmlspecialchars($_SESSION['user_name']); ?></h4>
-    </div>
-
+<nav class="sidebar sidebar-menu-groups" id="sidebar">
+    
     <!-- User Card -->
     <div class="sidebar-user-card">
         <div class="user-avatar">
@@ -59,111 +52,121 @@ function isCollapsed($group, $current){
         </div>
     </div>
 
-    <!-- Sidebar Menu -->
-    <div class="sidebar-menu-groups" >
-        <!--Christian Management -->
-<div class="menu-group">
-    <div class="menu-group-header"
-        aria-expanded="<?= isCollapsed('christianManagement', $activePage) ? 'true' : 'false' ?>"
-        aria-controls="christianManagement"
-        role="button"
-    >
-        <i class="bi bi-chevron-up"></i>
-        <span>Christian Management</span>
-    </div>
 
-    <ul class="sidebar-menu collapse <?= isCollapsed('christianManagement', $activePage) ?>" id="christianManagement">
-        <li><a href="<?= BASE_URL ?>/app/views/dashboard.php" class="<?= isActive('dashboard', $activePage) ?>">
-            <i class="bi bi-speedometer2"></i> Dashboard
-        </a></li>
-
-        <li><a href="<?= BASE_URL ?>/app/views/members.php" class="<?= isActive('members', $activePage) ?>">
-            <i class="bi bi-people"></i> Members
-        </a></li>
-    </ul>
-</div>
-
-<!-- Church Management -->
- <div class="menu-group">
-            <div class="menu-group-header" 
-            aria-expanded="<?= isCollapsed('churchManagement', $activePage) ? 'true' : 'false' ?>"
-            aria-controls="churchManagment"
-            role ="button"
-            >
+    <!-- Menu Groups -->
+    <div class="sidebar-menu-groups">
+        <div class="menu-group">
+            <div class="menu-group-header"   data-bs-target="#christianManagement" aria-expanded="<?= isCollapsed('christianManagement', $activePage) ? 'true' : 'false' ?>">
                 <i class="bi bi-chevron-down"></i>
-                <span>Church Management</span>
+                <span>Christian Management</span>
             </div>
-            <ul class="sidebar-menu collapse <?= isCollapsed('churchManagement', $activePage) ?>" id="churchManagement">
-        <li><a href="<?php echo BASE_URL; ?>/app/views/attendance.php" class="<?= isActive('attendance', $activePage) ?>">
-            <i class="bi bi-clipboard-check"></i> Attendance
-        </a></li>
-        <li><a href="<?php echo BASE_URL; ?>/app/views/events.php" class="<?= isActive('events', $activePage) ?> ">
-            <i class="bi bi-calendar-event"></i> Events
-        </a></li>
-        <li><a href="<?php echo BASE_URL; ?>/app/views/ministries.php" class="<?= isActive('ministries', $activePage) ?>">
-            <i class="bi bi-diagram-3"></i> Ministries
-        </a></li>
-</ul>
- </div>
- <!-- Finances -->
-  <div class="menu-group">
-            <div class="menu-group-header"  aria-expanded="<?= isCollapsed('finance', $activePage) ? 'true' : 'false' ?>"
-            aria-controls="finance"
-            role="button"
-            >
+            <ul class="sidebar-menu collapse <?= isCollapsed('christianManagement', $activePage) ?>" id="christianManagement">
+                <li><a href="dashboard.php" class="<?= isActive('dashboard', $activePage) ?>"><i class="bi bi-speedometer2"></i> Dashboard</a></li>
+                <li><a href="members.php" class="<?= isActive('members', $activePage) ?>"><i class="bi bi-people"></i> Members</a></li>
+            </ul>
+        </div>
+
+        <div class="menu-group">
+            <div class="menu-group-header"  data-bs-target="#finance" aria-expanded="<?= isCollapsed('finance', $activePage) ? 'true' : 'false' ?>">
                 <i class="bi bi-chevron-down"></i>
                 <span>Finance</span>
             </div>
             <ul class="sidebar-menu collapse <?= isCollapsed('finance', $activePage) ?>" id="finance">
-        <li><a href="<?php echo BASE_URL; ?>/app/views/donations.php" class="<?= isActive('donations', $activePage) ?>">
-            <i class="bi bi-cash-coin"></i> Donations
-        </a></li>
+                <li><a href="donations.php" class="<?= isActive('donations', $activePage) ?>"><i class="bi bi-cash-coin"></i> Donations</a></li>
             </ul>
-  </div>
-  <!-- General Settings -->
-    <div class="menu-group">
-        <div class="menu-group-header"  aria-controls="settings" role="button">
-            <i class="bi bi-chevron-down"></i>
-             <span>General Settings</span>
         </div>
-        <ul class="sidebar-menu collapse <?= isCollapsed('settings', $activePage) ?>" id="settings">
-        <li>
-            <a href="<?php echo BASE_URL; ?>/app/views/settings.php" class="menu-link <?= isActive('settings', $activePage) ?>">
-             <i class="bi bi-gear"></i>Settings</a>
-        </li>
-        <li><a href="<?php echo BASE_URL; ?>/app/controllers/logout.php" class="menu-link logout-link">
-            <i class="bi bi-box-arrow-right"></i> Logout
-        </a></li>
-    </ul>
+
+        <div class="menu-group">
+            <div class="menu-group-header"  data-bs-target="#churchManagement" aria-expanded="<?= isCollapsed('churchManagement', $activePage) ? 'true' : 'false' ?>">
+                <i class="bi bi-chevron-down"></i>
+                <span>Church Management</span>
+            </div>
+            <ul class="sidebar-menu collapse <?= isCollapsed('churchManagement', $activePage) ?>" id="churchManagement">
+                <li><a href="ministries.php" class="<?= isActive('ministries', $activePage) ?>"><i class="bi bi-diagram-3"></i> Ministries</a></li>
+                <li><a href="events.php" class="<?= isActive('events', $activePage) ?>"><i class="bi bi-calendar-event"></i> Events</a></li>
+                <li><a href="attendance.php" class="<?= isActive('attendance', $activePage) ?>"><i class="bi bi-clipboard-check"></i> Attendance</a></li>
+            </ul>
+        </div>
+
+        <div class="menu-group">
+            <div class="menu-group-header"  data-bs-target="#notifications">
+                <i class="bi bi-chevron-down"></i>
+                <span>Notifications</span>
+            </div>
+            <ul class="sidebar-menu collapse" id="notifications">
+                <li><a href="#" class="<?= isActive('notifications', $activePage) ?>"><i class="bi bi-bell"></i> All Notifications</a></li>
+            </ul>
+        </div>
+
+        <!-- <div class="menu-group">
+            <div class="menu-group-header"  data-bs-target="#sms">
+                <i class="bi bi-chevron-down"></i>
+                <span>SMS</span>
+            </div>
+            <ul class="sidebar-menu collapse" id="sms">
+                <li><a href="#" class="<?= isActive('sms', $activePage) ?>"><i class="bi bi-chat-dots"></i> Send SMS</a></li>
+            </ul>
+        </div> -->
+
+        <!-- <div class="menu-group">
+            <div class="menu-group-header"  data-bs-target="#userManagement" aria-expanded="<?= isCollapsed('userManagement', $activePage) ? 'true' : 'false' ?>">
+                <i class="bi bi-chevron-down"></i>
+                <span>User Management</span>
+            </div>
+            <ul class="sidebar-menu collapse <?= isCollapsed('userManagement', $activePage) ?>" id="userManagement">
+                <li><a href="settings-profile.php" class="<?= isActive('settings-profile', $activePage) ?>"><i class="bi bi-person-gear"></i> Users</a></li>
+            </ul>
+        </div> -->
+
+        <div class="menu-group">
+            <div class="menu-group-header">
+                <i class="bi bi-gear"></i>
+                <span><a href="<?php echo BASE_URL; ?>/app/views/settings.php" class="menu-link <?= isActive('settings', $activePage) ?>">Settings</a></span>
+            </div>
+        </div>
+
+        <div class="menu-group">
+            <div class="menu-group-header">
+                <i class="bi bi-box-arrow-right"></i>
+                <span><a href="<?php echo BASE_URL; ?>/app/controllers/logout.php" class="menu-link logout-link"> Logout
+        </a></span>
+            </div>
+        </div>
     </div>
-
-</div>
-</div>
-
+</nav>
 <script>
-    document.addEventListener("DOMContentLoaded", function () {
+document.addEventListener("DOMContentLoaded", () => {
+
+    // Fix chevron rotation on initial page load
+    document.querySelectorAll(".sidebar-menu.show").forEach(openMenu => {
+        const header = openMenu.previousElementSibling;
+        const icon = header.querySelector("i");
+        if (icon) icon.classList.add("rotate");
+    });
+
     const headers = document.querySelectorAll(".menu-group-header");
 
     headers.forEach(header => {
-        header.addEventListener("click", function () {
-            const currentMenu = this.nextElementSibling; // The <ul> under header
-            const icon = this.querySelector("i");
+        header.addEventListener("click", () => {
+            const targetSelector = header.getAttribute("data-bs-target");
+            const target = document.querySelector(targetSelector);
+            const icon = header.querySelector("i");
 
-            // Close all other open groups
+            // Close other groups
             document.querySelectorAll(".sidebar-menu.show").forEach(openMenu => {
-                if (openMenu !== currentMenu) {
-                    openMenu.classList.remove("show");
-                    const openHeader = openMenu.previousElementSibling;
-                    openHeader.querySelector("i").classList.remove("rotate");
+                if (openMenu !== target) {
+                    new bootstrap.Collapse(openMenu, { toggle: true });
+                    openMenu.previousElementSibling.querySelector("i").classList.remove("rotate");
                 }
             });
 
-            // Toggle clicked group
-            currentMenu.classList.toggle("show");
+            // Toggle this group
+            new bootstrap.Collapse(target, { toggle: true });
+
+            // Toggle chevron rotation
             icon.classList.toggle("rotate");
         });
     });
 });
-
 
 </script>
