@@ -62,23 +62,34 @@ function isCollapsed($group, $current){
     <!-- Sidebar Menu -->
     <div class="sidebar-menu-groups" >
         <!--Christian Management -->
-        <div class="menu-group">
-            <div class="menu-group-header" data-bs-toggle="collapse" data-bs-target="#christianManagement" aria-expanded="<?= isCollapsed('christianManagement', $activePage) ? 'true' : 'false' ?>">
-                <i class="bi bi-chevron-down"></i>
-                <span>Christian Management</span>
-            </div>
-            <ul class="sidebar-menu collapse <?= isCollapsed('christianManagement', $activePage) ?>" id="christianManagement">
-        <li><a href="<?php echo BASE_URL; ?>/app/views/dashboard.php" class="<?= isActive('dashboard', $activePage)?>">
+<div class="menu-group">
+    <div class="menu-group-header"
+        aria-expanded="<?= isCollapsed('christianManagement', $activePage) ? 'true' : 'false' ?>"
+        aria-controls="christianManagement"
+        role="button"
+    >
+        <i class="bi bi-chevron-up"></i>
+        <span>Christian Management</span>
+    </div>
+
+    <ul class="sidebar-menu collapse <?= isCollapsed('christianManagement', $activePage) ?>" id="christianManagement">
+        <li><a href="<?= BASE_URL ?>/app/views/dashboard.php" class="<?= isActive('dashboard', $activePage) ?>">
             <i class="bi bi-speedometer2"></i> Dashboard
         </a></li>
-        <li><a href="<?php echo BASE_URL; ?>/app/views/members.php" class="<?= isActive('members', $activePage) ?> ">
+
+        <li><a href="<?= BASE_URL ?>/app/views/members.php" class="<?= isActive('members', $activePage) ?>">
             <i class="bi bi-people"></i> Members
         </a></li>
-            </ul>
+    </ul>
 </div>
+
 <!-- Church Management -->
  <div class="menu-group">
-            <div class="menu-group-header" data-bs-toggle="collapse" data-bs-target="#churchManagement" aria-expanded="<?= isCollapsed('churchManagement', $activePage) ? 'true' : 'false' ?>">
+            <div class="menu-group-header" 
+            aria-expanded="<?= isCollapsed('churchManagement', $activePage) ? 'true' : 'false' ?>"
+            aria-controls="churchManagment"
+            role ="button"
+            >
                 <i class="bi bi-chevron-down"></i>
                 <span>Church Management</span>
             </div>
@@ -96,7 +107,10 @@ function isCollapsed($group, $current){
  </div>
  <!-- Finances -->
   <div class="menu-group">
-            <div class="menu-group-header" data-bs-toggle="collapse" data-bs-target="#finance" aria-expanded="<?= isCollapsed('finance', $activePage) ? 'true' : 'false' ?>">
+            <div class="menu-group-header"  aria-expanded="<?= isCollapsed('finance', $activePage) ? 'true' : 'false' ?>"
+            aria-controls="finance"
+            role="button"
+            >
                 <i class="bi bi-chevron-down"></i>
                 <span>Finance</span>
             </div>
@@ -106,8 +120,9 @@ function isCollapsed($group, $current){
         </a></li>
             </ul>
   </div>
+  <!-- General Settings -->
     <div class="menu-group">
-        <div class="menu-group-header" data-bs-toggle="collapse" data-bs-target="#settings">
+        <div class="menu-group-header"  aria-controls="settings" role="button">
             <i class="bi bi-chevron-down"></i>
              <span>General Settings</span>
         </div>
@@ -124,3 +139,31 @@ function isCollapsed($group, $current){
 
 </div>
 </div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+    const headers = document.querySelectorAll(".menu-group-header");
+
+    headers.forEach(header => {
+        header.addEventListener("click", function () {
+            const currentMenu = this.nextElementSibling; // The <ul> under header
+            const icon = this.querySelector("i");
+
+            // Close all other open groups
+            document.querySelectorAll(".sidebar-menu.show").forEach(openMenu => {
+                if (openMenu !== currentMenu) {
+                    openMenu.classList.remove("show");
+                    const openHeader = openMenu.previousElementSibling;
+                    openHeader.querySelector("i").classList.remove("rotate");
+                }
+            });
+
+            // Toggle clicked group
+            currentMenu.classList.toggle("show");
+            icon.classList.toggle("rotate");
+        });
+    });
+});
+
+
+</script>
