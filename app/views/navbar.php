@@ -1,4 +1,8 @@
-
+<?php
+require_once __DIR__ . '/../../config/session.php';
+require_once __DIR__ . '/../../config/database.php';
+// include  __DIR__ . '/notification.php';
+?>
 <!-- Top Navigation Bar -->
     <nav class="top-navbar">
         <div class="top-nav-left">
@@ -14,12 +18,34 @@
          <div class="dropdown">
             <button class="top-nav-icon-btn notification-btn" data-bs-toggle="dropdown">
                 <i class="fas fa-bell"></i>
-                <span class="notification-badge">3</span>
+                <span class="notification-badge"><?= $unread_count['COUNT(*)'] ?? 0 ?></span>
             </button>
                 <ul class="dropdown-menu dropdown-menu-end">
-                    <li><a class="dropdown-item" href="#">New member registered</a></li>
+                    <?php
+$notifications = $db->fetchAll("SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC", [$user_id]);
+
+if (!empty($notifications)) {
+    foreach ($notifications as $notification):
+    ?>
+    <li>
+        <a class="dropdown-item" href="<?php echo BASE_URL . '/' . htmlspecialchars($notification['link']); ?>">
+            <?php echo htmlspecialchars($notification['message']); ?>
+        </a>
+    </li>
+    <?php
+    endforeach;
+} else {
+    ?>
+    <li>
+        <a class="dropdown-item text-muted" href="#">No new notifications</a>
+    </li>
+    <?php
+}
+?>
+
+                    <!-- <li><a class="dropdown-item" href="#">New member registered</a></li>
                     <li><a class="dropdown-item" href="#">Event today at 10 AM</a></li>
-                    <li><a class="dropdown-item" href="#">Donation received</a></li>
+                    <li><a class="dropdown-item" href="#">Donation received</a></li> -->
                 </ul>
          </div>
             <div class="dropdown user-dropdown ms-2">
