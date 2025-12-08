@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Nov 29, 2025 at 06:19 AM
+-- Generation Time: Dec 09, 2025 at 12:18 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -42,7 +42,8 @@ CREATE TABLE `attendance` (
 --
 
 INSERT INTO `attendance` (`id`, `member_id`, `event_id`, `attendance_date`, `status`, `notes`, `created_at`) VALUES
-(1, 1, NULL, '2025-11-27', 'present', '', '2025-11-27 15:32:39');
+(1, 1, NULL, '2025-11-27', 'present', '', '2025-11-27 15:32:39'),
+(2, 7, NULL, '2025-12-01', 'present', '', '2025-12-01 11:49:14');
 
 -- --------------------------------------------------------
 
@@ -65,8 +66,11 @@ CREATE TABLE `donations` (
 --
 
 INSERT INTO `donations` (`id`, `member_id`, `amount`, `donation_type`, `donation_date`, `notes`, `created_at`) VALUES
-(5, 1, 40.00, 'General', '2025-11-27', 'general offering', '2025-11-27 15:59:38'),
-(11, NULL, 432.00, 'Tithe', '2025-11-27', 'fhjgk', '2025-11-27 16:22:45');
+(3, 1, 31.00, 'Tithe', '2025-11-08', 'Tithe', '2025-12-01 19:06:48'),
+(4, NULL, 23.00, 'Service Offering', '2025-12-01', 'service_total', '2025-12-05 03:58:04'),
+(5, NULL, 10000.00, 'Tithe', '2025-12-01', 'service_total', '2025-12-05 03:58:23'),
+(7, 7, 39.00, 'Service Offering', '2025-12-01', 'Amy Plegde', '2025-12-05 03:59:55'),
+(8, NULL, 2.00, 'Service Offering', '2025-12-01', 'Amy Plegdes', '2025-12-06 00:26:37');
 
 -- --------------------------------------------------------
 
@@ -92,8 +96,12 @@ CREATE TABLE `events` (
 --
 
 INSERT INTO `events` (`id`, `title`, `description`, `event_date`, `location`, `capacity`, `organizer_id`, `status`, `created_at`, `updated_at`) VALUES
-(8, 'W\'asida Nie', 'Thanksgiving program', '2025-11-30 16:00:00', 'Church auditorium', 100, 1, 'ongoing', '2025-11-28 01:26:17', '2025-11-28 01:26:17'),
-(9, 'W\'asida Nie', 'Thanksgiving program', '2025-11-30 16:00:00', 'Church auditorium', 100, 1, 'completed', '2025-11-28 01:26:37', '2025-11-28 01:26:37');
+(10, 'W\'asida Nie', 'Thanksgiving program', '2025-11-30 16:00:00', 'Church auditorium', 100, 1, 'scheduled', '2025-11-29 20:04:49', '2025-11-29 23:09:44'),
+(11, 'Carols Night', 'Nine lessons and carols', '2025-12-21 18:00:00', 'Church auditorium', 1200, 1, 'scheduled', '2025-11-29 20:51:49', '2025-11-29 20:51:49'),
+(12, 'Christmas Celebration Service', 'Join us for a special Christmas worship service celebrating the birth of Christ with music, prayers, and fellowship.', '2025-12-25 21:00:00', 'Church Premise', 1200, 1, 'scheduled', '2025-11-29 22:42:47', '2025-11-29 23:19:59'),
+(13, 'New Year Prayers & Fasting', 'Begin the new year with us in prayer and fasting. Let\'s seek God\'s guidance and blessings for 2026.', '2026-01-01 00:00:00', 'Church auditorium', 1500, 1, 'scheduled', '2025-11-29 23:21:22', '2025-11-29 23:21:22'),
+(14, 'Community Food Drive', 'Participate in our community food drive to help provide nutritious meals to families in need.', '2026-01-12 07:30:00', 'Church Community', 500, 1, 'scheduled', '2025-11-29 23:22:44', '2025-11-29 23:22:44'),
+(15, '31st Watch Night', 'Join us for our all night service as we crossover into the next year in victory', '2025-12-31 21:30:00', 'Church Premise', 1200, 1, 'scheduled', '2025-11-29 23:28:36', '2025-11-29 23:28:36');
 
 -- --------------------------------------------------------
 
@@ -129,7 +137,7 @@ CREATE TABLE `members` (
 
 INSERT INTO `members` (`id`, `user_id`, `first_name`, `last_name`, `email`, `phone`, `date_of_birth`, `gender`, `join_date`, `status`, `address`, `city`, `state`, `zip_code`, `emergency_contact`, `emergency_phone`, `photo`, `created_at`, `updated_at`) VALUES
 (1, NULL, 'Joe', 'Doe', 'joe@doe.com', '233456789', '2025-11-20', 'Male', '2025-11-27', 'active', 'Weija', 'Accra', 'Greater Accra', '233', NULL, NULL, NULL, '2025-11-27 15:32:00', '2025-11-29 05:18:07'),
-(2, NULL, 'James', 'Cole', 'james@cole.com', '0243114594', '1995-05-05', 'Male', '2025-11-28', 'inactive', 'Weija', 'Accra', 'Greater Accra', '334', NULL, NULL, NULL, '2025-11-28 01:08:36', '2025-11-29 05:18:23');
+(7, NULL, 'Amy', 'Chutti', 'amy@chutti.com', '023456321', '2025-11-28', 'Female', '2025-11-29', 'active', 'West Hills', 'Accra', 'Greater Accra', '500', NULL, NULL, NULL, '2025-11-29 20:49:14', '2025-11-29 22:03:47');
 
 -- --------------------------------------------------------
 
@@ -156,7 +164,9 @@ CREATE TABLE `ministries` (
 --
 
 INSERT INTO `ministries` (`id`, `name`, `description`, `leader_id`, `leader_email`, `meeting_day`, `meeting_time`, `location`, `status`, `created_at`, `updated_at`) VALUES
-(1, 'Youth Ministry', 'Youth meeting', NULL, 'joe@gmail.com', 'sunday', '19:00:00', 'Church Premises', 'active', '2025-11-27 15:29:56', '2025-11-27 15:29:56');
+(1, 'Youth Ministry', 'Youth meeting', NULL, 'joe@gmail.com', 'sunday', '19:00:00', 'Church Premises', 'active', '2025-11-27 15:29:56', '2025-11-27 15:29:56'),
+(2, 'Music Ministry', 'Our blessed musicians lead worship and create meaningful spiritual experiences.', NULL, 'joseph@gmail.com', 'saturday', '18:00:00', 'Church Premise', 'active', '2025-11-30 10:07:36', '2025-12-05 03:14:31'),
+(3, 'Community Outreach', 'We serve our community through charity work and social justice initiatives.', NULL, 'james@cole.com', 'saturday', '07:00:00', 'Church Community', 'active', '2025-11-30 10:09:25', '2025-12-05 02:56:54');
 
 -- --------------------------------------------------------
 
@@ -171,6 +181,25 @@ CREATE TABLE `ministry_members` (
   `role` varchar(100) DEFAULT NULL,
   `joined_date` date DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `notifications`
+--
+
+CREATE TABLE `notifications` (
+  `id` int(11) NOT NULL,
+  `user_id` int(11) NOT NULL,
+  `title` varchar(255) NOT NULL,
+  `message` text NOT NULL,
+  `category` enum('general','finance','members','attendance','events','system') DEFAULT 'general',
+  `link` varchar(255) DEFAULT NULL,
+  `is_read` tinyint(1) DEFAULT 0,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp(),
+  `deleted_at` timestamp NULL DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -217,10 +246,10 @@ CREATE TABLE `settings` (
 --
 
 INSERT INTO `settings` (`id`, `setting_key`, `setting_value`, `description`, `created_at`, `updated_at`) VALUES
-(1, 'church_name', 'Methodist Ghana', 'Church name', '2025-11-26 23:13:02', '2025-11-27 16:31:30'),
-(2, 'church_address', 'Kasoa', 'Church address', '2025-11-26 23:13:02', '2025-11-27 16:31:30'),
+(1, 'church_name', 'The Methodist Ghana', 'Church name', '2025-11-26 23:13:02', '2025-12-01 15:10:37'),
+(2, 'church_address', 'Accra', 'Church address', '2025-11-26 23:13:02', '2025-12-01 15:10:37'),
 (3, 'church_phone', '0543356784', 'Church phone', '2025-11-26 23:13:02', '2025-11-27 16:31:30'),
-(4, 'church_email', 'methodist@gmail.com', 'Church email', '2025-11-26 23:13:02', '2025-11-27 16:31:30'),
+(4, 'church_email', 'methodistchurchghana@gmail.com', 'Church email', '2025-11-26 23:13:02', '2025-12-01 15:10:37'),
 (5, 'primary_color', '#003DA5', 'Primary brand color (Methodist Blue)', '2025-11-26 23:13:02', '2025-11-27 16:31:30'),
 (6, 'secondary_color', '#CC0000', 'Secondary brand color (Red)', '2025-11-26 23:13:02', '2025-11-27 16:31:30'),
 (7, 'accent_color', '#F4C43F', 'Accent color (Gold/Yellow)', '2025-11-26 23:13:02', '2025-11-27 16:31:30');
@@ -302,6 +331,15 @@ ALTER TABLE `ministry_members`
   ADD KEY `member_id` (`member_id`);
 
 --
+-- Indexes for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `idx_notifications_user` (`user_id`),
+  ADD KEY `idx_notifications_read` (`is_read`),
+  ADD KEY `idx_notifications_category` (`category`);
+
+--
 -- Indexes for table `roles`
 --
 ALTER TABLE `roles`
@@ -331,37 +369,43 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
 
 --
 -- AUTO_INCREMENT for table `donations`
 --
 ALTER TABLE `donations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `events`
 --
 ALTER TABLE `events`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `members`
 --
 ALTER TABLE `members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT for table `ministries`
 --
 ALTER TABLE `ministries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=6;
 
 --
 -- AUTO_INCREMENT for table `ministry_members`
 --
 ALTER TABLE `ministry_members`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
+-- AUTO_INCREMENT for table `notifications`
+--
+ALTER TABLE `notifications`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=2;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -373,7 +417,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `settings`
 --
 ALTER TABLE `settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -422,6 +466,12 @@ ALTER TABLE `ministries`
 ALTER TABLE `ministry_members`
   ADD CONSTRAINT `ministry_members_ibfk_1` FOREIGN KEY (`ministry_id`) REFERENCES `ministries` (`id`) ON DELETE CASCADE,
   ADD CONSTRAINT `ministry_members_ibfk_2` FOREIGN KEY (`member_id`) REFERENCES `members` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `notifications`
+--
+ALTER TABLE `notifications`
+  ADD CONSTRAINT `fk_notifications_user` FOREIGN KEY (`user_id`) REFERENCES `users` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `users`
