@@ -28,7 +28,7 @@ function isCollapsed($group, $current){
         'christianManagement' => ['dashboard', 'members'],
         'finance' => ['donations'],
         'churchManagement' => ['ministries', 'events', 'attendance'],
-        'userManagement' => ['settings-profile']
+        'notifications' => ['notifications']
     ];
 
     if(isset($groups[$group]) && in_array($current, $groups[$group])){
@@ -93,8 +93,8 @@ function isCollapsed($group, $current){
                 <i class="bi bi-chevron-down"></i>
                 <span>Notifications</span>
             </div>
-            <ul class="sidebar-menu collapse" id="notifications">
-                <li><a href="#" class="<?= isActive('notifications', $activePage) ?>"><i class="bi bi-bell"></i> All Notifications</a></li>
+            <ul class="sidebar-menu collapse <?= isCollapsed('notifications', $activePage) ?>" id="notifications">
+                <li><a href="notification.php" class="<?= isActive('notifications', $activePage) ?>"><i class="bi bi-bell"></i> All Notifications</a></li>
             </ul>
         </div>
 
