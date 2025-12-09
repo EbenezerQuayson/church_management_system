@@ -41,7 +41,7 @@ A comprehensive church management system built with PHP and MySQL, featuring aut
 ├── app/
 │   ├── controllers/          # Business logic
 │   ├── models/              # Database models
-│   └── views/               # PHP templates
+│   └── views/  # PHP templates
 ├── assets/
 │   ├── css/                 # Stylesheets
 │   ├── js/                  # JavaScript files
@@ -115,6 +115,7 @@ A comprehensive church management system built with PHP and MySQL, featuring aut
 - **ministry_members** - Ministry member associations
 - **donations** - Donation records
 - **settings** - System settings
+- **notification** - Notifications
 
 ## Default Colors
 
