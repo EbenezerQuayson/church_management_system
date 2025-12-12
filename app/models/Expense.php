@@ -29,37 +29,8 @@ class Expense
         return $stmt->execute();
     }
 
-    /**
-     * Get all expenses
-     */
-    public function getAll()
-    {
-        $sql = "SELECT e.*, c.name AS category_name
-                FROM {$this->table} e
-                JOIN expense_categories c ON e.category_id = c.id
-                ORDER BY e.expense_date DESC";
 
-        $stmt = $this->conn->prepare($sql);
-        $stmt->execute();
-
-        return $stmt;
-    }
-
-    /**
-     * Get expense by ID
-     */
-    public function getById($id)
-    {
-        $sql = "SELECT * FROM {$this->table} WHERE id = :id LIMIT 1";
-        $stmt = $this->conn->prepare($sql);
-
-        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetch(PDO::FETCH_ASSOC);
-    }
-
-    /**
+     /**
      * Update an expense record
      */
     public function update($id, $expense_date, $category_id, $amount, $description = null, $receipt_path = null)
@@ -96,4 +67,68 @@ class Expense
 
         return $stmt->execute();
     }
+
+
+    /**
+     * Get all expenses
+     */
+    public function getAll()
+    {
+        $sql = "SELECT e.*, c.name AS category_name
+                FROM {$this->table} e
+                JOIN expense_categories c ON e.category_id = c.id
+                ORDER BY e.expense_date DESC";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+
+        return $stmt;
+    }
+
+    /**
+     * Get expense by ID
+     */
+    public function getById($id)
+    {
+        $sql = "SELECT * FROM {$this->table} WHERE id = :id LIMIT 1";
+        $stmt = $this->conn->prepare($sql);
+
+        $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+    /**
+     * Get total expenses by month
+     */
+    public function getTotalByMonth($year, $month)
+    {
+        $sql = "SELECT COALESCE(SUM(amount), 0) AS total_expense
+                FROM {$this->table}
+                WHERE YEAR(expense_date) = :year
+                AND MONTH(expense_date) = :month";
+
+        $stmt = $this->conn->prepare($sql);
+        $stmt->bindParam(':year', $year, PDO::PARAM_INT);
+        $stmt->bindParam(':month', $month, PDO::PARAM_INT);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
+
+    /**
+     * Get total amount of all expenses
+     */
+    public function getTotalAmount()
+    {
+        $sql = "SELECT SUM(amount) AS total_amount FROM {$this->table}";
+        $stmt = $this->conn->prepare($sql);
+        $stmt->execute();
+
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+   
 }
+?>

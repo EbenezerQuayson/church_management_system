@@ -15,6 +15,14 @@ $pdo = Database::getInstance()->getConnection();
 // MODELS
 $expenseModel = new Expense($pdo);
 $categoryModel = new ExpenseCategory($pdo);
+// Expenses
+$expenses = $expenseModel->getAll();
+$categories = $categoryModel->getAll();
+$monthly_total = $expenseModel->getTotalByMonth(date('Y'), date('m'));
+$total_amount = $expenseModel->getTotalAmount();
+
+
+
 
 // Message handling (optional)
 $message = '';
@@ -137,6 +145,43 @@ if (isset($_POST['create_expense'])) {
     <?php include 'sidebar.php'; ?>
 
     <div class="container-fluid mt-4">
+
+    <!-- Summary Cards -->
+      <div class="row mb-4">
+            <div class="col-md-4">
+                <div class="card stat-card stat-card-green">
+                    <div class="card-body">
+                        <div class="stat-icon">
+                            <i class="bis bi-cash-stack"></i>
+                        </div>
+                        <p class="stat-value">¢<?php echo number_format($monthly_total['total_expense'], 2); ?></p>
+                        <p class="stat-label">This Month</p>
+                    </div>
+                </div>
+            </div>
+             <div class="col-md-4">
+                <div class="card stat-card stat-card-orange">
+                    <div class="card-body">
+                        <div class="stat-icon">
+                            <i class="bis bi-credit-card"></i>
+                        </div>
+                        <p class="stat-value">¢<?php echo number_format($total_amount['total_amount'], 2); ?></p>
+                        <p class="stat-label">Total Expenses</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card stat-card stat-card-blue">
+                    <div class="card-body">
+                        <div class="stat-icon">
+                            <i class="fas fa-chart-bar"></i>
+                        </div>
+                        <p class="stat-value"><?php echo count($expenses); ?></p>
+                        <p class="stat-label">Total Expenses</p>
+                    </div>
+                </div>
+            </div>
+        </div>
 
         <div class="d-flex justify-content-between align-items-center mb-3">
             <h2 class="fw-bold" style="color: var(--primary-color);">Expenses</h2>

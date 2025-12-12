@@ -74,7 +74,7 @@ function isCollapsed($group, $current){
             <ul class="sidebar-menu collapse <?= isCollapsed('finance', $activePage) ?>" id="finance">
                 <li><a href="overview.php" class="<?= isActive('overview', $activePage) ?>"><i class="bi bi-stack-overflow"></i> Overview</a></li>
                 <li><a href="donations.php" class="<?= isActive('donations', $activePage) ?>"><i class="bi bi-cash-coin"></i> Donations</a></li>
-                <li><a href="expenses.php" class="<?= isActive('expenses', $activePage) ?>"><i class="bi bi-wallet"></i> Expenses</a></li>
+                <li><a href="expenses.php" class="<?= isActive('expenses', $activePage) ?>"><i class="fa fa-money-bill-wave"></i> Expenses</a></li>
             </ul>
         </div>
 

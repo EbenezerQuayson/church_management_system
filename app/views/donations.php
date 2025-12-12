@@ -8,13 +8,15 @@ require_once __DIR__ . '/../models/Donation.php';
 require_once __DIR__ . '/../models/Member.php';
 
 requireLogin();
-
+//Models
 $donation = new Donation();
 $member_model = new Member();
 $donations = $donation->getAll();
 $members = $member_model->getAll();
 $monthly_total = $donation->getTotalByMonth();
 $total_amount = $donation->getTotalAmount();
+
+
 $message = '';
 $message_type = '';
 
