@@ -30,44 +30,6 @@ if (isset($_GET['success'])) {
     $message_type = 'success';
 }
 
-// -------------------------
-// HANDLE CREATE EXPENSE
-// -------------------------
-if (isset($_POST['create_expense'])) {
-    $category_id = (int) ($_POST['category_id'] ?? 0);
-    $title = trim($_POST['title'] ?? '');
-    $amount = (float) ($_POST['amount'] ?? 0);
-    $date_spent = $_POST['date_spent'] ?? date('Y-m-d');
-    $description = trim($_POST['description'] ?? '');
-
-    // File upload for receipt
-    $receipt_path = null;
-    if (!empty($_FILES['receipt']['name'])) {
-        $targetDir = __DIR__ . '/../../assets/uploads/receipts/';
-        if (!is_dir($targetDir)) {
-            mkdir($targetDir, 0777, true);
-        }
-
-        $fileName = time() . "_" . preg_replace('/[^a-zA-Z0-9_\.-]/', '_', basename($_FILES['receipt']['name']));
-        $targetFile = $targetDir . $fileName;
-
-        if (move_uploaded_file($_FILES['receipt']['tmp_name'], $targetFile)) {
-            // store relative web path
-            $receipt_path = 'assets/uploads/receipts/' . $fileName;
-        }
-    }
-
-    $expenseModel->create(
-        $date_spent,      // expense_date
-        $category_id,     // category_id
-        $amount,          // amount
-        $description,     // description
-        $receipt_path     // receipt_path
-    );
-
-    header("Location: expenses.php?success=1");
-    exit;
-}
 
 // -------------------------
 // HANDLE UPDATE EXPENSE
@@ -125,6 +87,49 @@ if (isset($_POST['delete_expense'])) {
 // FETCH DATA
 $categories = $categoryModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
 $expenses = $expenseModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
+
+
+//Adding custom Category
+if (isset($_POST['create_expense'])) {
+    $categoryName = trim($_POST['category_input']); // from datalist input
+
+    // 1. Check if category exists
+    $existingCategory = $categoryModel->getByName($categoryName);
+
+    if ($existingCategory) {
+        $categoryId = $existingCategory['id'];
+    } else {
+        // 2. Create new category and get its ID
+        $categoryId = $categoryModel->create($categoryName);
+        if (!$categoryId) {
+            die("Failed to create category.");
+        }
+    }
+
+    // 3. Insert expense
+    $amount = (float) ($_POST['amount'] ?? 0);
+    $date_spent = $_POST['date_spent'] ?? date('Y-m-d');
+    $description = trim($_POST['description'] ?? '');
+
+    $receipt_path = null;
+    if (!empty($_FILES['receipt']['name'])) {
+        $targetDir = __DIR__ . '/../../assets/uploads/receipts/';
+        if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+
+        $fileName = time() . "_" . preg_replace('/[^a-zA-Z0-9_\.-]/', '_', basename($_FILES['receipt']['name']));
+        $targetFile = $targetDir . $fileName;
+
+        if (move_uploaded_file($_FILES['receipt']['tmp_name'], $targetFile)) {
+            $receipt_path = 'assets/uploads/receipts/' . $fileName;
+        }
+    }
+
+    $expenseModel->create($date_spent, $categoryId, $amount, $description, $receipt_path);
+    header("Location: expenses.php?success=1");
+    exit;
+}
+
+
 ?>
 <?php include 'header.php'; ?>
 
@@ -287,57 +292,64 @@ $expenses = $expenseModel->getAll()->fetchAll(PDO::FETCH_ASSOC);
         </div>
 
         <!-- ADD EXPENSE MODAL -->
-        <div class="modal fade" id="addExpenseModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <form method="post" enctype="multipart/form-data">
-                        <div class="modal-header" style="background:var(--primary-color); color:white;">
-                            <h5 class="modal-title"><i class="fas fa-plus"></i> Add Expense</h5>
-                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                        </div>
-
-                        <div class="modal-body">
-                            <div class="mb-3">
-                                <label class="form-label">Category</label>
-                                <select name="category_id" class="form-select" required>
-                                    <option value="">Select category</option>
-                                    <?php foreach ($categories as $cat): ?>
-                                        <option value="<?= $cat['id'] ?>"><?= htmlspecialchars($cat['name']) ?></option>
-                                    <?php endforeach; ?>
-                                </select>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Amount</label>
-                                <input type="number" name="amount" class="form-control" step="0.01" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Date</label>
-                                <input type="date" name="date_spent" class="form-control" value="<?= date('Y-m-d') ?>" required>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Description</label>
-                                <textarea name="description" class="form-control" rows="3"></textarea>
-                            </div>
-
-                            <div class="mb-3">
-                                <label class="form-label">Receipt (optional)</label>
-                                <input type="file" name="receipt" class="form-control">
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                            <button type="submit" name="create_expense" class="btn btn-primary">Save Expense</button>
-                        </div>
-                    </form>
+<div class="modal fade" id="addExpenseModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form id="addExpenseForm" method="post" enctype="multipart/form-data">
+                <div class="modal-header" style="background:var(--primary-color); color:white;">
+                    <h5 class="modal-title"><i class="fas fa-plus"></i> Add Expense</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-            </div>
-        </div>
 
+                <div class="modal-body">
+                    <!-- Category as datalist input -->
+                    <div class="mb-3">
+                        <label class="form-label">Category</label>
+                        <input 
+                            list="categoryList" 
+                            name="category_input" 
+                            class="form-control" 
+                            placeholder="Select or type a category" 
+                            required
+                        >
+                        <datalist id="categoryList">
+                            <?php foreach ($categories as $cat): ?>
+                                <option value="<?= htmlspecialchars($cat['name']) ?>"></option>
+                            <?php endforeach; ?>
+                        </datalist>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Amount</label>
+                        <input type="number" name="amount" class="form-control" step="0.01" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Date</label>
+                        <input type="date" name="date_spent" class="form-control" value="<?= date('Y-m-d') ?>" required>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Description</label>
+                        <textarea name="description" class="form-control" rows="3"></textarea>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label">Receipt (optional)</label>
+                        <input type="file" name="receipt" class="form-control">
+                    </div>
+                </div>
+
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" name="create_expense" class="btn btn-primary">Save Expense</button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
+        
+    </div>
+</div>
 <?php include 'footer.php'; ?>

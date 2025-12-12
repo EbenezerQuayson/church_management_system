@@ -9,21 +9,35 @@ class ExpenseCategory
         $this->conn = $db;
     }
 
-    /**
-     * Create a new expense category
-     */
-    public function create($name, $description = null)
-    {
-        $sql = "INSERT INTO {$this->table} (name, description)
-                VALUES (:name, :description)";
+//Check if category exists
+    public function getByName($name){
+        $stmt = $this->conn->prepare("SELECT * FROM expense_categories WHERE name = :name");
+    $stmt->execute(['name' => $name]);
+    return $stmt->fetch(PDO::FETCH_ASSOC); // returns false if not found
 
-        $stmt = $this->conn->prepare($sql);
-
-        $stmt->bindParam(':name', $name);
-        $stmt->bindParam(':description', $description);
-
-        return $stmt->execute();
     }
+
+    /**
+ * Create a new expense category and return its ID
+ */
+public function create($name, $description = null)
+{
+    $sql = "INSERT INTO {$this->table} (name, description)
+            VALUES (:name, :description)";
+
+    $stmt = $this->conn->prepare($sql);
+
+    $stmt->bindParam(':name', $name);
+    $stmt->bindParam(':description', $description);
+
+    if ($stmt->execute()) {
+        // Return the ID of the newly created category
+        return $this->conn->lastInsertId();
+    }
+
+    return false;
+}
+
 
     /**
      * Get all categories
