@@ -4,17 +4,36 @@ $activePage= 'overview';
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../models/Expense.php';
+require_once __DIR__ . '/../models/Donation.php';
+require_once __DIR__ . '/../models/ExpenseCategory.php';
+
+requireLogin();
+
+$db = Database::getInstance();
+$pdo = Database::getInstance() -> getConnection();
+
+
+//Model
+$expenseModel = new Expense($pdo);
+$donationModel = new Donation();
+$expenseCategoryModel = new ExpenseCategory($pdo);
+
 
 
 // Pull data from your database later — for now placeholders:
-$totalIncome = 12000;
-$totalExpenses = 8500;
+$totalIncome = $donationModel->getTotalAmount();
+$totalIncome = $totalIncome['total'];
+$totalExpenses = $expenseModel->getTotalAmount();
+$totalExpenses = $totalExpenses['total_amount'];
 $currentBalance = $totalIncome - $totalExpenses;
 
-$monthlyIncome = 2500;
-$monthlyExpenses = 1900;
+$monthlyIncome = $donationModel->getTotalByMonth();
+$monthlyIncome = $monthlyIncome['total'];
+$monthlyExpenses = $expenseModel->getTotalByMonth(date('Y'), date('m'));
+$monthlyExpenses = $monthlyExpenses['total_expense'];
 ?>
-
+<!--  -->
 <?php include 'header.php'; ?>
 <div class="main-content">
 <?php include 'sidebar.php'; ?>
