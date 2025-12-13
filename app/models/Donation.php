@@ -99,6 +99,13 @@ class Donation {
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
+    public function getTotalCount() {
+        $sql = "SELECT COUNT(*) as count FROM {$this->table}";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
+
  
 
 

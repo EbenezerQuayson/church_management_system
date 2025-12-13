@@ -89,5 +89,27 @@ class Event {
         
         return $stmt->execute();
     }
+
+    public function getTotalCount() {
+        $sql = "SELECT COUNT(*) AS total FROM {$this->table}";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
+
+    public function getTotalScheduledCount() {
+        $sql = "SELECT COUNT(*) AS total FROM {$this->table} WHERE status = 'scheduled'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC)['total'];
+    }
+
+    public function getRecentEvents($limit = 5) {
+        $sql = "SELECT * FROM {$this->table} WHERE status = 'scheduled' ORDER BY event_date DESC LIMIT :limit";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>
