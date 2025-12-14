@@ -5,23 +5,59 @@ $activePage = 'dashboard';
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../models/Expense.php';
+require_once __DIR__ . '/../models/ExpenseCategory.php';
+require_once __DIR__ . '/../models/Member.php';
+require_once __DIR__ . '/../models/Event.php';
+require_once __DIR__ . '/../models/Donation.php';
 
 requireLogin();
 
 $db = Database::getInstance();
+$pdo = Database::getInstance()->getConnection();
 
+//Models
+$memberModel = new Member();
+$eventModel = new Event();
+$donationModel = new Donation();
+$expenseModel = new Expense($pdo);
+$expenseCategoryModel = new ExpenseCategory($pdo);
 
+//Getting Statistics
 
-// Get statistics
-$members_count = $db->fetch("SELECT COUNT(*) as count FROM members WHERE status = 'active'");
-$events_count = $db->fetch("SELECT COUNT(*) as count FROM events WHERE status = 'scheduled'");
+//Members
+$members_count = $memberModel->getTotalCount();
+$male_count = $memberModel->getMaleCount();
+$female_count = $memberModel->getFemaleCount();
+$recent_members = $memberModel->getRecentMembers();
+
+//Expenses
+$expense = $expenseModel->getAll();
+$categories = $expenseCategoryModel->getAll();
+$monthlyExpenses = $expenseModel->getTotalByMonth(date('Y'), date('m'));
+$totalExpenses = $expenseModel->getTotalAmount();
+
+//Events
+$events_count = $eventModel->getTotalCount();
+$events_scheduled_count = $eventModel->getTotalScheduledCount();
+$recent_events = $eventModel->getRecentEvents();
+
+//Donations
+$donation_total = $donationModel->getTotalAmount();
+$donation_count = $donationModel->getTotalCount();
+
+//Ministries (yet to create a Ministries Model)
 $ministries_count = $db->fetch("SELECT COUNT(*) as count FROM ministries WHERE status = 'active'");
-$donations_total = $db->fetch("SELECT COALESCE(SUM(amount), 0) as total FROM donations");
-$totalMales = $db->fetch("SELECT COUNT(*) AS total FROM members WHERE status ='active' AND gender='Male'");
-$totalFemales = $db->fetch("SELECT COUNT(*) AS total FROM members WHERE status ='active' AND gender='Female'");
+
+
+// $members_count = $db->fetch("SELECT COUNT(*) as count FROM members WHERE status = 'active'");
+// $events_count = $db->fetch("SELECT COUNT(*) as count FROM events WHERE status = 'scheduled'");
+// $donations_total = $db->fetch("SELECT COALESCE(SUM(amount), 0) as total FROM donations");
+// $totalMales = $db->fetch("SELECT COUNT(*) AS total FROM members WHERE status ='active' AND gender='Male'");
+// $totalFemales = $db->fetch("SELECT COUNT(*) AS total FROM members WHERE status ='active' AND gender='Female'");
 // Get recent activities
-$recent_members = $db->fetchAll("SELECT * FROM members ORDER BY created_at DESC LIMIT 5");
-$recent_events = $db->fetchAll("SELECT * FROM events ORDER BY created_at DESC LIMIT 5");
+// $recent_members = $db->fetchAll("SELECT * FROM members ORDER BY created_at DESC LIMIT 5");
+// $recent_events = $db->fetchAll("SELECT * FROM events ORDER BY created_at DESC LIMIT 5");
 
 //Chart Data
 $monthlyDonations = $db->fetchAll("SELECT MONTH(donation_date) AS month, COUNT(*) AS total FROM donations GROUP BY MONTH(donation_date)");
@@ -56,7 +92,7 @@ $jsDonationData = json_encode($monthlyTotals);
                         <div class="stat-icon">
                             <i class="fas fa-users"></i>
                         </div>
-                        <p class="stat-value"><?php echo $members_count['count']; ?></p>
+                        <p class="stat-value"><?php echo $members_count; ?></p>
                         <p class="stat-label">Active Members</p>
                     </div>
                 </div>
@@ -69,7 +105,7 @@ $jsDonationData = json_encode($monthlyTotals);
                         <div class="stat-icon">
                             <i class="fas fa-calendar"></i>
                         </div>
-                        <p class="stat-value"><?php echo $events_count['count']; ?></p>
+                        <p class="stat-value"><?php echo $events_scheduled_count; ?></p>
                         <p class="stat-label">Upcoming Events</p>
                     </div>
                 </div>
@@ -90,13 +126,26 @@ $jsDonationData = json_encode($monthlyTotals);
 
             <!-- Donations Card -->
             <div class="col-md-6 col-lg-3">
-                <div class="card stat-card stat-card-orange">
+                <div class="card stat-card stat-card-lime">
                     <div class="card-body">
                         <div class="stat-icon">
                             <i class="bi bi-cash-stack"></i>
                         </div>
-                        <p class="stat-value">¢<?php echo number_format($donations_total['total'], 0); ?></p>
-                        <p class="stat-label">Total Amount</p>
+                        <p class="stat-value">¢<?php echo number_format($donation_total['total'], 0); ?></p>
+                        <p class="stat-label">Total Income</p>
+                    </div>
+                </div>
+            </div>
+
+                <!-- Expenses Card -->
+            <div class="col-md-6 col-lg-3">
+                <div class="card stat-card stat-card-gold">
+                    <div class="card-body">
+                        <div class="stat-icon">
+                            <i class="bi bi-credit-card"></i>
+                        </div>
+                        <p class="stat-value">¢<?php echo number_format($totalExpenses['total_amount'], 2); ?></p>
+                        <p class="stat-label">Total Expense</p>
                     </div>
                 </div>
             </div>
@@ -108,7 +157,7 @@ $jsDonationData = json_encode($monthlyTotals);
                     <div class="stat-icon">
                         <i class="fas fa-male"></i>
                     </div>
-                    <h3 class="stat-value" id="totalMaleMembers"><?php echo $totalMales['total']; ?></h3>
+                    <h3 class="stat-value" id="totalMaleMembers"><?php echo $male_count; ?></h3>
                     <p class="stat-label">Total Male Christians</p>
                 </div>
             </div>
@@ -121,7 +170,7 @@ $jsDonationData = json_encode($monthlyTotals);
                     <div class="stat-icon">
                         <i class="fas fa-female"></i>
                     </div>
-                    <h3 class="stat-value" id="totalFemaleMembers"><?php echo $totalFemales['total'];?></h3>
+                    <h3 class="stat-value" id="totalFemaleMembers"><?php echo $female_count;?></h3>
                     <p class="stat-label">Total Female</p>
                 </div>
             </div>
@@ -232,8 +281,8 @@ $jsDonationData = json_encode($monthlyTotals);
     const donationData =<?php echo $jsDonationData;?>;
     const ctx = document.getElementById("donationsChart");
     const ctx1 = document.getElementById("ministryChart");
-    const totalMales = <?php echo $totalMales['total']?>;
-    const totalFemales = <?php echo $totalFemales['total']?>;
+    const totalMales = <?php echo $male_count?>;
+    const totalFemales = <?php echo $female_count?>;
 
 
     console.log(donationData);

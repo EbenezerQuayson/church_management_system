@@ -4,17 +4,89 @@ $activePage= 'overview';
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/config.php';
+require_once __DIR__ . '/../models/Expense.php';
+require_once __DIR__ . '/../models/Donation.php';
+require_once __DIR__ . '/../models/ExpenseCategory.php';
+require_once __DIR__ . '/../models/Overview.php';
+
+requireLogin();
+
+$db = Database::getInstance();
+$pdo = Database::getInstance() -> getConnection();
 
 
-// Pull data from your database later — for now placeholders:
-$totalIncome = 12000;
-$totalExpenses = 8500;
+//Model
+$expenseModel = new Expense($pdo);
+$donationModel = new Donation();
+$expenseCategoryModel = new ExpenseCategory($pdo);
+$overviewModel = new Overview($pdo);
+
+
+
+// Pull data from your database 
+$totalIncome = $donationModel->getTotalAmount();
+$totalIncome = $totalIncome['total'];
+$totalExpenses = $expenseModel->getTotalAmount();
+$totalExpenses = $totalExpenses['total_amount'];
 $currentBalance = $totalIncome - $totalExpenses;
 
-$monthlyIncome = 2500;
-$monthlyExpenses = 1900;
-?>
+$monthlyIncome = $donationModel->getTotalByMonth();
+$monthlyIncome = $monthlyIncome['total'];
+$monthlyExpenses = $expenseModel->getTotalByMonth(date('Y'), date('m'));
+$monthlyExpenses = $monthlyExpenses['total_expense'];
 
+//Overview
+$transactions = $overviewModel->getRecentTransactions(5);
+$monthlyData = $overviewModel->getMonthlyIncomeExpense(date('Y'));
+$expenseBreakdown = $overviewModel->getExpenseBreakdown();
+$currentYear = date('Y');
+$lastYear = $currentYear - 1;
+$current = $overviewModel->getYearTotals($currentYear);
+$previous = $overviewModel->getYearTotals($lastYear);
+$currentIncome = $current['total_income'];
+$currentExpenses = $current['total_expenses'];
+$previousExpenses = $previous['total_expenses'];
+$previousIncome = $previous['total_income'];
+
+//Determining direction of arrow for expense
+if($previousExpenses > 0){
+    $expenseChange = (($currentExpense - $previousExpense)/$previousExpense)*100;
+} else{
+    $expenseChange = 0;
+}
+
+//Determining arrow direction for income
+if($previousIncome > 0){
+    $incomeChange = (($currentIncome - $previousIncome)/$previousIncome)*100;
+} else{
+    $incomeChange = 0;
+}
+
+$isUpExpense = $expenseChange > 0;
+$isDownExpense = $expenseChange < 0;
+
+$isUpIncome = $incomeChange > 0;
+$isDownIncome = $incomeChange < 0;
+
+//Arrays for chart
+$labels = ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+
+$income = array_fill(0, 12, 0);
+$expenses = array_fill(0, 12, 0);
+
+foreach ($monthlyData as $data) {
+    $month = $data['month'] - 1; // Adjust month index (0-based)
+    $income[$month] = $data['income'];
+    $expense[$month] = $data['expense'];
+}
+
+$expenseLabels = array_column($expenseBreakdown, 'category');
+$expenseTotals = array_column($expenseBreakdown, 'total');
+
+
+
+?>
+<!--  -->
 <?php include 'header.php'; ?>
 <div class="main-content">
 <?php include 'sidebar.php'; ?>
@@ -34,7 +106,11 @@ $monthlyExpenses = 1900;
                     <i class="fa fa-hand-holding-heart text-primary fs-1"></i>
                     <h5 class="mt-3">Total Income</h5>
                     <h3 class="fw-bold">GHS <?= number_format($totalIncome); ?></h3>
-                    <p class="text-success mb-0"><small>↑ This Year</small></p>
+                    <p class="<?= $isUpIncome ? 'text-success' : 'text-danger' ?> mb-0"><small>
+                        <?= $isUpIncome ? '↑' : ($isDownIncome ? '↓' : '—') ?>
+                        <?= abs(round($incomeChange, 1)) ?>%
+                        This Year
+                    </small></p>
                 </div>
             </div>
         </div>
@@ -46,7 +122,11 @@ $monthlyExpenses = 1900;
                     <i class="fa fa-money-bill-wave text-danger fs-1"></i>
                     <h5 class="mt-3">Total Expenses</h5>
                     <h3 class="fw-bold">GHS <?= number_format($totalExpenses); ?></h3>
-                    <p class="text-danger mb-0"><small>↓ This Year</small></p>
+                    <p class="<?= $isUpExpense ? 'text-danger' : 'text-success' ?> mb-0"><small>
+                        <?= $isUpExpense ? '↑' : ($isDownExpense ? '↓' : '—') ?>
+                        <?= abs(round($expenseChange, 1)) ?>%
+                        This Year
+                    </small></p>
                 </div>
             </div>
         </div>
@@ -76,6 +156,31 @@ $monthlyExpenses = 1900;
         </div>
 
     </div>
+
+       <!-- Quick Links -->
+        <div class="row mb-4 g-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body ">
+                        <h5 class="card-title mb-3 ">Quick Actions</h5>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <a href="<?php echo BASE_URL; ?>/app/views/donations.php" class="btn btn-outline-primary">
+                                <i class="fas fa-plus"></i> Add Income
+                            </a>
+                            <a href="<?php echo BASE_URL; ?>/app/views/expenses.php" class="btn btn-outline-primary">
+                                <i class="fas fa-plus"></i> Add Expense
+                            </a>
+                            <!-- <a href="<?php echo BASE_URL; ?>/app/views/donations.php" class="btn btn-outline-primary">
+                                <i class="fas fa-gift"></i> Record Donation
+                            </a>
+                            <a href="<?php echo BASE_URL; ?>/app/views/attendance.php" class="btn btn-outline-primary">
+                                <i class="fas fa-check-circle"></i> Mark Attendance
+                            </a> -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
     <!-- Charts Row -->
     <div class="row g-4 mb-4">
@@ -123,8 +228,28 @@ $monthlyExpenses = 1900;
                         <th>Description</th>
                     </tr>
                 </thead>
-
                 <tbody>
+<?php foreach ($transactions as $row): ?>
+    <tr>
+        <td><?= htmlspecialchars($row['trans_date']) ?></td>
+
+        <td>
+            <span class="badge <?= $row['type'] === 'Donation' ? 'bg-success' : 'bg-danger' ?>">
+                <?= $row['type'] ?>
+            </span>
+        </td>
+
+        <td><?= htmlspecialchars($row['category'] ?? '—') ?></td>
+
+        <td><?= number_format($row['amount'], 2) ?></td>
+
+        <td><?= htmlspecialchars($row['description'] ?? '') ?></td>
+    </tr>
+<?php endforeach; ?>
+</tbody>
+
+
+                <!-- <tbody>
                     <tr>
                         <td>2025-02-01</td>
                         <td><span class="badge bg-success">Donation</span></td>
@@ -148,7 +273,7 @@ $monthlyExpenses = 1900;
                         <td>150</td>
                         <td>Youth Meeting</td>
                     </tr>
-                </tbody>
+                </tbody> -->
             </table>
         </div>
     </div>
@@ -159,36 +284,73 @@ $monthlyExpenses = 1900;
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <script>
-const ctx1 = document.getElementById('incomeExpenseChart');
-new Chart(ctx1, {
-    type: 'line',
-    data: {
-        labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
-        datasets: [
-            {
-                label: "Income",
-                data: [1200, 1500, 1800, 1700, 2000, 2300, 2500, 2400, 2100, 2600, 2800, 3000],
-                borderWidth: 2,
-            },
-            {
-                label: "Expenses",
-                data: [900, 1100, 1000, 1300, 1500, 1400, 1600, 1700, 1800, 1750, 1900, 2000],
-                borderWidth: 2,
-            }
-        ]
-    }
-});
+    const incomeData = <?=  json_encode($income) ?>;
+    const expenseData = <?= json_encode($expenses) ?>;
+    const ctx = document.getElementById('incomeExpenseChart').getContext('2d');
+    const ctx1 = document.getElementById('expenseBreakdownChart').getContext('2d');
 
-const ctx2 = document.getElementById('expenseBreakdownChart');
-new Chart(ctx2, {
-    type: 'doughnut',
-    data: {
-        labels: ["Utilities", "Maintenance", "Outreach", "Welfare", "Admin"],
-        datasets: [{
-            data: [1200, 750, 900, 500, 300],
-        }]
-    }
-});
+    new Chart(ctx,{
+        type: 'line',
+        data:{
+            labels: <?= json_encode($labels) ?>,
+            datasets: [
+                {
+                    label: "Income",
+                    data: incomeData,
+                    borderWidth: 2,
+                    tension: 0.4
+                },
+                {
+                    label: "Expenses",
+                    data: expenseData,
+                    borderWidth: 2,
+                    tension: 0.4
+                }
+            ]
+        }
+    });
+
+    new Chart(ctx1,{
+        type: 'doughnut',
+        data:{
+            labels: <?= json_encode($expenseLabels) ?>,
+            datasets: [{
+                data: <?= json_encode($expenseTotals) ?>
+            }]
+        }
+    });
+
+
+// const ctx1 = document.getElementById('incomeExpenseChart');
+// new Chart(ctx1, {
+//     type: 'line',
+//     data: {
+//         labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+//         datasets: [
+//             {
+//                 label: "Income",
+//                 data: [1200, 1500, 1800, 1700, 2000, 2300, 2500, 2400, 2100, 2600, 2800, 3000],
+//                 borderWidth: 2,
+//             },
+//             {
+//                 label: "Expenses",
+//                 data: [900, 1100, 1000, 1300, 1500, 1400, 1600, 1700, 1800, 1750, 1900, 2000],
+//                 borderWidth: 2,
+//             }
+//         ]
+//     }
+// });
+
+// const ctx2 = document.getElementById('expenseBreakdownChart');
+// new Chart(ctx2, {
+//     type: 'doughnut',
+//     data: {
+//         labels: ["Utilities", "Maintenance", "Outreach", "Welfare", "Admin"],
+//         datasets: [{
+//             data: [1200, 750, 900, 500, 300],
+//         }]
+//     }
+// });
 </script>
 
 
