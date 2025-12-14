@@ -369,7 +369,7 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
             <div class="modal-footer d-flex justify-content-between">
 
                 <div>
-                    <button id="editDonationBtn" class="btn btn-warning" data-bs-toggle="modal" data-bs-target="#editDonationModal"><i class="fas fa-edit"></i> Edit</button>
+                    <button id="editDonationBtn" class="btn btn-warning"><i class="fas fa-edit"></i> Edit</button>
                     <button id="deleteDonationBtn" class="btn btn-danger" data-bs-toggle="modal" data-bs-target="#deleteDonationModal"><i class="fas fa-trash"></i> Delete</button>
                 </div>
 
@@ -382,7 +382,7 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
     </div>
 </div>
 <!-- Edit Donation Modal -->
-<div class="modal fade" data-bs-dismiss="modal" id="editDonationModal" tabindex="-1">
+<div class="modal fade"  id="editDonationModal" tabindex="-1">
     <div class="modal-dialog">
         <form method="POST" class="modal-content" id="editDonationForm">
             <input type="hidden" name="action" value="edit">
@@ -510,7 +510,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
             // Edit modal
         document.getElementById("edit_donation_id").value = donationId;
-        document.getElementById("edit_member_id").value = this.dataset.member_id || "";
+        document.getElementById("edit_member_id").value = this.dataset.memberId || "";
         document.getElementById("edit_amount").value = this.dataset.amount;
         document.getElementById("edit_type").value = this.dataset.type;
         document.getElementById("edit_date").value = this.dataset.date;
@@ -540,6 +540,20 @@ document.getElementById("exportPdfBtn").addEventListener("click", function() {
 
 document.getElementById("exportExcelBtn").addEventListener("click", function() {
     window.location.href = "export/export_summary_excel.php";
+});
+
+
+//Prevent edit model to be opened on top of details model
+document.getElementById("editDonationBtn").addEventListener("click", () => {
+    const detailsModal = bootstrap.Modal.getInstance(
+        document.getElementById("donationDetails")
+    );
+    detailsModal.hide();
+
+    const editModal = new bootstrap.Modal(
+        document.getElementById("editDonationModal")
+    );
+    editModal.show();
 });
 
 
