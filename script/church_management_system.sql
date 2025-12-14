@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 09, 2025 at 12:18 AM
+-- Generation Time: Dec 14, 2025 at 09:01 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -68,9 +68,8 @@ CREATE TABLE `donations` (
 INSERT INTO `donations` (`id`, `member_id`, `amount`, `donation_type`, `donation_date`, `notes`, `created_at`) VALUES
 (3, 1, 31.00, 'Tithe', '2025-11-08', 'Tithe', '2025-12-01 19:06:48'),
 (4, NULL, 23.00, 'Service Offering', '2025-12-01', 'service_total', '2025-12-05 03:58:04'),
-(5, NULL, 10000.00, 'Tithe', '2025-12-01', 'service_total', '2025-12-05 03:58:23'),
 (7, 7, 39.00, 'Service Offering', '2025-12-01', 'Amy Plegde', '2025-12-05 03:59:55'),
-(8, NULL, 2.00, 'Service Offering', '2025-12-01', 'Amy Plegdes', '2025-12-06 00:26:37');
+(9, NULL, 12000.00, 'General', '2025-12-07', 'service_total', '2025-12-13 12:27:39');
 
 -- --------------------------------------------------------
 
@@ -106,6 +105,54 @@ INSERT INTO `events` (`id`, `title`, `description`, `event_date`, `location`, `c
 -- --------------------------------------------------------
 
 --
+-- Table structure for table `expenses`
+--
+
+CREATE TABLE `expenses` (
+  `id` int(11) NOT NULL,
+  `expense_date` date NOT NULL,
+  `category_id` int(11) NOT NULL,
+  `amount` decimal(10,2) NOT NULL,
+  `description` text DEFAULT NULL,
+  `receipt_path` varchar(255) DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `expenses`
+--
+
+INSERT INTO `expenses` (`id`, `expense_date`, `category_id`, `amount`, `description`, `receipt_path`, `created_at`) VALUES
+(12, '2025-12-12', 2, 500.00, 'Bought fuel for generator', '', '2025-12-12 18:25:37'),
+(13, '2025-12-12', 3, 34.00, 'Paid instrumentalist', '', '2025-12-12 18:25:53'),
+(14, '2025-10-01', 4, 1000.00, 'Maintenance for the church', '', '2025-12-12 19:09:27');
+
+-- --------------------------------------------------------
+
+--
+-- Table structure for table `expense_categories`
+--
+
+CREATE TABLE `expense_categories` (
+  `id` int(11) NOT NULL,
+  `name` varchar(100) NOT NULL,
+  `description` text DEFAULT NULL,
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `expense_categories`
+--
+
+INSERT INTO `expense_categories` (`id`, `name`, `description`, `created_at`) VALUES
+(1, 'Banner', '31st alnight banner', '2025-12-11 17:32:12'),
+(2, 'Fuel', 'bought fuel', '2025-12-11 17:32:56'),
+(3, 'Instrumentalist', 'Paid instrumentalist', '2025-12-12 18:25:53'),
+(4, 'Maintenance', 'new chairs', '2025-12-12 19:09:27');
+
+-- --------------------------------------------------------
+
+--
 -- Table structure for table `members`
 --
 
@@ -137,7 +184,11 @@ CREATE TABLE `members` (
 
 INSERT INTO `members` (`id`, `user_id`, `first_name`, `last_name`, `email`, `phone`, `date_of_birth`, `gender`, `join_date`, `status`, `address`, `city`, `state`, `zip_code`, `emergency_contact`, `emergency_phone`, `photo`, `created_at`, `updated_at`) VALUES
 (1, NULL, 'Joe', 'Doe', 'joe@doe.com', '233456789', '2025-11-20', 'Male', '2025-11-27', 'active', 'Weija', 'Accra', 'Greater Accra', '233', NULL, NULL, NULL, '2025-11-27 15:32:00', '2025-11-29 05:18:07'),
-(7, NULL, 'Amy', 'Chutti', 'amy@chutti.com', '023456321', '2025-11-28', 'Female', '2025-11-29', 'active', 'West Hills', 'Accra', 'Greater Accra', '500', NULL, NULL, NULL, '2025-11-29 20:49:14', '2025-11-29 22:03:47');
+(7, NULL, 'Amy', 'Chutti', 'amy@chutti.com', '023456321', '2025-11-28', 'Female', '2025-11-29', 'active', 'West Hills', 'Accra', 'Greater Accra', '500', NULL, NULL, NULL, '2025-11-29 20:49:14', '2025-11-29 22:03:47'),
+(8, NULL, 'Ebenezer', 'Quayson', 'eben@gmail.com', '0538697161', '2025-12-09', 'Male', '2025-12-09', 'active', 'West Hills', 'Accra', 'Greater Accra', '334', NULL, NULL, NULL, '2025-12-09 20:30:51', '2025-12-09 20:30:51'),
+(9, NULL, 'Florence', 'Ampoma', 'florenceampoma@gmail.com', '0543678954', '2005-08-23', 'Female', '2025-12-13', 'active', 'Odorkor', 'Accra', 'Greater Accra', '500', NULL, NULL, NULL, '2025-12-13 08:49:26', '2025-12-13 09:07:44'),
+(10, NULL, 'Asantewaa', 'Agyeiwaa', 'asantewa243@gmail.com', '0553423124', '2005-06-16', 'Female', '2025-12-13', 'active', 'Odorkor', 'Accra', 'Greater Accra', '500', NULL, NULL, NULL, '2025-12-13 08:50:39', '2025-12-13 09:07:29'),
+(11, NULL, 'Kwesi', 'Frimpong', 'kwesi@gmail.com', '0534568978', '2005-04-13', 'Male', '2025-12-13', 'active', 'Tesano', 'Abeka', 'Greater Accra', '423', NULL, NULL, NULL, '2025-12-13 08:52:10', '2025-12-13 08:52:10');
 
 -- --------------------------------------------------------
 
@@ -246,13 +297,13 @@ CREATE TABLE `settings` (
 --
 
 INSERT INTO `settings` (`id`, `setting_key`, `setting_value`, `description`, `created_at`, `updated_at`) VALUES
-(1, 'church_name', 'The Methodist Ghana', 'Church name', '2025-11-26 23:13:02', '2025-12-01 15:10:37'),
-(2, 'church_address', 'Accra', 'Church address', '2025-11-26 23:13:02', '2025-12-01 15:10:37'),
-(3, 'church_phone', '0543356784', 'Church phone', '2025-11-26 23:13:02', '2025-11-27 16:31:30'),
-(4, 'church_email', 'methodistchurchghana@gmail.com', 'Church email', '2025-11-26 23:13:02', '2025-12-01 15:10:37'),
-(5, 'primary_color', '#003DA5', 'Primary brand color (Methodist Blue)', '2025-11-26 23:13:02', '2025-11-27 16:31:30'),
-(6, 'secondary_color', '#CC0000', 'Secondary brand color (Red)', '2025-11-26 23:13:02', '2025-11-27 16:31:30'),
-(7, 'accent_color', '#F4C43F', 'Accent color (Gold/Yellow)', '2025-11-26 23:13:02', '2025-11-27 16:31:30');
+(1, 'church_name', 'The Methodist Ghana', 'Church name', '2025-11-26 23:13:02', '2025-12-08 23:42:14'),
+(2, 'church_address', 'Accra', 'Church address', '2025-11-26 23:13:02', '2025-12-08 23:42:14'),
+(3, 'church_phone', '04355421', 'Church phone', '2025-11-26 23:13:02', '2025-12-08 23:42:14'),
+(4, 'church_email', 'james@cole.com', 'Church email', '2025-11-26 23:13:02', '2025-12-08 23:42:14'),
+(5, 'primary_color', '#003DA5', 'Primary brand color (Methodist Blue)', '2025-11-26 23:13:02', '2025-12-08 23:42:14'),
+(6, 'secondary_color', '#CC0000', 'Secondary brand color (Red)', '2025-11-26 23:13:02', '2025-12-08 23:42:14'),
+(7, 'accent_color', '#F4C43F', 'Accent color (Gold/Yellow)', '2025-11-26 23:13:02', '2025-12-08 23:42:14');
 
 -- --------------------------------------------------------
 
@@ -273,41 +324,6 @@ CREATE TABLE `users` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
-
-
---
--- Table structure for table `expense_categories`
---
-
-
-CREATE TABLE expense_categories (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    description TEXT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
-
-
---
--- Table structure for table `expense_categories`
---
-
-CREATE TABLE expenses (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    expense_date DATE NOT NULL,
-    category_id INT NOT NULL,
-    amount DECIMAL(10,2) NOT NULL,
-    description TEXT NULL,
-    receipt_path VARCHAR(255) NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-
-    CONSTRAINT fk_expense_category 
-        FOREIGN KEY (category_id) REFERENCES expense_categories(id)
-        ON DELETE CASCADE
-);
-
-
 
 --
 -- Dumping data for table `users`
@@ -341,6 +357,19 @@ ALTER TABLE `donations`
 ALTER TABLE `events`
   ADD PRIMARY KEY (`id`),
   ADD KEY `organizer_id` (`organizer_id`);
+
+--
+-- Indexes for table `expenses`
+--
+ALTER TABLE `expenses`
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `fk_expense_category` (`category_id`);
+
+--
+-- Indexes for table `expense_categories`
+--
+ALTER TABLE `expense_categories`
+  ADD PRIMARY KEY (`id`);
 
 --
 -- Indexes for table `members`
@@ -410,7 +439,7 @@ ALTER TABLE `attendance`
 -- AUTO_INCREMENT for table `donations`
 --
 ALTER TABLE `donations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
 --
 -- AUTO_INCREMENT for table `events`
@@ -419,10 +448,22 @@ ALTER TABLE `events`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
+-- AUTO_INCREMENT for table `expenses`
+--
+ALTER TABLE `expenses`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+
+--
+-- AUTO_INCREMENT for table `expense_categories`
+--
+ALTER TABLE `expense_categories`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+
+--
 -- AUTO_INCREMENT for table `members`
 --
 ALTER TABLE `members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT for table `ministries`
@@ -452,7 +493,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `settings`
 --
 ALTER TABLE `settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=50;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=71;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -482,6 +523,12 @@ ALTER TABLE `donations`
 --
 ALTER TABLE `events`
   ADD CONSTRAINT `events_ibfk_1` FOREIGN KEY (`organizer_id`) REFERENCES `users` (`id`) ON DELETE SET NULL;
+
+--
+-- Constraints for table `expenses`
+--
+ALTER TABLE `expenses`
+  ADD CONSTRAINT `fk_expense_category` FOREIGN KEY (`category_id`) REFERENCES `expense_categories` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `members`
