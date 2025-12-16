@@ -441,6 +441,16 @@ ALTER TABLE `attendance`
 ALTER TABLE `donations`
   MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
 
+
+--
+-- Adding a new column: `source`
+--
+
+
+ALTER TABLE donations
+ADD COLUMN source ENUM('member', 'service_total', 'anonymous')
+DEFAULT 'anonymous';
+
 --
 -- AUTO_INCREMENT for table `events`
 --

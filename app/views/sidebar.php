@@ -26,7 +26,7 @@ function isActive($page, $current){
 function isCollapsed($group, $current){
     $groups = [
         'christianManagement' => ['dashboard', 'members'],
-        'finance' => ['donations', 'expenses', 'overview'],
+        'finance' => ['income', 'expenses', 'overview'],
         'churchManagement' => ['ministries', 'events', 'attendance', 'service'],
         'notifications' => ['notifications']
     ];
@@ -73,7 +73,7 @@ function isCollapsed($group, $current){
             </div>
             <ul class="sidebar-menu collapse <?= isCollapsed('finance', $activePage) ?>" id="finance">
                 <li><a href="overview.php" class="<?= isActive('overview', $activePage) ?>"><i class="bi bi-stack-overflow"></i> Overview</a></li>
-                <li><a href="donations.php" class="<?= isActive('donations', $activePage) ?>"><i class="bi bi-cash-coin"></i> Donations</a></li>
+                <li><a href="donations.php" class="<?= isActive('income', $activePage) ?>"><i class="bi bi-cash-coin"></i> Income</a></li>
                 <li><a href="expenses.php" class="<?= isActive('expenses', $activePage) ?>"><i class="fa fa-money-bill-wave"></i> Expenses</a></li>
             </ul>
         </div>

@@ -191,7 +191,7 @@ $jsDonationData = json_encode($monthlyTotals);
                                 <i class="fas fa-calendar-plus"></i> Create Event
                             </a>
                             <a href="<?php echo BASE_URL; ?>/app/views/donations.php" class="btn btn-outline-primary">
-                                <i class="fas fa-gift"></i> Record Donation
+                                <i class="fas fa-gift"></i> Record Income
                             </a>
                             <a href="<?php echo BASE_URL; ?>/app/views/attendance.php" class="btn btn-outline-primary">
                                 <i class="fas fa-check-circle"></i> Mark Attendance

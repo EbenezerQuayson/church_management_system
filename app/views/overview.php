@@ -44,12 +44,12 @@ $lastYear = $currentYear - 1;
 $current = $overviewModel->getYearTotals($currentYear);
 $previous = $overviewModel->getYearTotals($lastYear);
 $currentIncome = $current['total_income'];
-$currentExpenses = $current['total_expenses'];
-$previousExpenses = $previous['total_expenses'];
+$currentExpense = $current['total_expenses'];
+$previousExpense = $previous['total_expenses'];
 $previousIncome = $previous['total_income'];
 
 //Determining direction of arrow for expense
-if($previousExpenses > 0){
+if($previousExpense > 0){
     $expenseChange = (($currentExpense - $previousExpense)/$previousExpense)*100;
 } else{
     $expenseChange = 0;
@@ -77,7 +77,7 @@ $expenses = array_fill(0, 12, 0);
 foreach ($monthlyData as $data) {
     $month = $data['month'] - 1; // Adjust month index (0-based)
     $income[$month] = $data['income'];
-    $expense[$month] = $data['expense'];
+    $expenses[$month] = $data['expense'];
 }
 
 $expenseLabels = array_column($expenseBreakdown, 'category');
