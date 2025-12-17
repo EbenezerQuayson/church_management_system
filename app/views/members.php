@@ -1,5 +1,6 @@
 <?php
 // Members Page
+$activePage='members';
 
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
@@ -107,6 +108,7 @@ if(isset($_GET['delete'])) {
     }
     // $members = $member->getAll();
 }
+//Logic to prevent resubmission after any refresh
 
 if(isset($_GET['msg'])){
     switch($_GET['msg']){

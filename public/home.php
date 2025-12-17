@@ -186,12 +186,12 @@ try {
         </div>
     </section>
 
-    <!-- Ministries Section -->
+    <!-- Organization Section -->
     <section id="ministries" class="ministries-section py-5">
         <div class="container-lg">
             <div class="text-center mb-5">
                 <h2 class="section-title mb-3">
-                    <i class="fas fa-hands-helping me-2"></i>Our Ministries
+                    <i class="fas fa-hands-helping me-2"></i>Our Organizations
                 </h2>
                 <p class="section-subtitle">Find your place to serve and grow</p>
             </div>

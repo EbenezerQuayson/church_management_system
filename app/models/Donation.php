@@ -31,6 +31,34 @@ class Donation {
         return $stmt->execute();
     }
 
+    public function update($id, $data){
+        $sql = "UPDATE donations
+                SET member_id = :member_id,
+                amount = :amount,
+                donation_type = :donation_type,
+                donation_date = :donation_date,
+                notes = :notes
+                WHERE id = :id";
+        $stmt = $this->db->prepare($sql);
+
+        return $stmt->execute([
+        ':member_id'     => $data['member_id'],
+        ':amount'        => $data['amount'],
+        ':donation_type' => $data['donation_type'],
+        ':donation_date' => $data['donation_date'],
+        ':notes'         => $data['notes'],
+        ':id'            => $id
+    ]);
+    }
+
+    public function delete($id){
+         $sql = "DELETE FROM donations WHERE id = :id";
+
+         $stmt = $this->db->prepare($sql);
+
+         return $stmt->execute([':id' => $id]);
+    }
+
     public function getAll() {
         $sql = "SELECT d.*, m.first_name, m.last_name FROM {$this->table} d
                 LEFT JOIN members m ON d.member_id = m.id
@@ -70,6 +98,13 @@ class Donation {
     $stmt->execute(['id' => $id]);
     return $stmt->fetch(PDO::FETCH_ASSOC);
 }
+
+    public function getTotalCount() {
+        $sql = "SELECT COUNT(*) as count FROM {$this->table}";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetch(PDO::FETCH_ASSOC);
+    }
 
  
 
