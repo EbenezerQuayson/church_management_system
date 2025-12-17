@@ -1,6 +1,6 @@
 <?php
 // Ministries Page
-$activePage = 'ministries';
+$activePage = 'organizations';
 
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
@@ -16,27 +16,27 @@ $message_type = '';
 if(isset($_GET['msg'])){
     switch($_GET['msg']){
         case 'added':
-            $message='Ministry Added Successfully!';
+            $message='Organization Added Successfully!';
             $message_type='success';
             break;
         case 'add_failed':
-            $message = 'Failed to create Ministry';
+            $message = 'Failed to create Organization';
             $message_type='error';
             break;
         case 'updated':
-            $message = 'Ministry Updated Successfully!';
+            $message = 'Organization Updated Successfully!';
             $message_type='success';
             break;
         case 'update_failed':
-            $message = 'Failed to update Ministry';
+            $message = 'Failed to update Organization';
             $message_type='error';
             break;
         case 'delete':
-            $message = 'Ministry Deleted Successfully!';
+            $message = 'Organization Deleted Successfully!';
             $message_type='success';
             break;
         case 'delete_failed':
-            $message = 'Failed to delte Ministry';
+            $message = 'Failed to delte Organization';
             $message_type='error';
             break;
         default:
@@ -168,9 +168,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <div class="container-fluid">
         <!-- Page Title -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold" style="color: var(--primary-color);">Ministries</h2>
+            <h2 class="fw-bold" style="color: var(--primary-color);">Organizations</h2>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMinistryModal">
-                <i class="fas fa-handshake"></i> Add Ministry
+                <i class="fas fa-handshake"></i> Add Organization
             </button>
         </div>
 
@@ -230,7 +230,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="modal-body">
                     <div class="mb-3">
                         <input type="hidden" name="action" value="add">
-                        <label for="name" class="form-label">Ministry Name *</label>
+                        <label for="name" class="form-label">Organization Name *</label>
                         <input type="text" class="form-control" name="name" required>
                     </div>
                     <div class="mb-3">
@@ -267,7 +267,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" class="btn btn-primary">Create Ministry</button>
+                    <button type="submit" class="btn btn-primary">Create Organization</button>
                 </div>
             </form>
         </div>
@@ -390,7 +390,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
             <div class="modal-header" style="background-color: var(--primary-color); color: white;">
                 <h5 class="modal-title">
-                    <i class="fas fa-edit"></i> Edit Ministry — <?php echo htmlspecialchars($m['name']); ?>
+                    <i class="fas fa-edit"></i> Edit Organization — <?php echo htmlspecialchars($m['name']); ?>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -400,7 +400,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <input type="hidden" name="id" value="<?php echo $m['id']; ?>">
 
                 <div class="mb-3">
-                    <label class="form-label">Ministry Name *</label>
+                    <label class="form-label">Organization Name *</label>
                     <input type="text" class="form-control" name="name" value="<?php echo htmlspecialchars($m['name']); ?>" required>
                 </div>
 
