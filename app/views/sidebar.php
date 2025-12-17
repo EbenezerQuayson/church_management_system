@@ -27,7 +27,7 @@ function isCollapsed($group, $current){
     $groups = [
         'christianManagement' => ['dashboard', 'members'],
         'finance' => ['income', 'expenses', 'overview'],
-        'churchManagement' => ['ministries', 'events', 'attendance', 'service'],
+        'churchManagement' => ['organizations', 'events', 'attendance', 'service'],
         'notifications' => ['notifications']
     ];
 
@@ -84,7 +84,7 @@ function isCollapsed($group, $current){
                 <span>Church Management</span>
             </div>
             <ul class="sidebar-menu collapse <?= isCollapsed('churchManagement', $activePage) ?>" id="churchManagement">
-                <li><a href="ministries.php" class="<?= isActive('ministries', $activePage) ?>"><i class="bi bi-diagram-3"></i> Ministries</a></li>
+                <li><a href="ministries.php" class="<?= isActive('organizations', $activePage) ?>"><i class="bi bi-diagram-3"></i> Organiztions</a></li>
                 <li><a href="events.php" class="<?= isActive('events', $activePage) ?>"><i class="bi bi-calendar-event"></i> Events</a></li>
                 <li><a href="attendance.php" class="<?= isActive('attendance', $activePage) ?>"><i class="bi bi-clipboard-check"></i> Attendance</a></li>
                 <li><a href="service.php" class="<?= isActive('service', $activePage) ?>"><i class="bi bi-calendar2-event"></i> Service Info</a></li>
