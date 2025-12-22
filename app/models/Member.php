@@ -163,5 +163,17 @@ class Member {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+    public function search($keyword) {
+        $sql = "SELECT * FROM {$this->table} 
+                WHERE (first_name LIKE :keyword OR last_name LIKE :keyword OR email LIKE :keyword) 
+                AND status = 'active' 
+                ORDER BY created_at DESC";
+        $stmt = $this->db->prepare($sql);
+        $likeKeyword = '%' . $keyword . '%';
+        $stmt->bindParam(':keyword', $likeKeyword);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>

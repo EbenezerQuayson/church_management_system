@@ -9,7 +9,12 @@ require_once __DIR__ . '/../models/Member.php';
 requireLogin();
 
 $member = new Member();
-$members = $member->getAll();
+$search = trim($_GET['search'] ?? '');
+if($search !== ''){
+   $members = $member->search($search);
+} else {
+    $members = $member->getAll();
+}
 $message = '';
 $message_type = '';
 
@@ -163,7 +168,26 @@ if(isset($_GET['msg'])){
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
+        <br>
 
+        <!-- Search Input -->
+         <form method="GET" class="mb-3">
+            <div class="input-group">
+          <span class="input-group-text">
+            <i class="bi bi-search"></i>
+          </span>
+          <input
+          type="text"
+          name="search"
+          id="memberSearch"
+          class="form-control"
+          placeholder="Search members by name, phone, or email..."
+          autocomplete = "off"
+          >
+          <!-- <button class="btn btn-outline-primary" type="submit" >Search</button> -->
+            </div>
+         </form>
+<br>
         <!-- Members Table -->
         <div class="card">
             <div class="card-body">
@@ -172,21 +196,43 @@ if(isset($_GET['msg'])){
                         <thead style="background-color: var(--primary-color); color: white;">
                             <tr>
                                 <th>Name</th>
-                                <th>Email</th>
+                                <th>Gender</th>
                                 <th>Phone</th>
-                                <th>Join Date</th>
-                                <th>Status</th>
+                                <th>Email</th>
+                                <th>Ministry</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                        <tbody>
+                        <tbody id="membersTable">
                             <?php foreach ($members as $m): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($m['first_name'] . ' ' . $m['last_name']); ?></td>
-                                    <td><?php echo htmlspecialchars($m['email'] ?? 'N/A'); ?></td>
-                                    <td><?php echo htmlspecialchars($m['phone'] ?? 'N/A'); ?></td>
-                                    <td><?php echo date('M d, Y', strtotime($m['join_date'] ?? $m['created_at'])); ?></td>
-                                    <td><span class="badge bg-success"><?php echo ucfirst($m['status']); ?></span></td>
+                                    <td>
+    <div class="d-flex align-items-center">
+        <div class="avatar bg-primary text-white rounded-circle me-3"
+             style="width:40px;height:40px;display:flex;align-items:center;justify-content:center;">
+            <?php echo strtoupper(substr($m['first_name'], 0, 1)); ?>
+        </div>
+        <div>
+            <strong><?php echo htmlspecialchars($m['first_name'].' '.$m['last_name']); ?></strong><br>
+            <small class="text-muted">
+                Joined: <?php echo date('M d, Y', strtotime($m['join_date'] ?? $m['created_at'])); ?>
+            </small>
+        </div>
+    </div>
+</td>
+
+<td><?php echo htmlspecialchars($m['gender'] ?? 'N/A'); ?></td>
+
+<td><?php echo htmlspecialchars($m['phone'] ?? 'N/A'); ?></td>
+
+<td><?php echo htmlspecialchars($m['email'] ?? 'N/A'); ?></td>
+
+<td>
+    <span class="badge bg-info">
+        <?php echo htmlspecialchars($m['ministry'] ?? 'N/A'); ?>
+    </span>
+</td>
+
                                     <td>
                                         <!-- <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#editMemberModal<?php echo $m['id']; ?>"> -->
                                             <button class="btn btn-sm btn-outline-primary editBtn" data-bs-toggle="modal" data-bs-target="#editMemberModal<?php echo $m['id']; ?>">
@@ -196,7 +242,15 @@ if(isset($_GET['msg'])){
                                             <i class="fas fa-trash"></i>
                                         </button>
                                     </td>
-                                </tr>
+                                <!-- </tr>
+               <?php if (empty($members)): ?>
+<tr>
+    <td colspan="6" class="text-center text-muted py-4">
+        No members found
+    </td>
+</tr> -->
+<?php endif; ?>
+                 
 <!-- Edit Member Modal -->
 <div class="modal fade" id="editMemberModal<?php echo $m['id']; ?>" tabindex="-1">
     <div class="modal-dialog modal-lg">
@@ -341,7 +395,6 @@ if(isset($_GET['msg'])){
                                 <option value="">Select Gender</option>
                                 <option value="Male">Male</option>
                                 <option value="Female">Female</option>
-                                <option value="Other">Other</option>
                             </select>
                         </div>
                     </div>
@@ -379,6 +432,41 @@ if(isset($_GET['msg'])){
 
 <?php include 'footer.php'; ?>
 <script>
+const searchInput = document.getElementById('memberSearch');
+const tableBody = document.getElementById('membersTable');
+
+searchInput.addEventListener('keyup', function () {
+    const query = this.value.trim();
+
+    fetch(`../ajax/search_members.php?q=${encodeURIComponent(query)}`)
+        .then(res => res.text())
+        .then(html => {
+            tableBody.innerHTML = html;
+        })
+        .catch(err => {
+            tableBody.innerHTML = `
+                <tr>
+                    <td colspan="6" class="text-center text-danger">
+                        Error loading results
+                    </td>
+                </tr>`;
+        });
+});
+
+
+let timer;
+searchInput.addEventListener('keyup', function () {
+    clearTimeout(timer);
+    timer = setTimeout(() => {
+        const query = this.value.trim();
+        fetch(`../ajax/search_members.php?q=${encodeURIComponent(query)}`)
+            .then(res => res.text())
+            .then(html => tableBody.innerHTML = html);
+    }, 300);
+});
+
+
+
 function confirmDelete(id) {
     if (confirm('Are you sure you want to delete this member?')) {
         window.location.href = '?delete=' + id;
