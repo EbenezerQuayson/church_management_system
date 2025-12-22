@@ -84,9 +84,112 @@ $jsDonationData = json_encode($monthlyTotals);
         </div>
 
         <!-- Summary Cards -->
-        <div class="row mb-4 g-4">
+         <div class="row mb-2 g-3 justify-content-center">
+
+    <!-- Income Card -->
+    <div class="col-md-6 col-lg-5">
+        <div class="card stat-card stat-card-lime">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="bi bi-cash-stack"></i>
+                </div>
+                <p class="stat-value">
+                    ¢<?php echo number_format($donation_total['total'], 2); ?>
+                </p>
+                <p class="stat-label">Total Income</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Expenses Card -->
+    <div class="col-md-6 col-lg-5">
+        <div class="card stat-card stat-card-pink">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="bi bi-credit-card"></i>
+                </div>
+                <p class="stat-value">
+                    ¢<?php echo number_format($totalExpenses['total_amount'], 2); ?>
+                </p>
+                <p class="stat-label">Total Expense</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+<div class="row g-3">
+
+    <!-- Members -->
+    <div class="col-6 col-md-3 col-lg">
+        <div class="card stat-card stat-card-blue">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="fas fa-users"></i>
+                </div>
+                <p class="stat-value"><?php echo $members_count; ?></p>
+                <p class="stat-label">Active Members</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Events -->
+    <div class="col-6 col-md-3 col-lg">
+        <div class="card stat-card stat-card-blue">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="fas fa-calendar"></i>
+                </div>
+                <p class="stat-value"><?php echo $events_scheduled_count; ?></p>
+                <p class="stat-label">Upcoming Events</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Ministries -->
+    <div class="col-6 col-md-3 col-lg">
+        <div class="card stat-card stat-card-blue">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="fas fa-handshake"></i>
+                </div>
+                <p class="stat-value"><?php echo $ministries_count['count']; ?></p>
+                <p class="stat-label">Active Ministries</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Male Members -->
+    <div class="col-6 col-md-3 col-lg">
+        <div class="card stat-card stat-card-blue">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="fas fa-male"></i>
+                </div>
+                <p class="stat-value"><?php echo $male_count; ?></p>
+                <p class="stat-label">Male Members</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Female Members -->
+    <div class="col-6 col-md-3 col-lg">
+        <div class="card stat-card stat-card-blue">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="fas fa-female"></i>
+                </div>
+                <p class="stat-value"><?php echo $female_count; ?></p>
+                <p class="stat-label">Female Members</p>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+
+        <!-- <div class="row mb-2 g-2"> -->
             <!-- Members Card -->
-            <div class="col-md-6 col-lg-3">
+            <!-- <div class="col-md-6 col-lg-3">
                 <div class="card stat-card stat-card-blue">
                     <div class="card-body">
                         <div class="stat-icon">
@@ -96,10 +199,10 @@ $jsDonationData = json_encode($monthlyTotals);
                         <p class="stat-label">Active Members</p>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Events Card -->
-            <div class="col-md-6 col-lg-3">
+            <!-- <div class="col-md-6 col-lg-3">
                 <div class="card stat-card stat-card-green">
                     <div class="card-body">
                         <div class="stat-icon">
@@ -109,10 +212,10 @@ $jsDonationData = json_encode($monthlyTotals);
                         <p class="stat-label">Upcoming Events</p>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Ministries Card -->
-            <div class="col-md-6 col-lg-3">
+            <!-- <div class="col-md-6 col-lg-3">
                 <div class="card stat-card stat-card-purple">
                     <div class="card-body">
                         <div class="stat-icon">
@@ -122,10 +225,10 @@ $jsDonationData = json_encode($monthlyTotals);
                         <p class="stat-label">Active Ministries</p>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
-            <!-- Donations Card -->
-            <div class="col-md-6 col-lg-3">
+            <!-- Income Card -->
+            <!-- <div class="col-md-6 col-lg-3">
                 <div class="card stat-card stat-card-lime">
                     <div class="card-body">
                         <div class="stat-icon">
@@ -135,10 +238,10 @@ $jsDonationData = json_encode($monthlyTotals);
                         <p class="stat-label">Total Income</p>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
                 <!-- Expenses Card -->
-            <div class="col-md-6 col-lg-3">
+            <!-- <div class="col-md-6 col-lg-3">
                 <div class="card stat-card stat-card-gold">
                     <div class="card-body">
                         <div class="stat-icon">
@@ -148,10 +251,10 @@ $jsDonationData = json_encode($monthlyTotals);
                         <p class="stat-label">Total Expense</p>
                     </div>
                 </div>
-            </div>
+            </div> -->
 
             <!-- Total Males -->
-             <div class="col-md-6 col-lg-3">
+             <!-- <div class="col-md-6 col-lg-3">
             <div class="card stat-card stat-card-teal">
                 <div class="card-body">
                     <div class="stat-icon">
@@ -161,10 +264,10 @@ $jsDonationData = json_encode($monthlyTotals);
                     <p class="stat-label">Total Male Christians</p>
                 </div>
             </div>
-        </div>
+        </div> -->
 
         <!-- Total Females -->
-             <div class="col-md-6 col-lg-3">
+             <!-- <div class="col-md-6 col-lg-3">
             <div class="card stat-card stat-card-pink">
                 <div class="card-body">
                     <div class="stat-icon">
@@ -174,8 +277,8 @@ $jsDonationData = json_encode($monthlyTotals);
                     <p class="stat-label">Total Female</p>
                 </div>
             </div>
-        </div>
-        </div>
+        </div> -->
+        <!-- </div> -->
 
         <!-- Quick Links -->
         <div class="row mb-4 g-4">
