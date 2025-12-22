@@ -3,6 +3,7 @@
 session_start();
 require_once __DIR__ . '/../config/config.php';
 
+
 // Get church settings from database if available
 $db = null;
 $church_name = 'The Methodist Church Ghana';
@@ -10,7 +11,15 @@ $church_motto = 'Your Kingdom Come';
 $primary_color = '#003DA5';
 $secondary_color = '#CC0000';
 $accent_color = '#F4C43F';
-
+$church_tagline = 'Growing in faith, serving our community, and living Christ\'s love.';
+$church_address = '123 Church Street, City, Country';
+$church_email = 'info@church.com';
+$church_phone = '+1 (555) 123-4567';
+$church_facebook = '#';
+$church_instagram = '#';
+$church_tiktok = '#';
+$church_youtube = '#';
+$church_x = '#';
 try {
     require_once(__DIR__ . '/../config/database.php');
     $db = Database::getInstance();
@@ -21,8 +30,12 @@ try {
         if ($setting['setting_key'] === 'church_motto') $church_motto = $setting['setting_value'];
         if ($setting['setting_key'] === 'primary_color') $primary_color = $setting['setting_value'];
         if ($setting['setting_key'] === 'secondary_color') $secondary_color = $setting['setting_value'];
-        if ($setting['setting_key'] === 'accent_color') $accent_color = $setting['setting_value'];
+        if ($setting['setting_key'] === 'church_address') $church_address = $setting['setting_value'];
+        if ($setting['setting_key'] === 'church_email') $church_email = $setting['setting_value'];
+        if ($setting['setting_key'] === 'church_phone') $church_phone = $setting['setting_value'];
     }
+
+    $events = $db->fetchAll("SELECT * FROM events WHERE status = 'scheduled' AND event_date >= CURDATE() ORDER BY event_date ");
 } catch (Exception $e) {
     // Database not available, use defaults
 }
@@ -99,7 +112,7 @@ try {
             <div class="row align-items-center g-4">
                 <div class="col-lg-6">
                     <div class="about-image-wrapper">
-                        <img src="/placeholder.svg?height=400&width=500" alt="Church Sanctuary" class="img-fluid rounded-3">
+                        <img src="<?php echo BASE_URL; ?>/assets/images/church_sanctuary.jpg" alt="Church Sanctuary" class="img-fluid rounded-3">
                     </div>
                 </div>
                 <div class="col-lg-6">
@@ -173,12 +186,12 @@ try {
         </div>
     </section>
 
-    <!-- Ministries Section -->
+    <!-- Organization Section -->
     <section id="ministries" class="ministries-section py-5">
         <div class="container-lg">
             <div class="text-center mb-5">
                 <h2 class="section-title mb-3">
-                    <i class="fas fa-hands-helping me-2"></i>Our Ministries
+                    <i class="fas fa-hands-helping me-2"></i>Our Organizations
                 </h2>
                 <p class="section-subtitle">Find your place to serve and grow</p>
             </div>
@@ -242,15 +255,33 @@ try {
                 <p class="section-subtitle">Stay updated with what's happening at our church</p>
             </div>
             <div class="row g-4">
-                <div class="col-md-6 col-lg-4">
+                <!-- <div class="col-md-6 col-lg-4">
                     <div class="news-card">
                         <div class="news-date">Dec 25</div>
                         <h5 class="news-title">Christmas Celebration Service</h5>
                         <p class="text-muted small mb-3">Join us for a special Christmas worship service celebrating the birth of Christ with music, prayers, and fellowship.</p>
                         <a href="#" class="btn btn-sm btn-primary">Read More</a>
                     </div>
-                </div>
-                <div class="col-md-6 col-lg-4">
+                </div> -->
+                <?php if (!empty($events)): ?>
+                    <?php foreach ($events as $event): ?>
+                        <div class="col-md-6 col-lg-4">
+                        <div class="news-card">
+                            <div class="news-date"><?php echo date('M d', strtotime($event['event_date'])); ?></div>
+                            <h5 class="news-title"><?php echo htmlspecialchars($event['title']); ?></h5>
+                            <p class="text-muted small mb-3"><?php echo htmlspecialchars($event['description']); ?></p>
+                            <a href="#" class="btn btn-sm btn-primary">Read More</a>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                <?php else: ?>
+                    <div class="col-12">
+                        <div class="alert alert-info text-center" role="alert">
+                            <i class="fas fa-info-circle me-2"></i>No upcoming events at this time. Please check back soon!
+                        </div>
+                    </div>
+                <?php endif; ?>
+                <!-- <div class="col-md-6 col-lg-4">
                     <div class="news-card">
                         <div class="news-date">Jan 5</div>
                         <h5 class="news-title">New Year Prayers & Fasting</h5>
@@ -266,7 +297,7 @@ try {
                         <a href="#" class="btn btn-sm btn-primary">Read More</a>
                     </div>
                 </div>
-            </div>
+            </div> -->
         </div>
     </section>
 
@@ -278,10 +309,10 @@ try {
                     <h2 class="text-white mb-3">Ready to Join Our Community?</h2>
                     <p class="text-white-50 mb-4">Whether you're looking for spiritual growth, community service, or a welcoming family, there's a place for you here.</p>
                     <div class="cta-buttons">
-                        <a href="/public/register.php" class="btn btn-light btn-lg me-3 mb-2">
+                        <a href="<?php echo BASE_URL ?>/public/register.php" class="btn btn-light btn-lg me-3 mb-2">
                             <i class="fas fa-user-plus me-2"></i>Register
                         </a>
-                        <a href="/public/login.php" class="btn btn-outline-light btn-lg mb-2">
+                        <a href="<?php echo BASE_URL ?>/public/login.php" class="btn btn-outline-light btn-lg mb-2">
                             <i class="fas fa-sign-in-alt me-2"></i>Login
                         </a>
                     </div>
@@ -298,9 +329,9 @@ try {
                     <div class="footer-section">
                         <h5 class="footer-title">
                             <img src="<?php echo BASE_URL ?>/assets/images/methodist-logo.png" alt="Logo" style="height: 30px;" class="me-2">
-                            The Methodist Church
+                            <?php echo htmlspecialchars($church_name)?>
                         </h5>
-                        <p class="text-muted small">Your Kingdom Come - Growing in faith, serving our community, and living Christ's love.</p>
+                        <p class="text-muted small"><?php echo htmlspecialchars($church_motto)?> - <?php echo htmlspecialchars($church_tagline)?></p>
                     </div>
                 </div>
                 <div class="col-md-6 col-lg-3">
@@ -318,9 +349,9 @@ try {
                     <div class="footer-section">
                         <h5 class="footer-title">Contact Us</h5>
                         <ul class="footer-links small">
-                            <li><i class="fas fa-map-marker-alt me-2"></i>123 Church Street, City, Country</li>
-                            <li><i class="fas fa-phone me-2"></i>+1 (555) 123-4567</li>
-                            <li><i class="fas fa-envelope me-2"></i>info@methodistchurch.org</li>
+                            <li><i class="fas fa-map-marker-alt me-2"></i><?php echo htmlspecialchars($church_address)?></li>
+                            <li><i class="fas fa-phone me-2"></i><?php echo htmlspecialchars($church_phone)?></li>
+                            <li><i class="fas fa-envelope me-2"></i><?php echo htmlspecialchars($church_email)?></li>
                         </ul>
                     </div>
                 </div>
@@ -328,10 +359,11 @@ try {
                     <div class="footer-section">
                         <h5 class="footer-title">Follow Us</h5>
                         <div class="social-links">
-                            <a href="#" class="social-link"><i class="fab fa-facebook-f"></i></a>
-                            <a href="#" class="social-link"><i class="fab fa-twitter"></i></a>
-                            <a href="#" class="social-link"><i class="fab fa-instagram"></i></a>
-                            <a href="#" class="social-link"><i class="fab fa-youtube"></i></a>
+                            <a href="<?php echo htmlspecialchars($church_facebook) ?>" class="social-link"><i class="fab fa-facebook-f"></i></a>
+                            <a href="<?php echo htmlspecialchars($church_x) ?>" class="social-link"><i class="fab fa-x"></i></a> <!-- Twitter renamed to X (yet to find the correct icon) -->
+                            <a href="<?php echo htmlspecialchars($church_instagram) ?>" class="social-link"><i class="fab fa-instagram"></i></a>
+                            <a href="<?php echo htmlspecialchars($church_youtube) ?>" class="social-link"><i class="fab fa-youtube"></i></a>
+                            <a href="<?php echo htmlspecialchars($church_tiktok) ?>" class="social-link"><i class="fab fa-tiktok"></i></a>
                         </div>
                     </div>
                 </div>
@@ -339,7 +371,7 @@ try {
             <hr class="footer-divider">
             <div class="row">
                 <div class="col-md-6">
-                    <p class="text-muted small mb-0">&copy; 2025 The Methodist Church Ghana. All rights reserved.</p>
+                    <b><p class="text-muted small mb-0">&copy; 2025 The Methodist Church Ghana. All rights reserved.</p></b>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <p class="text-muted small mb-0">
@@ -352,6 +384,6 @@ try {
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="/assets/js/main.js"></script>
+    <script src="<?php echo BASE_URL ?>?>/assets/js/main.js"></script>
 </body>
 </html>

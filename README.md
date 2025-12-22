@@ -13,7 +13,7 @@ A comprehensive church management system built with PHP and MySQL, featuring aut
 
 1. **Set up the Database**
    - Create a new MySQL database: `church_management_system`
-   - Import the database schema: `scripts/church_management_system.sql`
+   - Import the database schema: `scripts/church_management_system.sql` 
 
 2. **Configure Database Connection**
    - Edit `config/database.php` with your database credentials:
@@ -41,7 +41,7 @@ A comprehensive church management system built with PHP and MySQL, featuring aut
 ├── app/
 │   ├── controllers/          # Business logic
 │   ├── models/              # Database models
-│   └── views/               # PHP templates
+│   └── views/  # PHP templates
 ├── assets/
 │   ├── css/                 # Stylesheets
 │   ├── js/                  # JavaScript files
@@ -115,6 +115,7 @@ A comprehensive church management system built with PHP and MySQL, featuring aut
 - **ministry_members** - Ministry member associations
 - **donations** - Donation records
 - **settings** - System settings
+- **notification** - Notifications
 
 ## Default Colors
 

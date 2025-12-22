@@ -134,5 +134,34 @@ class Member {
        return $stmt->execute();
 
     }
+
+    public function getTotalCount() {
+        $sql = "SELECT COUNT(*) FROM {$this->table} WHERE status = 'active'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchColumn();
+    }
+
+    public function getMaleCount() {
+        $sql = "SELECT COUNT(*) FROM {$this->table} WHERE gender = 'male' AND status = 'active'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchColumn();
+    }
+
+    public function getFemaleCount() {
+        $sql = "SELECT COUNT(*) FROM {$this->table} WHERE gender = 'female' AND status = 'active'";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+        return $stmt->fetchColumn();
+    }
+
+    public function getRecentMembers($limit = 5) {
+        $sql = "SELECT * FROM {$this->table} WHERE status = 'active' ORDER BY created_at DESC LIMIT :limit";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bindParam(':limit', $limit, PDO::PARAM_INT);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
 }
 ?>
