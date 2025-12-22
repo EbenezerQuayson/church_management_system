@@ -72,7 +72,15 @@ $jsDonationData = json_encode($monthlyTotals);
 <?php include 'header.php'; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .fa-chevron-down {
+    transition: transform 0.3s ease;
+}
+.fa-chevron-down.rotate {
+    transform: rotate(180deg);
+}
 
+</style>
 <div class="main-content">
     <?php include 'sidebar.php'; ?>
     
@@ -84,98 +92,125 @@ $jsDonationData = json_encode($monthlyTotals);
         </div>
 
         <!-- Summary Cards -->
-        <div class="row mb-4 g-4">
-            <!-- Members Card -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card stat-card stat-card-blue">
-                    <div class="card-body">
-                        <div class="stat-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <p class="stat-value"><?php echo $members_count; ?></p>
-                        <p class="stat-label">Active Members</p>
-                    </div>
-                </div>
-            </div>
+         <div class="row mb-2 g-3 justify-content-center">
 
-            <!-- Events Card -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card stat-card stat-card-green">
-                    <div class="card-body">
-                        <div class="stat-icon">
-                            <i class="fas fa-calendar"></i>
-                        </div>
-                        <p class="stat-value"><?php echo $events_scheduled_count; ?></p>
-                        <p class="stat-label">Upcoming Events</p>
-                    </div>
+    <!-- Income Card -->
+    <div class="col-md-6 col-lg-5">
+        <div class="card stat-card stat-card-lime">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="bi bi-cash-stack"></i>
                 </div>
-            </div>
-
-            <!-- Ministries Card -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card stat-card stat-card-purple">
-                    <div class="card-body">
-                        <div class="stat-icon">
-                            <i class="fas fa-handshake"></i>
-                        </div>
-                        <p class="stat-value"><?php echo $ministries_count['count']; ?></p>
-                        <p class="stat-label">Active Ministries</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Donations Card -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card stat-card stat-card-lime">
-                    <div class="card-body">
-                        <div class="stat-icon">
-                            <i class="bi bi-cash-stack"></i>
-                        </div>
-                        <p class="stat-value">¢<?php echo number_format($donation_total['total'], 0); ?></p>
-                        <p class="stat-label">Total Income</p>
-                    </div>
-                </div>
-            </div>
-
-                <!-- Expenses Card -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card stat-card stat-card-gold">
-                    <div class="card-body">
-                        <div class="stat-icon">
-                            <i class="bi bi-credit-card"></i>
-                        </div>
-                        <p class="stat-value">¢<?php echo number_format($totalExpenses['total_amount'], 2); ?></p>
-                        <p class="stat-label">Total Expense</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total Males -->
-             <div class="col-md-6 col-lg-3">
-            <div class="card stat-card stat-card-teal">
-                <div class="card-body">
-                    <div class="stat-icon">
-                        <i class="fas fa-male"></i>
-                    </div>
-                    <h3 class="stat-value" id="totalMaleMembers"><?php echo $male_count; ?></h3>
-                    <p class="stat-label">Total Male Christians</p>
-                </div>
+                <p class="stat-value">
+                    ¢<?php echo number_format($donation_total['total'], 2); ?>
+                </p>
+                <p class="stat-label">Total Income</p>
             </div>
         </div>
+    </div>
 
-        <!-- Total Females -->
-             <div class="col-md-6 col-lg-3">
-            <div class="card stat-card stat-card-pink">
-                <div class="card-body">
-                    <div class="stat-icon">
-                        <i class="fas fa-female"></i>
-                    </div>
-                    <h3 class="stat-value" id="totalFemaleMembers"><?php echo $female_count;?></h3>
-                    <p class="stat-label">Total Female</p>
+    <!-- Expenses Card -->
+    <div class="col-md-6 col-lg-5">
+        <div class="card stat-card stat-card-pink">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="bi bi-credit-card"></i>
                 </div>
+                <p class="stat-value">
+                    ¢<?php echo number_format($totalExpenses['total_amount'], 2); ?>
+                </p>
+                <p class="stat-label">Total Expense</p>
             </div>
         </div>
+    </div>
+
+</div>
+<div class="card mb-4">
+    <div class="card-header  text-black d-flex justify-content-between align-items-center"
+         data-bs-toggle="collapse"
+         data-bs-target="#blueStatsGroup"
+         style="cursor:pointer;">
+        <span>
+            <i class="fas fa-users me-2 text-primary"></i>
+            <b>Church Statistics</b>
+        </span>
+        <i class="fas fa-chevron-down"></i>
+    </div>
+
+    <div id="blueStatsGroup" class="collapse">
+        <div class="card-body">
+            <div class="row g-3">
+
+                <!-- Members -->
+                <div class="col-6 col-md-3 col-lg">
+                    <div class="card stat-card stat-card-blue h-100">
+                        <div class="card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <p class="stat-value"><?php echo $members_count; ?></p>
+                            <p class="stat-label">Active Members</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Events -->
+                <div class="col-6 col-md-3 col-lg">
+                    <div class="card stat-card stat-card-blue h-100">
+                        <div class="card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <p class="stat-value"><?php echo $events_scheduled_count; ?></p>
+                            <p class="stat-label">Upcoming Events</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ministries -->
+                <div class="col-6 col-md-3 col-lg">
+                    <div class="card stat-card stat-card-blue h-100">
+                        <div class="card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-handshake"></i>
+                            </div>
+                            <p class="stat-value"><?php echo $ministries_count['count']; ?></p>
+                            <p class="stat-label">Active Ministries</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Male -->
+                <div class="col-6 col-md-3 col-lg">
+                    <div class="card stat-card stat-card-blue h-100">
+                        <div class="card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-male"></i>
+                            </div>
+                            <p class="stat-value"><?php echo $male_count; ?></p>
+                            <p class="stat-label">Male Members</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Female -->
+                <div class="col-6 col-md-3 col-lg">
+                    <div class="card stat-card stat-card-blue h-100">
+                        <div class="card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-female"></i>
+                            </div>
+                            <p class="stat-value"><?php echo $female_count; ?></p>
+                            <p class="stat-label">Female Members</p>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
         </div>
+    </div>
+</div>
+
 
         <!-- Quick Links -->
         <div class="row mb-4 g-4">
@@ -190,9 +225,18 @@ $jsDonationData = json_encode($monthlyTotals);
                             <a href="<?php echo BASE_URL; ?>/app/views/events.php" class="btn btn-outline-primary">
                                 <i class="fas fa-calendar-plus"></i> Create Event
                             </a>
-                            <a href="<?php echo BASE_URL; ?>/app/views/donations.php" class="btn btn-outline-primary">
-                                <i class="fas fa-gift"></i> Record Income
+
+                              <a href="<?php echo BASE_URL; ?>/app/views/events.php" class="btn btn-outline-primary">
+                                <i class="bi bi-building"></i> Add Organization
                             </a>
+
+                            <a href="<?php echo BASE_URL; ?>/app/views/donations.php" class="btn btn-outline-primary">
+                                <i class="fas fa-hand-holding-usd"></i> Record Income
+                            </a>
+                               <a href="<?php echo BASE_URL; ?>/app/views/expenses.php" class="btn btn-outline-primary">
+                                <i class="fas fa-cash-register"></i> Record Expense
+                            </a>
+
                             <a href="<?php echo BASE_URL; ?>/app/views/attendance.php" class="btn btn-outline-primary">
                                 <i class="fas fa-check-circle"></i> Mark Attendance
                             </a>
@@ -335,6 +379,13 @@ new Chart(ctx1,{
             borderWidth:1
         }]
     }
+});
+
+document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(header => {
+    header.addEventListener('click', function () {
+        const icon = this.querySelector('.fa-chevron-down');
+        icon.classList.toggle('rotate');
+    });
 });
 
 </script>
