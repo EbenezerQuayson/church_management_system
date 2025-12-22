@@ -24,7 +24,7 @@ $total_amount = $expenseModel->getTotalAmount();
 
 
 
-// Message handling (optional)
+// Message handling 
 $message = '';
 $message_type = '';
 if (isset($_GET['success'])) {
