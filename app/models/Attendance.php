@@ -45,5 +45,21 @@ class Attendance {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+  public function updateAttendance($id, $status, $notes = '', $date) {
+    $stmt = $this->db->prepare("
+        UPDATE attendance
+        SET status = :status, notes = :notes
+        WHERE id = :id AND attendance_date = :date
+    ");
+    return $stmt->execute([
+        ':status' => $status,
+        ':notes' => $notes,
+        ':id' => $id,
+        ':date' => $date
+    ]);
+}
+
+
 }
 ?>
