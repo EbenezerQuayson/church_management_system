@@ -181,7 +181,7 @@ $jsDonationData = json_encode($monthlyTotals);
                 </div>
 
                 <!-- Male -->
-                <div class="col-6 col-md-3 col-lg">
+                <!-- <div class="col-6 col-md-3 col-lg">
                     <div class="card stat-card stat-card-blue h-100">
                         <div class="card-body">
                             <div class="stat-icon">
@@ -191,10 +191,10 @@ $jsDonationData = json_encode($monthlyTotals);
                             <p class="stat-label">Male Members</p>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
                 <!-- Female -->
-                <div class="col-6 col-md-3 col-lg">
+                <!-- <div class="col-6 col-md-3 col-lg">
                     <div class="card stat-card stat-card-blue h-100">
                         <div class="card-body">
                             <div class="stat-icon">
@@ -204,7 +204,7 @@ $jsDonationData = json_encode($monthlyTotals);
                             <p class="stat-label">Female Members</p>
                         </div>
                     </div>
-                </div>
+                </div> -->
 
             </div>
         </div>
