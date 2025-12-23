@@ -42,12 +42,16 @@ $events_count = $eventModel->getTotalCount();
 $events_scheduled_count = $eventModel->getTotalScheduledCount();
 $recent_events = $eventModel->getRecentEvents();
 
-//Donations
+//Income / Donations
 $donation_total = $donationModel->getTotalAmount();
 $donation_count = $donationModel->getTotalCount();
 
-//Ministries (yet to create a Ministries Model)
+//Ministries 
 $ministries_count = $db->fetch("SELECT COUNT(*) as count FROM ministries WHERE status = 'active'");
+
+//year
+$selectedYear = $_GET['year'] ?? date('Y');
+
 
 
 // $members_count = $db->fetch("SELECT COUNT(*) as count FROM members WHERE status = 'active'");
@@ -60,14 +64,62 @@ $ministries_count = $db->fetch("SELECT COUNT(*) as count FROM ministries WHERE s
 // $recent_events = $db->fetchAll("SELECT * FROM events ORDER BY created_at DESC LIMIT 5");
 
 //Chart Data
-$monthlyDonations = $db->fetchAll("SELECT MONTH(donation_date) AS month, COUNT(*) AS total FROM donations GROUP BY MONTH(donation_date)");
-$monthlyTotals = array_fill(0, 12, 0);
-foreach ($monthlyDonations as $d){
-    $monthlyTotals[$d['month'] - 1] = (int)$d['total'];
+$monthlyDonations = $db->fetchAll("
+    SELECT 
+        MONTH(donation_date) AS month,
+        COALESCE(SUM(amount), 0) AS total
+    FROM donations
+    WHERE YEAR(donation_date) = ?
+    GROUP BY MONTH(donation_date)
+", [$selectedYear]);
+
+$donationTotals = array_fill(0, 12, 0);
+foreach ($monthlyDonations as $d) {
+    $donationTotals[$d['month'] - 1] = (float)$d['total'];
 }
 
+$monthlyExpenses = $db->fetchAll("
+    SELECT 
+        MONTH(expense_date) AS month,
+        COALESCE(SUM(amount), 0) AS total
+    FROM expenses
+    WHERE YEAR(expense_date) = ?
+    GROUP BY MONTH(expense_date)
+", [$selectedYear]);
+
+$expenseTotals = array_fill(0, 12, 0);
+foreach ($monthlyExpenses as $e) {
+    $expenseTotals[$e['month'] - 1] = (float)$e['total'];
+}
+
+
+$ministryStats = $db->fetchAll("
+    SELECT 
+        m.name AS ministry_name,
+        COUNT(mm.member_id) AS total_members
+    FROM ministries m
+    LEFT JOIN ministry_members mm 
+        ON m.id = mm.ministry_id
+    WHERE m.status = 'active'
+    GROUP BY m.id
+    ORDER BY total_members DESC
+");
+
+$ministryLabels = [];
+$ministryCounts = [];
+
+foreach ($ministryStats as $row) {
+    $ministryLabels[] = $row['ministry_name'];
+    $ministryCounts[] = (int)$row['total_members'];
+}
+
+
 //Convert to JSON for JS
-$jsDonationData = json_encode($monthlyTotals);
+$jsDonationData = json_encode($donationTotals);
+$jsExpenseData  = json_encode($expenseTotals);
+
+$jsMinistryLabels = json_encode($ministryLabels);
+$jsMinistryCounts = json_encode($ministryCounts);
 ?>
 <?php include 'header.php'; ?>
 
@@ -79,6 +131,12 @@ $jsDonationData = json_encode($monthlyTotals);
 .fa-chevron-down.rotate {
     transform: rotate(180deg);
 }
+
+.year-select {
+    min-width: 90px;
+    padding-right: 2rem; 
+}
+
 
 </style>
 <div class="main-content">
@@ -247,10 +305,35 @@ $jsDonationData = json_encode($monthlyTotals);
         </div>
 
         <!-- Charts Row -->
+         
           <div class="row g-4">
         <div class="col-lg-8">
+            
             <div class="chart-container">
-                <h5 class="mb-3"><i class="bi bi-bar-chart"></i> Church Expenses Chart</h5>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Church Finance Chart</h5>
+
+    <div class="year-selector">
+    <form method="GET" class="d-flex align-items-center gap-2">
+        <label class="small text-muted mb-0">Year</label>
+        <select name="year" class="form-select form-select-sm year-select"
+                onchange="this.form.submit()">
+            <?php
+            $currentYear = date('Y');
+            $selectedYear = $_GET['year'] ?? $currentYear;
+
+            for ($y = $currentYear; $y >= $currentYear - 5; $y--) {
+                $selected = ($selectedYear == $y) ? 'selected' : '';
+                echo "<option value='$y' $selected>$y</option>";
+            }
+            ?>
+        </select>
+    </form>
+</div>
+
+</div>
+
+                
                 <canvas id="donationsChart"></canvas>
             </div>
         </div>
@@ -322,64 +405,110 @@ $jsDonationData = json_encode($monthlyTotals);
 </div>
 
 <script>
-    const donationData =<?php echo $jsDonationData;?>;
+    const donationData = <?= $jsDonationData ?>;
+    const expenseData  = <?= $jsExpenseData ?>;
     const ctx = document.getElementById("donationsChart");
     const ctx1 = document.getElementById("ministryChart");
-    const totalMales = <?php echo $male_count?>;
-    const totalFemales = <?php echo $female_count?>;
+    // const totalMales = <?php echo $male_count?>;
+    // const totalFemales = <?php echo $female_count?>;
+    const ministryLabels =<?php echo $jsMinistryLabels;?>;
+    const ministryCounts =<?php echo $jsMinistryCounts;?>;
 
 
-    console.log(donationData);
+    
 
-    // Chart for Donations
-    new Chart(ctx, {
-        type: "line",
-        data: {
-            labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
-            datasets: [{
-                label: "Monthly Donations",
+    // Chart for Income
+new Chart(ctx, {
+    type: "line",
+    data: {
+        labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+        datasets: [
+            {
+                label: "Income",
                 data: donationData,
-                backgroundColor: [
-              "rgba(74, 144, 226, 0.8)",
-              "rgba(123, 104, 238, 0.8)",
-              "rgba(240, 147, 251, 0.8)",
-              "rgba(67, 233, 123, 0.8)",
-              "rgba(79, 172, 254, 0.8)",
-              "rgba(255, 193, 7, 0.8)",
-            ],
+                borderColor: "rgba(40, 167, 69, 1)",
+                backgroundColor: "rgba(40, 167, 69, 0.15)",
+                fill: true,
+                tension: 0.35,
                 borderWidth: 2
-            }]
+            },
+            {
+                label: "Expenses",
+                data: expenseData,
+                borderColor: "rgba(220, 53, 69, 1)",
+                backgroundColor: "rgba(220, 53, 69, 0.15)",
+                fill: true,
+                tension: 0.35,
+                borderWidth: 2
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: "Amount (GHS)"
+                },
+                ticks: {
+                    callback: value => "¢" + value.toLocaleString()
+                }
+            }
         },
-
-       options: {
-         responsive: true,
-         maintainAspectRatio: true,
-         scales: {
-           y: {
-             beginAtZero: true,
-              ticks: {
-                precision: 0,
-            //    stepSize: 5,
-              },
-           },
-         },
-         plugins: {
-           legend: { position: "bottom" },
-         },
-       },
-});
-
-//Chart for Gender
-new Chart(ctx1,{
-    type:'doughnut',
-    data:{
-        labels:['Male', 'Female'],
-        datasets:[{
-            data:[totalMales, totalFemales],
-            borderWidth:1
-        }]
+        plugins: {
+            legend: {
+                position: "bottom"
+            },
+            tooltip: {
+                callbacks: {
+                    label: ctx => {
+                        return `${ctx.dataset.label}: ¢${ctx.parsed.y.toLocaleString()}`;
+                    }
+                }
+            }
+        }
     }
 });
+
+
+
+
+//Chart for Ministries
+new Chart(ctx1, {
+    type: 'doughnut',
+    data: {
+        labels: ministryLabels,
+        datasets: [{
+            label: 'Members per Ministry',
+            data: ministryCounts,
+            borderWidth: 1
+        }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
+    }
+});
+
+
+//Chart for Gender
+// new Chart(ctx1,{
+//     type:'doughnut',
+//     data:{
+//         labels:['Male', 'Female'],
+//         datasets:[{
+//             data:[totalMales, totalFemales],
+//             borderWidth:1
+//         }]
+//     }
+// });
 
 document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(header => {
     header.addEventListener('click', function () {
