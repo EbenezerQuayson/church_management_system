@@ -4,6 +4,7 @@ $activePage='members';
 
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../models/Member.php';
 require_once __DIR__ . '/../models/Ministry.php';
 $db = Database::getInstance()->getConnection();
@@ -279,7 +280,7 @@ if(isset($_GET['msg'])){
     <div class="d-flex align-items-center">
         <?php 
         $imgPath = __DIR__ . '/../../assets/uploads/members/' . ($m['member_img'] ?? '');
-        $imgUrl  = '/assets/uploads/members/' . ($m['member_img'] ?? '');
+        $imgUrl  = BASE_URL . '/assets/uploads/members/' . ($m['member_img'] ?? '');
         ?>
         <div class="avatar rounded-circle me-3 d-flex align-items-center justify-content-center"
              style="
@@ -305,6 +306,7 @@ if(isset($_GET['msg'])){
             <strong><?= htmlspecialchars($m['first_name'].' '.$m['last_name']) ?></strong><br>
             <small class="text-muted">
                 Joined: <?= date('M d, Y', strtotime($m['join_date'] ?? $m['created_at'])) ?>
+               
             </small>
         </div>
     </div>
