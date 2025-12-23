@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 14, 2025 at 09:01 AM
+-- Generation Time: Dec 23, 2025 at 01:49 PM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -43,7 +43,8 @@ CREATE TABLE `attendance` (
 
 INSERT INTO `attendance` (`id`, `member_id`, `event_id`, `attendance_date`, `status`, `notes`, `created_at`) VALUES
 (1, 1, NULL, '2025-11-27', 'present', '', '2025-11-27 15:32:39'),
-(2, 7, NULL, '2025-12-01', 'present', '', '2025-12-01 11:49:14');
+(2, 7, NULL, '2025-12-01', 'present', '', '2025-12-01 11:49:14'),
+(3, 8, NULL, '2025-12-22', 'late', '', '2025-12-22 04:14:43');
 
 -- --------------------------------------------------------
 
@@ -58,18 +59,20 @@ CREATE TABLE `donations` (
   `donation_type` varchar(100) DEFAULT NULL,
   `donation_date` date NOT NULL,
   `notes` text DEFAULT NULL,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp()
+  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
+  `source` enum('member','service_total','anonymous') DEFAULT 'anonymous'
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Dumping data for table `donations`
 --
 
-INSERT INTO `donations` (`id`, `member_id`, `amount`, `donation_type`, `donation_date`, `notes`, `created_at`) VALUES
-(3, 1, 31.00, 'Tithe', '2025-11-08', 'Tithe', '2025-12-01 19:06:48'),
-(4, NULL, 23.00, 'Service Offering', '2025-12-01', 'service_total', '2025-12-05 03:58:04'),
-(7, 7, 39.00, 'Service Offering', '2025-12-01', 'Amy Plegde', '2025-12-05 03:59:55'),
-(9, NULL, 12000.00, 'General', '2025-12-07', 'service_total', '2025-12-13 12:27:39');
+INSERT INTO `donations` (`id`, `member_id`, `amount`, `donation_type`, `donation_date`, `notes`, `created_at`, `source`) VALUES
+(3, 1, 400.00, 'Tithe', '2025-11-08', 'Tithe', '2025-12-01 19:06:48', 'anonymous'),
+(4, NULL, 690.00, 'Service Offering', '2025-12-01', 'service_total', '2025-12-05 03:58:04', 'anonymous'),
+(7, 7, 120.00, 'Service Offering', '2025-12-01', 'Amy Plegde', '2025-12-05 03:59:55', 'anonymous'),
+(9, NULL, 1200.00, 'General', '2025-12-07', 'service_total', '2025-12-13 12:27:39', 'anonymous'),
+(10, NULL, 210.00, 'General', '2025-12-15', 'service_total', '2025-12-15 00:08:04', 'anonymous');
 
 -- --------------------------------------------------------
 
@@ -125,7 +128,8 @@ CREATE TABLE `expenses` (
 INSERT INTO `expenses` (`id`, `expense_date`, `category_id`, `amount`, `description`, `receipt_path`, `created_at`) VALUES
 (12, '2025-12-12', 2, 500.00, 'Bought fuel for generator', '', '2025-12-12 18:25:37'),
 (13, '2025-12-12', 3, 34.00, 'Paid instrumentalist', '', '2025-12-12 18:25:53'),
-(14, '2025-10-01', 4, 1000.00, 'Maintenance for the church', '', '2025-12-12 19:09:27');
+(14, '2025-10-01', 4, 1000.00, 'Maintenance for the church', '', '2025-12-12 19:09:27'),
+(15, '2025-06-18', 3, 300.00, 'Paid instrumentalist for gig', NULL, '2025-12-14 23:41:59');
 
 -- --------------------------------------------------------
 
@@ -164,16 +168,18 @@ CREATE TABLE `members` (
   `email` varchar(255) DEFAULT NULL,
   `phone` varchar(20) DEFAULT NULL,
   `date_of_birth` date DEFAULT NULL,
-  `gender` varchar(20) DEFAULT NULL,
+  `gender` enum('Male','Female') DEFAULT NULL,
   `join_date` date DEFAULT NULL,
-  `status` varchar(50) DEFAULT 'active',
+  `status` enum('active','inactive','transferred','deceased') NOT NULL DEFAULT 'active',
   `address` varchar(255) DEFAULT NULL,
   `city` varchar(100) DEFAULT NULL,
-  `state` varchar(100) DEFAULT NULL,
-  `zip_code` varchar(20) DEFAULT NULL,
-  `emergency_contact` varchar(100) DEFAULT NULL,
+  `area` varchar(150) DEFAULT NULL,
+  `landmark` varchar(255) DEFAULT NULL,
+  `gps` varchar(20) DEFAULT NULL,
+  `region` varchar(100) DEFAULT NULL,
+  `emergency_contact_name` varchar(100) DEFAULT NULL,
   `emergency_phone` varchar(20) DEFAULT NULL,
-  `photo` varchar(255) DEFAULT NULL,
+  `member_img` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
@@ -182,13 +188,14 @@ CREATE TABLE `members` (
 -- Dumping data for table `members`
 --
 
-INSERT INTO `members` (`id`, `user_id`, `first_name`, `last_name`, `email`, `phone`, `date_of_birth`, `gender`, `join_date`, `status`, `address`, `city`, `state`, `zip_code`, `emergency_contact`, `emergency_phone`, `photo`, `created_at`, `updated_at`) VALUES
-(1, NULL, 'Joe', 'Doe', 'joe@doe.com', '233456789', '2025-11-20', 'Male', '2025-11-27', 'active', 'Weija', 'Accra', 'Greater Accra', '233', NULL, NULL, NULL, '2025-11-27 15:32:00', '2025-11-29 05:18:07'),
-(7, NULL, 'Amy', 'Chutti', 'amy@chutti.com', '023456321', '2025-11-28', 'Female', '2025-11-29', 'active', 'West Hills', 'Accra', 'Greater Accra', '500', NULL, NULL, NULL, '2025-11-29 20:49:14', '2025-11-29 22:03:47'),
-(8, NULL, 'Ebenezer', 'Quayson', 'eben@gmail.com', '0538697161', '2025-12-09', 'Male', '2025-12-09', 'active', 'West Hills', 'Accra', 'Greater Accra', '334', NULL, NULL, NULL, '2025-12-09 20:30:51', '2025-12-09 20:30:51'),
-(9, NULL, 'Florence', 'Ampoma', 'florenceampoma@gmail.com', '0543678954', '2005-08-23', 'Female', '2025-12-13', 'active', 'Odorkor', 'Accra', 'Greater Accra', '500', NULL, NULL, NULL, '2025-12-13 08:49:26', '2025-12-13 09:07:44'),
-(10, NULL, 'Asantewaa', 'Agyeiwaa', 'asantewa243@gmail.com', '0553423124', '2005-06-16', 'Female', '2025-12-13', 'active', 'Odorkor', 'Accra', 'Greater Accra', '500', NULL, NULL, NULL, '2025-12-13 08:50:39', '2025-12-13 09:07:29'),
-(11, NULL, 'Kwesi', 'Frimpong', 'kwesi@gmail.com', '0534568978', '2005-04-13', 'Male', '2025-12-13', 'active', 'Tesano', 'Abeka', 'Greater Accra', '423', NULL, NULL, NULL, '2025-12-13 08:52:10', '2025-12-13 08:52:10');
+INSERT INTO `members` (`id`, `user_id`, `first_name`, `last_name`, `email`, `phone`, `date_of_birth`, `gender`, `join_date`, `status`, `address`, `city`, `area`, `landmark`, `gps`, `region`, `emergency_contact_name`, `emergency_phone`, `member_img`, `created_at`, `updated_at`) VALUES
+(1, NULL, 'Joe', 'Doe', 'joe@doe.com', '233456789', '2025-11-20', 'Male', '2025-12-23', 'active', 'Weija', '', '', '', '', '', NULL, NULL, NULL, '2025-11-27 15:32:00', '2025-12-23 12:25:22'),
+(7, NULL, 'Amy', 'Chutti', 'amy@chutti.com', '023456321', '2025-11-28', 'Female', '2025-12-23', 'active', 'West Hills', '', '', '', '', '', NULL, NULL, NULL, '2025-11-29 20:49:14', '2025-12-23 12:25:15'),
+(8, NULL, 'Ebenezer', 'Quayson', 'eben@gmail.com', '0538697161', '2025-12-09', 'Male', '2025-12-23', 'active', 'West Hills', '', '', '', '', '', NULL, NULL, NULL, '2025-12-09 20:30:51', '2025-12-23 12:25:09'),
+(9, NULL, 'Florence', 'Ampoma', 'florenceampoma@gmail.com', '0543678954', '2005-08-23', 'Female', '2025-12-23', 'active', 'Odorkor', '', '', '', '', '', NULL, NULL, NULL, '2025-12-13 08:49:26', '2025-12-23 12:25:02'),
+(10, NULL, 'Asantewaa', 'Agyeiwaa', 'asantewa243@gmail.com', '0553423124', '2005-06-16', 'Female', '2025-12-23', 'active', 'Odorkor', '', '', '', '', '', NULL, NULL, NULL, '2025-12-13 08:50:39', '2025-12-23 12:24:54'),
+(11, NULL, 'Kwesi', 'Frimpong', 'kwesi@gmail.com', '0534568978', '2005-04-13', 'Male', '2025-12-23', 'active', 'Tesano', 'Abeka', 'Sackey', 'Drug Store', '', 'Greater Accra', NULL, NULL, 'member_694a8ecd9eec72.04547396.png', '2025-12-13 08:52:10', '2025-12-23 12:45:01'),
+(14, NULL, 'Godwin', 'Quansah', 'godwin@gmail.com', '43214675', '2006-02-22', 'Male', '2025-12-23', 'active', 'Kasoa', 'Broadcasting', 'Sackey', 'Drug Store', '', 'Greater Accra', 'Godwin Quayson', '43214675', 'member_694a7f23bb1b45.16674306.png', '2025-12-23 11:38:11', '2025-12-23 12:44:21');
 
 -- --------------------------------------------------------
 
@@ -233,6 +240,21 @@ CREATE TABLE `ministry_members` (
   `joined_date` date DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `ministry_members`
+--
+
+INSERT INTO `ministry_members` (`id`, `ministry_id`, `member_id`, `role`, `joined_date`, `created_at`) VALUES
+(4, 3, 10, 'Member', '2025-12-23', '2025-12-23 12:24:54'),
+(5, 1, 9, 'Member', '2025-12-23', '2025-12-23 12:25:02'),
+(6, 2, 8, 'Member', '2025-12-23', '2025-12-23 12:25:09'),
+(7, 1, 7, 'Member', '2025-12-23', '2025-12-23 12:25:15'),
+(8, 3, 1, 'Member', '2025-12-23', '2025-12-23 12:25:22'),
+(13, 1, 14, 'Member', '2025-12-23', '2025-12-23 12:44:21'),
+(14, 3, 14, 'Member', '2025-12-23', '2025-12-23 12:44:21'),
+(17, 2, 11, 'Member', '2025-12-23', '2025-12-23 12:45:28'),
+(18, 3, 11, 'Member', '2025-12-23', '2025-12-23 12:45:28');
 
 -- --------------------------------------------------------
 
@@ -433,23 +455,13 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
 
 --
 -- AUTO_INCREMENT for table `donations`
 --
 ALTER TABLE `donations`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=10;
-
-
---
--- Adding a new column: `source`
---
-
-
-ALTER TABLE donations
-ADD COLUMN source ENUM('member', 'service_total', 'anonymous')
-DEFAULT 'anonymous';
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=11;
 
 --
 -- AUTO_INCREMENT for table `events`
@@ -461,7 +473,7 @@ ALTER TABLE `events`
 -- AUTO_INCREMENT for table `expenses`
 --
 ALTER TABLE `expenses`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
 
 --
 -- AUTO_INCREMENT for table `expense_categories`
@@ -473,7 +485,7 @@ ALTER TABLE `expense_categories`
 -- AUTO_INCREMENT for table `members`
 --
 ALTER TABLE `members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=15;
 
 --
 -- AUTO_INCREMENT for table `ministries`
@@ -485,7 +497,7 @@ ALTER TABLE `ministries`
 -- AUTO_INCREMENT for table `ministry_members`
 --
 ALTER TABLE `ministry_members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
 
 --
 -- AUTO_INCREMENT for table `notifications`
