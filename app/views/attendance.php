@@ -9,6 +9,8 @@ require_once __DIR__ . '/../models/Member.php';
 
 requireLogin();
 
+$user_id = $_SESSION['user_id'];
+
 $attendance = new Attendance();
 $member_model = new Member();
 $members = $member_model->getAll();

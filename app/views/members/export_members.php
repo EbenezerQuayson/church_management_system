@@ -1,11 +1,14 @@
 <?php
 require_once __DIR__ . '/../../../vendor/autoload.php';
 require_once __DIR__ . '/../../../config/database.php';
+require_once __DIR__ . '/../../../config/session.php';
 require_once __DIR__ . '/../../../app/models/Member.php';
+require_once __DIR__ . '/../../../app/models/Notifications.php';
 
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
+$notifcation = new Notification();
 $member = new Member();
 $members = $member->getAllForExport();
 
@@ -63,5 +66,13 @@ header('Cache-Control: max-age=0');
 
 $writer = new Xlsx($spreadsheet);
 $writer->save('php://output');
+$notifcation->create(
+    $_SESSION['user_id'],
+    'Members Exported',
+    'Members data was exported.',
+    'members.php'
+);
 exit;
+
+
 ?>

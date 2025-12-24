@@ -6,124 +6,23 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../models/Member.php';
 require_once __DIR__ . '/../models/Ministry.php';
+require_once __DIR__ . '/../models/Notifications.php';
 require_once __DIR__ . '/../../vendor/autoload.php';
 $db = Database::getInstance()->getConnection();
 $ministryModel = new Ministry();
 $ministries = $ministryModel->getAllActive();
 $member = new Member();
+$notification = new Notification();
 
+
+$user_id = $_SESSION['user_id'];
 
 
 requireLogin();
 
-use PhpOffice\PhpSpreadsheet\IOFactory;
-
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_members'])) {
-
-    if (!empty($_FILES['import_file']['name'])) {
-
-        $fileTmpPath = $_FILES['import_file']['tmp_name'];
-        $fileName = $_FILES['import_file']['name'];
-        $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
-
-        $allowedExtensions = ['xlsx', 'xls', 'csv'];
-        if (!in_array($fileExtension, $allowedExtensions)) {
-            header("Location: members.php?msg=import_failed_type");
-            exit();
-        }
-
-        try {
-            $spreadsheet = IOFactory::load($fileTmpPath);
-            $sheet = $spreadsheet->getActiveSheet();
-            $rows = $sheet->toArray();
-
-            // Skip the header row
-            array_shift($rows);
-
-            $importedCount = 0;
-
-            foreach ($rows as $row) {
-                $data = [
-                    'first_name' => trim($row[1] ?? ''),
-                    'last_name'  => trim($row[2] ?? ''),
-                    'email'      => trim($row[3] ?? ''),
-                    'phone'      => trim($row[4] ?? ''),
-                    'gender'     => ucfirst(trim($row[5] ?? '')),
-                    'date_of_birth' => $row[6] ?? '',
-                    'join_date'  => $row[7] ?? date('Y-m-d'),
-                    'address'    => $row[10] ?? '',
-                    'city'       => $row[11] ?? '',
-                    'region'     => $row[9] ?? '',
-                    'area'       => $row[12] ?? '',
-                    'emergency_contact_name' => $row[13] ?? '',
-                    'emergency_phone'        => $row[14] ?? '',
-                    'member_img' => null
-                ];
-
-                if (!empty($data['first_name']) && !empty($data['last_name'])) {
-                    $existingMemberId = $member->exists($data['first_name'], $data['last_name'], $data['email'], $data['phone']);
-
- if (!$existingMemberId) {
-    $newMemberId = $member->create($data);
-    if ($newMemberId) $importedCount++;
-} else {
-    $newMemberId = $existingMemberId;
-}
-
-// Handle Ministries for both new and existing members
-$ministries = explode(',', $row[8] ?? '');
-foreach ($ministries as $ministryName) {
-    $ministryName = trim($ministryName);
-    if (!$ministryName) continue;
-
-    $ministryId = $ministryModel->getIdByName($ministryName);
-    if (!$ministryId) $ministryId = $ministryModel->create($ministryName);
-
-    $checkLink = $db->prepare("SELECT 1 FROM ministry_members WHERE member_id = :member_id AND ministry_id = :ministry_id");
-    $checkLink->execute([
-        ':member_id' => $newMemberId,
-        ':ministry_id' => $ministryId
-    ]);
-
-    if (!$checkLink->fetch()) {
-        $stmt = $db->prepare("INSERT INTO ministry_members (member_id, ministry_id, role, joined_date, created_at)
-                              VALUES (:member_id, :ministry_id, 'Member', :joined_date, NOW())");
-        $stmt->execute([
-            ':member_id' => $newMemberId,
-            ':ministry_id' => $ministryId,
-            ':joined_date' => $data['join_date'] ?? date('Y-m-d')
-        ]);
-    }
-}
-
-                } else {
-                    // Log or handle invalid row (missing required fields)  
-                    error_log("Skipping row due to missing required fields: " . implode(',', $row));
-            }
-            }
-
-            if ($importedCount > 0) {
-                header("Location: members.php?msg=imported&count=$importedCount");
-            } else {
-                header("Location: members.php?msg=import_failed");
-            }
-
-        } catch (Exception $e) {
-            header("Location: members.php?msg=import_failed");
-        }
-
-    } else {
-        header("Location: members.php?msg=import_failed_no_file");
-    }
-
-    exit();
-}
 
 
-
-
-
-
+//View Mode Handling
 if (isset($_GET['view']) && in_array($_GET['view'], ['flat', 'grouped'])) {
     $_SESSION['members_view'] = $_GET['view'];
 }
@@ -143,7 +42,7 @@ $message_type = '';
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_member'])) {
 
-    // 🔹 Ministries come separately (array)
+    // Ministries come separately (array)
     $ministries = $_POST['ministries'] ?? [];
 
     $data = [
@@ -202,7 +101,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_member'])) {
 if ($newMemberId) {
     // Get selected ministries
     $ministryIds = $_POST['ministries'] ?? [];
-
+    $notification->create(
+        $_SESSION['user_id'],
+        'New Member Added',
+        $data['first_name'] . ' ' . $data['last_name'] . ' was added.',
+        'members.php'
+    );
     // If none selected, assign default ministry (e.g., id = 1)
     if (empty($ministryIds)) {
         $ministryIds = [1]; // Replace 1 with your default ministry ID
@@ -220,6 +124,14 @@ if ($newMemberId) {
             ':joined_date' => $data['join_date'] ?? date('Y-m-d')
         ]);
     }
+
+    //Notification
+    $notification->create(
+        $_SESSION['user_id'],
+        'New Member Added',
+        $data['first_name'] . ' ' . $data['last_name'] . ' was added.',
+        'members.php'
+    );
 
     header("Location: members.php?msg=added");
 } else {
@@ -270,6 +182,13 @@ if (isset($_POST['update_member'])) {
         $selectedMinistries = $_POST['ministries'] ?? [];
         $member->updateMinistries($editId, $selectedMinistries);
 
+        $notification->create(
+            $_SESSION['user_id'],
+            'Member Updated',
+            $data['first_name'] . ' ' . $data['last_name'] . ' was updated.',
+            'members.php'
+        );
+
         header("Location: members.php?msg=updated");
         exit();
     } else {
@@ -285,6 +204,12 @@ if(isset($_GET['delete'])) {
     $id = $_GET['delete'];
     // Implement delete functionality in Member model
     if ($member->permanentDelete($id)) {
+        $notification->create(
+            $_SESSION['user_id'],
+            'Member Deleted',
+            'A member was deleted.',
+            'members.php'
+        );
         header("Location: members.php?msg=deleted");
         exit();
         // $message = 'Member deleted successfully!';
@@ -402,7 +327,7 @@ if(isset($_GET['msg'])){
           name="search"
           id="memberSearch"
           class="form-control"
-          placeholder="Search members by name, phone, or email..."
+          placeholder="Search members by name or email..."
           autocomplete = "off"
           >
           <!-- <button class="btn btn-outline-primary" type="submit" >Search</button> -->
@@ -674,7 +599,7 @@ endforeach;
                 <h5 class="modal-title"><i class="bi bi-upload"></i> Import Members</h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
-            <form method="POST" enctype="multipart/form-data">
+            <form method="POST" action="<?= BASE_URL ?>/app/views/members/import_members.php" enctype="multipart/form-data">
                 <div class="modal-body">
                     <div class="mb-3">
                         <label for="import_file" class="form-label">Upload Excel/CSV File</label>

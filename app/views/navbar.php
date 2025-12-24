@@ -2,6 +2,10 @@
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
 // include  __DIR__ . '/notification.php';
+$user_id = $_SESSION['user_id'];
+$unread_count = $db->fetch("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0", [$user_id]);
+
+
 ?>
 <!-- Top Navigation Bar -->
     <nav class="top-navbar">
@@ -28,7 +32,7 @@ if (!empty($notifications)) {
     foreach ($notifications as $notification):
     ?>
     <li>
-        <a class="dropdown-item" href="<?php echo BASE_URL . '/' . htmlspecialchars($notification['link']); ?>">
+        <a class="dropdown-item" href="<?php echo BASE_URL . '/app/views/notification.php'?>">
             <?php echo htmlspecialchars($notification['message']); ?>
         </a>
     </li>

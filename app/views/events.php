@@ -5,13 +5,18 @@ $activePage = 'events';
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../models/Event.php';
+require_once __DIR__ . '/../models/NOtifications.php';
 
 requireLogin();
 
+$notification = new Notification();
 $event = new Event();
 $events = $event->getAll();
 $message = '';
 $message_type = '';
+
+$user_id = $_SESSION['user_id'];
+
 
 
 //Handle edit event
@@ -32,9 +37,12 @@ if(isset($_POST['edit_event'])){
         $message_type = 'error';
     } else {
         if ($event->edit($eventId, $data)) {
-            // $message = 'Event updated successfully!';
-            // $message_type = 'success';
-            // $events = $event->getAll();
+            $notification->create(
+                $_SESSION['user_id'],
+                'Event Updated',
+                'The event "' . $data['title'] . '" was updated.',
+                'events.php'
+            );
             header("Location: events.php?msg=updated");
             exit();
         } else {
@@ -62,9 +70,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['edit_event'])) {
         $message_type = 'error';
     } else {
         if ($event->create($data)) {
-                // $message = 'Event created successfully!';
-                // $message_type = 'success';
-                // $events = $event->getAll();
+               $notification->create(
+                    $_SESSION['user_id'],
+                    'New Event Created',
+                    'The event "' . $data['title'] . '" was created.',
+                    'events.php'
+                );
                 header("Location: events.php?msg=created");
                 exit();
         } else {
@@ -79,8 +90,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['edit_event'])) {
 if(isset($_GET['delete'])){
     $eventId = $_GET['delete'];
     if($event->hardDelete($eventId)){
-        // $message = 'Event deleted successfully!';
-        // $message_type = 'success';
+      $notification->create(
+            $_SESSION['user_id'],
+            'Event Deleted',
+            'An event record was deleted.',
+            'events.php'
+        );
         header("Location: events.php?msg=deleted");
         exit();
     } else {
