@@ -1,21 +1,35 @@
 <?php
 // Members Page
 $activePage='members';
-
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../models/Member.php';
 require_once __DIR__ . '/../models/Ministry.php';
+require_once __DIR__ . '/../models/Notifications.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 $db = Database::getInstance()->getConnection();
 $ministryModel = new Ministry();
-$ministries = $ministryModel->getAllActive(); // We'll create this method
+$ministries = $ministryModel->getAllActive();
+$member = new Member();
+$notification = new Notification();
 
+
+$user_id = $_SESSION['user_id'];
 
 
 requireLogin();
 
-$member = new Member();
+
+
+//View Mode Handling
+if (isset($_GET['view']) && in_array($_GET['view'], ['flat', 'grouped'])) {
+    $_SESSION['members_view'] = $_GET['view'];
+}
+
+$viewMode = $_SESSION['members_view'] ?? 'flat';
+
+
 $search = trim($_GET['search'] ?? '');
 if($search !== ''){
    $members = $member->search($search);
@@ -28,7 +42,7 @@ $message_type = '';
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_member'])) {
 
-    // 🔹 Ministries come separately (array)
+    // Ministries come separately (array)
     $ministries = $_POST['ministries'] ?? [];
 
     $data = [
@@ -65,6 +79,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_member'])) {
         exit();
     }
 
+
     // Handle image upload
     if (!empty($_FILES['member_img']['name'])) {
         $uploadDir = __DIR__ . '/../../assets/uploads/members/';
@@ -86,7 +101,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_member'])) {
 if ($newMemberId) {
     // Get selected ministries
     $ministryIds = $_POST['ministries'] ?? [];
-
+    $notification->create(
+        $_SESSION['user_id'],
+        'New Member Added',
+        $data['first_name'] . ' ' . $data['last_name'] . ' was added.',
+        'members.php'
+    );
     // If none selected, assign default ministry (e.g., id = 1)
     if (empty($ministryIds)) {
         $ministryIds = [1]; // Replace 1 with your default ministry ID
@@ -104,6 +124,14 @@ if ($newMemberId) {
             ':joined_date' => $data['join_date'] ?? date('Y-m-d')
         ]);
     }
+
+    //Notification
+    $notification->create(
+        $_SESSION['user_id'],
+        'New Member Added',
+        $data['first_name'] . ' ' . $data['last_name'] . ' was added.',
+        'members.php'
+    );
 
     header("Location: members.php?msg=added");
 } else {
@@ -154,6 +182,13 @@ if (isset($_POST['update_member'])) {
         $selectedMinistries = $_POST['ministries'] ?? [];
         $member->updateMinistries($editId, $selectedMinistries);
 
+        $notification->create(
+            $_SESSION['user_id'],
+            'Member Updated',
+            $data['first_name'] . ' ' . $data['last_name'] . ' was updated.',
+            'members.php'
+        );
+
         header("Location: members.php?msg=updated");
         exit();
     } else {
@@ -169,6 +204,12 @@ if(isset($_GET['delete'])) {
     $id = $_GET['delete'];
     // Implement delete functionality in Member model
     if ($member->permanentDelete($id)) {
+        $notification->create(
+            $_SESSION['user_id'],
+            'Member Deleted',
+            'A member was deleted.',
+            'members.php'
+        );
         header("Location: members.php?msg=deleted");
         exit();
         // $message = 'Member deleted successfully!';
@@ -182,6 +223,7 @@ if(isset($_GET['delete'])) {
     }
     // $members = $member->getAll();
 }
+
 //Logic to prevent resubmission after any refresh
 
 if(isset($_GET['msg'])){
@@ -210,13 +252,45 @@ if(isset($_GET['msg'])){
             $message = 'Failed to delete member';
             $message_type = 'error';
             break;
+        case 'exported':
+            $message = 'Members exported successfully.';
+            $message_type = 'success';
+            break;
+
+        case 'export_failed':
+            $message = 'Failed to export members.';
+            $message_type = 'error';
+            break;
+        case 'imported':
+            $count = $_GET['count'] ?? 0;
+            $message = "Successfully imported $count members!";
+            $message_type = 'success';
+            break;
+        case 'import_failed':
+            $message = 'Failed to import members. Please check the file format and data.';
+            $message_type = 'error';
+            break;
+        case 'import_failed_type':
+            $message = 'Invalid file type. Only XLSX, XLS, and CSV are allowed.';
+            $message_type = 'error';
+            break;
+        case 'import_failed_no_file':
+            $message = 'No file selected for import.';
+            $message_type = 'error';
+            break;
+
+
         default:
             $message = '';
             $message_type = '';
             break;
     }
 }
+
+   $uploadDir = __DIR__ . '/../../assets/uploads/members/'; // For server check
+
 ?>
+
 <?php include 'header.php'; ?>
 <div class="main-content">
     <?php include 'sidebar.php'; ?>
@@ -228,7 +302,10 @@ if(isset($_GET['msg'])){
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMemberModal">
                 <i class="fas fa-user-plus"></i> Add Member
             </button>
+            
+
         </div>
+        
 
         <!-- Message Display -->
         <?php if ($message): ?>
@@ -250,7 +327,7 @@ if(isset($_GET['msg'])){
           name="search"
           id="memberSearch"
           class="form-control"
-          placeholder="Search members by name, phone, or email..."
+          placeholder="Search members by name or email..."
           autocomplete = "off"
           >
           <!-- <button class="btn btn-outline-primary" type="submit" >Search</button> -->
@@ -258,6 +335,32 @@ if(isset($_GET['msg'])){
          </form>
 <br>
         <!-- Members Table -->
+<div class="row mb-4 g-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body ">
+                        <h5 class="card-title mb-3 ">Quick Actions</h5>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <!-- <a href="members.php?view=flat" class="btn btn-outline-primary <?= $viewMode === 'flat' ? 'active' : '' ?>">
+                                <i class="bi bi-layout-text-sidebar-reverse"></i> Flat View
+                            </a>
+                            <a href="members.php?view=grouped" class="btn btn-outline-primary <?= $viewMode === 'grouped' ? 'active' : '' ?>">
+                                <i class="bi bi-diagram-3"></i> Grouped by Ministry
+                            </a> -->
+                            <a href="<?= BASE_URL ?>/app/views/members/export_members.php" class="btn btn-success" onclick="return confirm('Export members to Excel?');">
+                             <i class="bi bi-file-earmark-excel"></i> Export Members </a>
+
+                             <a href="#" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#importMembersModal">
+    <i class="bi bi-upload"></i> Import Members
+</a>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
@@ -272,94 +375,96 @@ if(isset($_GET['msg'])){
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                     <tbody id="membersTable">
-<?php if (!empty($members)): ?>
-    <?php foreach ($members as $m): ?>
+
+                        <?php
+                                $groupedMembers = [];
+
+                                if ($viewMode === 'grouped') {
+                                    foreach ($members as $m) {
+                                        $ministries = $member->getMemberMinistries($m['id']);
+
+                                        if (empty($ministries)) {
+                                            $groupedMembers['No Ministry'][] = $m;
+                                        } else {
+                                            foreach ($ministries as $ministryName) {
+                                                $groupedMembers[$ministryName][] = $m;
+                                            }
+                                        }
+                                    }
+                                }
+                                ?>
+
+   <tbody id="membersTable">
+<?php if ($viewMode === 'flat'): ?>
+
+    <?php if (!empty($members)): ?>
+        <?php foreach ($members as $m): ?>
+            <?php include 'members/member_row.php'; ?>
+        <?php endforeach; ?>
+    <?php else: ?>
         <tr>
-           <td>
-    <div class="d-flex align-items-center">
-        <?php 
-        $imgPath = __DIR__ . '/../../assets/uploads/members/' . ($m['member_img'] ?? '');
-        $imgUrl  = BASE_URL . '/assets/uploads/members/' . ($m['member_img'] ?? '');
-        ?>
-        <div class="avatar rounded-circle me-3 d-flex align-items-center justify-content-center"
-             style="
-                width:40px; 
-                height:40px; 
-                background-color: var(--primary-color); 
-                color:white; 
-                overflow:hidden; 
-                flex-shrink:0; 
-                border: 2px solid #fff;
-                font-weight: bold;
-                font-size: 16px;
-             ">
-            <?php if (!empty($m['member_img']) && file_exists($imgPath)): ?>
-                <img src="<?= htmlspecialchars($imgUrl) ?>" 
-                     alt="Member Image" 
-                     style="width:100%; height:100%; object-fit:cover; display:block;">
-            <?php else: ?>
-                <?= strtoupper(substr($m['first_name'], 0, 1)) ?>
-            <?php endif; ?>
-        </div>
-        <div class="ms-2">
-            <strong><?= htmlspecialchars($m['first_name'].' '.$m['last_name']) ?></strong><br>
-            <small class="text-muted">
-                Joined: <?= date('M d, Y', strtotime($m['join_date'] ?? $m['created_at'])) ?>
-               
-            </small>
-        </div>
-    </div>
-</td>
-
-
-
-
-            <td><?= htmlspecialchars($m['gender'] ?? 'N/A') ?></td>
-            <td><?= htmlspecialchars($m['phone'] ?? 'N/A') ?></td>
-            <td><?= htmlspecialchars($m['email'] ?? 'N/A') ?></td>
-
-            <td>
-    <?php
-        $memberMinistries = $member->getMemberMinistries($m['id']);
-        if (!empty($memberMinistries)) {
-            foreach ($memberMinistries as $ministryName) {
-                echo '<span class="badge bg-info me-1">' . htmlspecialchars($ministryName) . '</span>';
-            }
-        } else {
-            echo '<span class="badge bg-info">N/A</span>';
-        }
-    ?>
-</td>
-
-
-            <td>
-                <button class="btn btn-sm btn-outline-primary"
-                        data-bs-toggle="modal"
-                        data-bs-target="#editMemberModal<?= $m['id']; ?>">
-                    <i class="fas fa-edit"></i>
-                </button>
-
-                <button class="btn btn-sm btn-outline-danger"
-                        onclick="confirmDelete(<?= $m['id']; ?>)">
-                    <i class="fas fa-trash"></i>
-                </button>
+            <td colspan="6" class="text-center text-muted py-4">
+                No members found
             </td>
         </tr>
+    <?php endif; ?>
 
-    <?php endforeach; ?>
-<?php else: ?>
-    <tr>
-        <td colspan="6" class="text-center text-muted py-4">
-            No members found
+<?php endif; ?>
+
+<?php if ($viewMode === 'grouped'): ?>
+
+<?php foreach ($groupedMembers as $ministryName => $group): ?>
+    <?php $collapseId = 'ministry_' . md5($ministryName); ?>
+
+    <!-- Ministry Header -->
+    <tr class="table-light">
+        <td colspan="6">
+            <button class="btn btn-sm btn-link text-decoration-none fw-bold"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#<?= $collapseId ?>">
+                <i class="fas fa-chevron-down me-2"></i>
+                <?= htmlspecialchars($ministryName) ?>
+                <span class="badge bg-secondary ms-2"><?= count($group) ?></span>
+            </button>
         </td>
     </tr>
+</tbody>
+    <!-- Members -->
+    <tr class="collapse show" id="<?= $collapseId ?>">
+        <td colspan="6" class="p-0">
+            <table class="table mb-0">
+                <tbody>
+                <?php foreach ($group as $m): ?>
+                    <?php include 'members/member_row.php'; ?>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+
+<?php endforeach; ?>
+
 <?php endif; ?>
 </tbody>
 
-<?php foreach ($members as $m): ?>
-    <?php include 'members/edit_member_modal.php'; ?>
-<?php endforeach; ?>
+
+
+
+
+
+
+
+
+
+<?php 
+$includedMembers = [];
+foreach ($members as $m): 
+    if (!in_array($m['id'], $includedMembers)) {
+        include 'members/edit_member_modal.php';
+        $includedMembers[] = $m['id'];
+    }
+endforeach; 
+?>
 
 
                     </table>
@@ -481,6 +586,31 @@ if(isset($_GET['msg'])){
                     <button type="submit" class="btn btn-primary">Add Member</button>
                 </div>
              </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Import Members Modal -->
+<div class="modal fade" id="importMembersModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title"><i class="bi bi-upload"></i> Import Members</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" action="<?= BASE_URL ?>/app/views/members/import_members.php" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="import_file" class="form-label">Upload Excel/CSV File</label>
+                        <input type="file" class="form-control" name="import_file" id="import_file" accept=".xlsx,.xls,.csv" required>
+                        <small class="text-muted">Accepted formats: XLSX, XLS, CSV</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" name="import_members" class="btn btn-primary">Import</button>
+                </div>
             </form>
         </div>
     </div>

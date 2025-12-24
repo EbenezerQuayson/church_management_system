@@ -9,6 +9,9 @@ require_once __DIR__ . '/../models/ExpenseCategory.php';
 
 requireLogin();
 
+$user_id = $_SESSION['user_id'];
+
+
 $pdo = Database::getInstance()->getConnection();
 $category = new ExpenseCategory($pdo);
 

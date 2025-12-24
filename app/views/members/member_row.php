@@ -1,33 +1,13 @@
 <?php
-require_once __DIR__ . '/../../config/database.php';
-require_once __DIR__ . '/../../config/config.php';
-require_once __DIR__ . '/../models/Member.php';
+require_once __DIR__ . '/../../../config/config.php';
 
-$member = new Member();
-$search = trim($_GET['q'] ?? '');
+?>
 
-if ($search === '') {
-    $members = $member->getAll();
-} else {
-    $members = $member->search($search);
-}
 
-if (empty($members)) {
-    echo '<tr>
-            <td colspan="6" class="text-center text-muted py-4">
-                Member not found
-            </td>
-          </tr>';
-    exit;
-}
-
-foreach ($members as $m): ?>
 <tr>
     <td>
         <div class="d-flex align-items-center">
             <?php 
-   $uploadDir = __DIR__ . '/../../assets/uploads/members/'; // For server check
-
 $imgPath = $uploadDir . ($m['member_img'] ?? '');
 $imgUrl  = BASE_URL . '/assets/uploads/members/' . ($m['member_img'] ?? '');
 
@@ -60,9 +40,11 @@ $imgUrl  = BASE_URL . '/assets/uploads/members/' . ($m['member_img'] ?? '');
             </div>
         </div>
     </td>
-    <td><?= htmlspecialchars($m['gender'] ?? 'N/A'); ?></td>
-    <td><?= htmlspecialchars($m['phone'] ?? 'N/A'); ?></td>
-    <td><?= htmlspecialchars($m['email'] ?? 'N/A'); ?></td>
+
+    <td><?= htmlspecialchars($m['gender'] ?? 'N/A') ?></td>
+    <td><?= htmlspecialchars($m['phone'] ?? 'N/A') ?></td>
+    <td><?= htmlspecialchars($m['email'] ?? 'N/A') ?></td>
+
     <td>
         <?php
             $memberMinistries = $member->getMemberMinistries($m['id']);
@@ -76,7 +58,7 @@ $imgUrl  = BASE_URL . '/assets/uploads/members/' . ($m['member_img'] ?? '');
         ?>
     </td>
 
-       <td>
+    <td>
         <button class="btn btn-sm btn-outline-primary"
                 data-bs-toggle="modal"
                 data-bs-target="#editMemberModal<?= $m['id']; ?>">
@@ -89,4 +71,3 @@ $imgUrl  = BASE_URL . '/assets/uploads/members/' . ($m['member_img'] ?? '');
         </button>
     </td>
 </tr>
-<?php endforeach; ?>

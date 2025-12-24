@@ -307,6 +307,117 @@ public function updateMinistries($memberId, $ministries = []) {
     }
 }
 
+public function getAllWithMinistries() {
+    $sql = "
+        SELECT 
+            m.*,
+            GROUP_CONCAT(min.name ORDER BY min.name SEPARATOR ', ') AS ministries
+        FROM members m
+        LEFT JOIN ministry_members mm ON mm.member_id = m.id
+        LEFT JOIN ministries min ON min.id = mm.ministry_id
+        GROUP BY m.id
+        ORDER BY m.first_name, m.last_name
+    ";
 
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+
+
+public function getMembersGroupedByMinistry() {
+    $sql = "
+        SELECT 
+            m.*,
+            min.id AS ministry_id,
+            min.name AS ministry_name
+        FROM members m
+        LEFT JOIN ministry_members mm ON mm.member_id = m.id
+        LEFT JOIN ministries min ON min.id = mm.ministry_id
+        ORDER BY min.name, m.first_name
+    ";
+
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute();
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $grouped = [];
+
+    foreach ($rows as $row) {
+        $key = $row['ministry_name'] ?? 'No Ministry';
+        $grouped[$key][] = $row;
+    }
+
+    return $grouped;
+}
+
+
+public function getByIdWithMinistries($id)
+{
+    $stmt = $this->db->prepare("SELECT * FROM members WHERE id = ?");
+    $stmt->execute([$id]);
+    $member = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    $stmt = $this->db->prepare(
+        "SELECT ministry_id FROM ministry_members WHERE member_id = ?"
+    );
+    $stmt->execute([$id]);
+
+    $member['ministries'] = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    return $member;
+}
+
+
+public function getAllForExport()
+{
+    $sql = "
+        SELECT 
+            m.id,
+            m.first_name,
+            m.last_name,
+            m.email,
+            m.phone,
+            m.gender,
+            m.date_of_birth,
+            m.join_date,
+            m.region,
+            m.city,
+            m.area,
+            m.emergency_contact_name,
+            m.emergency_phone,
+            GROUP_CONCAT(min.name SEPARATOR ', ') AS ministries
+        FROM members m
+        LEFT JOIN ministry_members mm ON mm.member_id = m.id
+        LEFT JOIN ministries min ON min.id = mm.ministry_id
+        GROUP BY m.id
+        ORDER BY m.first_name ASC
+    ";
+
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+public function exists($firstName, $lastName, $email = null, $phone = null) {
+    $sql = "SELECT id FROM members WHERE first_name = :first_name AND last_name = :last_name";
+    $params = [':first_name' => $firstName, ':last_name' => $lastName];
+
+    if ($email) {
+        $sql .= " AND email = :email";
+        $params[':email'] = $email;
+    }
+    if ($phone) {
+        $sql .= " AND phone = :phone";
+        $params[':phone'] = $phone;
+    }
+
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute($params);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result ? $result['id'] : false;
+}
+
+} 
 ?>

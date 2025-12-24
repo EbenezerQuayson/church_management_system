@@ -11,6 +11,9 @@ require_once __DIR__ . '/../models/Overview.php';
 
 requireLogin();
 
+$user_id = $_SESSION['user_id'];
+
+
 $db = Database::getInstance();
 $pdo = Database::getInstance() -> getConnection();
 
