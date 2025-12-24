@@ -370,5 +370,34 @@ public function getByIdWithMinistries($id)
 }
 
 
+public function getAllForExport()
+{
+    $sql = "
+        SELECT 
+            m.id,
+            m.first_name,
+            m.last_name,
+            m.email,
+            m.phone,
+            m.gender,
+            m.date_of_birth,
+            m.join_date,
+            m.region,
+            m.city,
+            m.area,
+            m.emergency_contact_name,
+            m.emergency_phone,
+            GROUP_CONCAT(min.name SEPARATOR ', ') AS ministries
+        FROM members m
+        LEFT JOIN ministry_members mm ON mm.member_id = m.id
+        LEFT JOIN ministries min ON min.id = mm.ministry_id
+        GROUP BY m.id
+        ORDER BY m.first_name ASC
+    ";
+
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+} 
 ?>

@@ -6,12 +6,111 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/config.php';
 require_once __DIR__ . '/../models/Member.php';
 require_once __DIR__ . '/../models/Ministry.php';
+require_once __DIR__ . '/../../vendor/autoload.php';
 $db = Database::getInstance()->getConnection();
 $ministryModel = new Ministry();
 $ministries = $ministryModel->getAllActive();
+$member = new Member();
+
 
 
 requireLogin();
+
+use PhpOffice\PhpSpreadsheet\IOFactory;
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_members'])) {
+
+    if (!empty($_FILES['import_file']['name'])) {
+
+        $fileTmpPath = $_FILES['import_file']['tmp_name'];
+        $fileName = $_FILES['import_file']['name'];
+        $fileExtension = strtolower(pathinfo($fileName, PATHINFO_EXTENSION));
+
+        $allowedExtensions = ['xlsx', 'xls', 'csv'];
+        if (!in_array($fileExtension, $allowedExtensions)) {
+            header("Location: members.php?msg=import_failed_type");
+            exit();
+        }
+
+        try {
+            $spreadsheet = IOFactory::load($fileTmpPath);
+            $sheet = $spreadsheet->getActiveSheet();
+            $rows = $sheet->toArray();
+
+            // Skip the header row
+            array_shift($rows);
+
+            $importedCount = 0;
+
+            foreach ($rows as $row) {
+                $data = [
+                    'first_name' => trim($row[1] ?? ''),
+                    'last_name'  => trim($row[2] ?? ''),
+                    'email'      => trim($row[3] ?? ''),
+                    'phone'      => trim($row[4] ?? ''),
+                    'gender'     => ucfirst(trim($row[5] ?? '')),
+                    'date_of_birth' => $row[6] ?? '',
+                    'join_date'  => $row[7] ?? date('Y-m-d'),
+                    'address'    => $row[10] ?? '',
+                    'city'       => $row[11] ?? '',
+                    'region'     => $row[9] ?? '',
+                    'area'       => $row[12] ?? '',
+                    'emergency_contact_name' => $row[13] ?? '',
+                    'emergency_phone'        => $row[14] ?? '',
+                    'member_img' => null
+                ];
+
+                if (!empty($data['first_name']) && !empty($data['last_name'])) {
+                    $newMemberId = $member->create($data);
+
+                    if ($newMemberId) {
+                        $importedCount++;
+
+                        // Handle Ministries
+                        $ministries = explode(',', $row[8] ?? ''); // Column for ministries
+                        foreach ($ministries as $ministryName) {
+                            $ministryName = trim($ministryName);
+                            if (!$ministryName) continue;
+
+                            // Get ministry ID or create if it doesn't exist
+                            $ministryId = $ministryModel->getIdByName($ministryName);
+                            if (!$ministryId) {
+                                $ministryId = $ministryModel->create($ministryName);
+                            }
+
+                            // Link member to ministry
+                            $stmt = $db->prepare("INSERT INTO ministry_members (member_id, ministry_id, role, joined_date, created_at) VALUES (:member_id, :ministry_id, 'Member', :joined_date, NOW())");
+                            $stmt->execute([
+                                ':member_id' => $newMemberId,
+                                ':ministry_id' => $ministryId,
+                                ':joined_date' => $data['join_date'] ?? date('Y-m-d')
+                            ]);
+                        }
+                    }
+                }
+            }
+
+            if ($importedCount > 0) {
+                header("Location: members.php?msg=imported&count=$importedCount");
+            } else {
+                header("Location: members.php?msg=import_failed");
+            }
+
+        } catch (Exception $e) {
+            header("Location: members.php?msg=import_failed");
+        }
+
+    } else {
+        header("Location: members.php?msg=import_failed_no_file");
+    }
+
+    exit();
+}
+
+
+
+
+
 
 if (isset($_GET['view']) && in_array($_GET['view'], ['flat', 'grouped'])) {
     $_SESSION['members_view'] = $_GET['view'];
@@ -19,7 +118,6 @@ if (isset($_GET['view']) && in_array($_GET['view'], ['flat', 'grouped'])) {
 
 $viewMode = $_SESSION['members_view'] ?? 'flat';
 
-$member = new Member();
 
 $search = trim($_GET['search'] ?? '');
 if($search !== ''){
@@ -188,6 +286,7 @@ if(isset($_GET['delete'])) {
     }
     // $members = $member->getAll();
 }
+
 //Logic to prevent resubmission after any refresh
 
 if(isset($_GET['msg'])){
@@ -216,6 +315,34 @@ if(isset($_GET['msg'])){
             $message = 'Failed to delete member';
             $message_type = 'error';
             break;
+        case 'exported':
+            $message = 'Members exported successfully.';
+            $message_type = 'success';
+            break;
+
+        case 'export_failed':
+            $message = 'Failed to export members.';
+            $message_type = 'error';
+            break;
+        case 'imported':
+            $count = $_GET['count'] ?? 0;
+            $message = "Successfully imported $count members!";
+            $message_type = 'success';
+            break;
+        case 'import_failed':
+            $message = 'Failed to import members. Please check the file format and data.';
+            $message_type = 'error';
+            break;
+        case 'import_failed_type':
+            $message = 'Invalid file type. Only XLSX, XLS, and CSV are allowed.';
+            $message_type = 'error';
+            break;
+        case 'import_failed_no_file':
+            $message = 'No file selected for import.';
+            $message_type = 'error';
+            break;
+
+
         default:
             $message = '';
             $message_type = '';
@@ -226,6 +353,7 @@ if(isset($_GET['msg'])){
    $uploadDir = __DIR__ . '/../../assets/uploads/members/'; // For server check
 
 ?>
+
 <?php include 'header.php'; ?>
 <div class="main-content">
     <?php include 'sidebar.php'; ?>
@@ -237,7 +365,10 @@ if(isset($_GET['msg'])){
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMemberModal">
                 <i class="fas fa-user-plus"></i> Add Member
             </button>
+            
+
         </div>
+        
 
         <!-- Message Display -->
         <?php if ($message): ?>
@@ -267,17 +398,30 @@ if(isset($_GET['msg'])){
          </form>
 <br>
         <!-- Members Table -->
-        <div class="d-flex justify-content-end mb-3">
-    <select class="form-select form-select-sm w-auto"
-            onchange="location.href='?view=' + this.value">
-        <option value="flat" <?= $viewMode === 'flat' ? 'selected' : '' ?>>
-            Flat view
-        </option>
-        <option value="grouped" <?= $viewMode === 'grouped' ? 'selected' : '' ?>>
-            Grouped by ministry
-        </option>
-    </select>
-</div>
+<div class="row mb-4 g-4">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body ">
+                        <h5 class="card-title mb-3 ">Quick Actions</h5>
+                        <div class="d-flex gap-2 flex-wrap">
+                            <!-- <a href="members.php?view=flat" class="btn btn-outline-primary <?= $viewMode === 'flat' ? 'active' : '' ?>">
+                                <i class="bi bi-layout-text-sidebar-reverse"></i> Flat View
+                            </a>
+                            <a href="members.php?view=grouped" class="btn btn-outline-primary <?= $viewMode === 'grouped' ? 'active' : '' ?>">
+                                <i class="bi bi-diagram-3"></i> Grouped by Ministry
+                            </a> -->
+                            <a href="<?= BASE_URL ?>/app/views/members/export_members.php" class="btn btn-success" onclick="return confirm('Export members to Excel?');">
+                             <i class="bi bi-file-earmark-excel"></i> Export Members </a>
+
+                             <a href="#" class="btn btn-info" data-bs-toggle="modal" data-bs-target="#importMembersModal">
+    <i class="bi bi-upload"></i> Import Members
+</a>
+
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
 
 
         <div class="card">
@@ -505,6 +649,31 @@ endforeach;
                     <button type="submit" class="btn btn-primary">Add Member</button>
                 </div>
              </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- Import Members Modal -->
+<div class="modal fade" id="importMembersModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
+                <h5 class="modal-title"><i class="bi bi-upload"></i> Import Members</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <form method="POST" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label for="import_file" class="form-label">Upload Excel/CSV File</label>
+                        <input type="file" class="form-control" name="import_file" id="import_file" accept=".xlsx,.xls,.csv" required>
+                        <small class="text-muted">Accepted formats: XLSX, XLS, CSV</small>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" name="import_members" class="btn btn-primary">Import</button>
+                </div>
             </form>
         </div>
     </div>
