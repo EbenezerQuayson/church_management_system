@@ -307,6 +307,68 @@ public function updateMinistries($memberId, $ministries = []) {
     }
 }
 
+public function getAllWithMinistries() {
+    $sql = "
+        SELECT 
+            m.*,
+            GROUP_CONCAT(min.name ORDER BY min.name SEPARATOR ', ') AS ministries
+        FROM members m
+        LEFT JOIN ministry_members mm ON mm.member_id = m.id
+        LEFT JOIN ministries min ON min.id = mm.ministry_id
+        GROUP BY m.id
+        ORDER BY m.first_name, m.last_name
+    ";
+
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
+
+
+
+public function getMembersGroupedByMinistry() {
+    $sql = "
+        SELECT 
+            m.*,
+            min.id AS ministry_id,
+            min.name AS ministry_name
+        FROM members m
+        LEFT JOIN ministry_members mm ON mm.member_id = m.id
+        LEFT JOIN ministries min ON min.id = mm.ministry_id
+        ORDER BY min.name, m.first_name
+    ";
+
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute();
+    $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    $grouped = [];
+
+    foreach ($rows as $row) {
+        $key = $row['ministry_name'] ?? 'No Ministry';
+        $grouped[$key][] = $row;
+    }
+
+    return $grouped;
+}
+
+
+public function getByIdWithMinistries($id)
+{
+    $stmt = $this->db->prepare("SELECT * FROM members WHERE id = ?");
+    $stmt->execute([$id]);
+    $member = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    $stmt = $this->db->prepare(
+        "SELECT ministry_id FROM ministry_members WHERE member_id = ?"
+    );
+    $stmt->execute([$id]);
+
+    $member['ministries'] = $stmt->fetchAll(PDO::FETCH_COLUMN);
+
+    return $member;
+}
+
 
 }
 ?>

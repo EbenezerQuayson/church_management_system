@@ -1,7 +1,6 @@
 <?php
 // Members Page
 $activePage='members';
-
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/config.php';
@@ -9,13 +8,19 @@ require_once __DIR__ . '/../models/Member.php';
 require_once __DIR__ . '/../models/Ministry.php';
 $db = Database::getInstance()->getConnection();
 $ministryModel = new Ministry();
-$ministries = $ministryModel->getAllActive(); // We'll create this method
-
+$ministries = $ministryModel->getAllActive();
 
 
 requireLogin();
 
+if (isset($_GET['view']) && in_array($_GET['view'], ['flat', 'grouped'])) {
+    $_SESSION['members_view'] = $_GET['view'];
+}
+
+$viewMode = $_SESSION['members_view'] ?? 'flat';
+
 $member = new Member();
+
 $search = trim($_GET['search'] ?? '');
 if($search !== ''){
    $members = $member->search($search);
@@ -64,6 +69,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_member'])) {
         header("Location: members.php?msg=add_failed");
         exit();
     }
+
 
     // Handle image upload
     if (!empty($_FILES['member_img']['name'])) {
@@ -216,6 +222,9 @@ if(isset($_GET['msg'])){
             break;
     }
 }
+
+   $uploadDir = __DIR__ . '/../../assets/uploads/members/'; // For server check
+
 ?>
 <?php include 'header.php'; ?>
 <div class="main-content">
@@ -258,6 +267,19 @@ if(isset($_GET['msg'])){
          </form>
 <br>
         <!-- Members Table -->
+        <div class="d-flex justify-content-end mb-3">
+    <select class="form-select form-select-sm w-auto"
+            onchange="location.href='?view=' + this.value">
+        <option value="flat" <?= $viewMode === 'flat' ? 'selected' : '' ?>>
+            Flat view
+        </option>
+        <option value="grouped" <?= $viewMode === 'grouped' ? 'selected' : '' ?>>
+            Grouped by ministry
+        </option>
+    </select>
+</div>
+
+
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
@@ -272,94 +294,96 @@ if(isset($_GET['msg'])){
                                 <th>Actions</th>
                             </tr>
                         </thead>
-                     <tbody id="membersTable">
-<?php if (!empty($members)): ?>
-    <?php foreach ($members as $m): ?>
+
+                        <?php
+                                $groupedMembers = [];
+
+                                if ($viewMode === 'grouped') {
+                                    foreach ($members as $m) {
+                                        $ministries = $member->getMemberMinistries($m['id']);
+
+                                        if (empty($ministries)) {
+                                            $groupedMembers['No Ministry'][] = $m;
+                                        } else {
+                                            foreach ($ministries as $ministryName) {
+                                                $groupedMembers[$ministryName][] = $m;
+                                            }
+                                        }
+                                    }
+                                }
+                                ?>
+
+   <tbody id="membersTable">
+<?php if ($viewMode === 'flat'): ?>
+
+    <?php if (!empty($members)): ?>
+        <?php foreach ($members as $m): ?>
+            <?php include 'members/member_row.php'; ?>
+        <?php endforeach; ?>
+    <?php else: ?>
         <tr>
-           <td>
-    <div class="d-flex align-items-center">
-        <?php 
-        $imgPath = __DIR__ . '/../../assets/uploads/members/' . ($m['member_img'] ?? '');
-        $imgUrl  = BASE_URL . '/assets/uploads/members/' . ($m['member_img'] ?? '');
-        ?>
-        <div class="avatar rounded-circle me-3 d-flex align-items-center justify-content-center"
-             style="
-                width:40px; 
-                height:40px; 
-                background-color: var(--primary-color); 
-                color:white; 
-                overflow:hidden; 
-                flex-shrink:0; 
-                border: 2px solid #fff;
-                font-weight: bold;
-                font-size: 16px;
-             ">
-            <?php if (!empty($m['member_img']) && file_exists($imgPath)): ?>
-                <img src="<?= htmlspecialchars($imgUrl) ?>" 
-                     alt="Member Image" 
-                     style="width:100%; height:100%; object-fit:cover; display:block;">
-            <?php else: ?>
-                <?= strtoupper(substr($m['first_name'], 0, 1)) ?>
-            <?php endif; ?>
-        </div>
-        <div class="ms-2">
-            <strong><?= htmlspecialchars($m['first_name'].' '.$m['last_name']) ?></strong><br>
-            <small class="text-muted">
-                Joined: <?= date('M d, Y', strtotime($m['join_date'] ?? $m['created_at'])) ?>
-               
-            </small>
-        </div>
-    </div>
-</td>
-
-
-
-
-            <td><?= htmlspecialchars($m['gender'] ?? 'N/A') ?></td>
-            <td><?= htmlspecialchars($m['phone'] ?? 'N/A') ?></td>
-            <td><?= htmlspecialchars($m['email'] ?? 'N/A') ?></td>
-
-            <td>
-    <?php
-        $memberMinistries = $member->getMemberMinistries($m['id']);
-        if (!empty($memberMinistries)) {
-            foreach ($memberMinistries as $ministryName) {
-                echo '<span class="badge bg-info me-1">' . htmlspecialchars($ministryName) . '</span>';
-            }
-        } else {
-            echo '<span class="badge bg-info">N/A</span>';
-        }
-    ?>
-</td>
-
-
-            <td>
-                <button class="btn btn-sm btn-outline-primary"
-                        data-bs-toggle="modal"
-                        data-bs-target="#editMemberModal<?= $m['id']; ?>">
-                    <i class="fas fa-edit"></i>
-                </button>
-
-                <button class="btn btn-sm btn-outline-danger"
-                        onclick="confirmDelete(<?= $m['id']; ?>)">
-                    <i class="fas fa-trash"></i>
-                </button>
+            <td colspan="6" class="text-center text-muted py-4">
+                No members found
             </td>
         </tr>
+    <?php endif; ?>
 
-    <?php endforeach; ?>
-<?php else: ?>
-    <tr>
-        <td colspan="6" class="text-center text-muted py-4">
-            No members found
+<?php endif; ?>
+
+<?php if ($viewMode === 'grouped'): ?>
+
+<?php foreach ($groupedMembers as $ministryName => $group): ?>
+    <?php $collapseId = 'ministry_' . md5($ministryName); ?>
+
+    <!-- Ministry Header -->
+    <tr class="table-light">
+        <td colspan="6">
+            <button class="btn btn-sm btn-link text-decoration-none fw-bold"
+                    data-bs-toggle="collapse"
+                    data-bs-target="#<?= $collapseId ?>">
+                <i class="fas fa-chevron-down me-2"></i>
+                <?= htmlspecialchars($ministryName) ?>
+                <span class="badge bg-secondary ms-2"><?= count($group) ?></span>
+            </button>
         </td>
     </tr>
+</tbody>
+    <!-- Members -->
+    <tr class="collapse show" id="<?= $collapseId ?>">
+        <td colspan="6" class="p-0">
+            <table class="table mb-0">
+                <tbody>
+                <?php foreach ($group as $m): ?>
+                    <?php include 'members/member_row.php'; ?>
+                <?php endforeach; ?>
+                </tbody>
+            </table>
+        </td>
+    </tr>
+
+<?php endforeach; ?>
+
 <?php endif; ?>
 </tbody>
 
-<?php foreach ($members as $m): ?>
-    <?php include 'members/edit_member_modal.php'; ?>
-<?php endforeach; ?>
+
+
+
+
+
+
+
+
+
+<?php 
+$includedMembers = [];
+foreach ($members as $m): 
+    if (!in_array($m['id'], $includedMembers)) {
+        include 'members/edit_member_modal.php';
+        $includedMembers[] = $m['id'];
+    }
+endforeach; 
+?>
 
 
                     </table>
