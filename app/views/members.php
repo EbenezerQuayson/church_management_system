@@ -61,33 +61,45 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['import_members'])) {
                 ];
 
                 if (!empty($data['first_name']) && !empty($data['last_name'])) {
-                    $newMemberId = $member->create($data);
+                    $existingMemberId = $member->exists($data['first_name'], $data['last_name'], $data['email'], $data['phone']);
 
-                    if ($newMemberId) {
-                        $importedCount++;
+ if (!$existingMemberId) {
+    $newMemberId = $member->create($data);
+    if ($newMemberId) $importedCount++;
+} else {
+    $newMemberId = $existingMemberId;
+}
 
-                        // Handle Ministries
-                        $ministries = explode(',', $row[8] ?? ''); // Column for ministries
-                        foreach ($ministries as $ministryName) {
-                            $ministryName = trim($ministryName);
-                            if (!$ministryName) continue;
+// Handle Ministries for both new and existing members
+$ministries = explode(',', $row[8] ?? '');
+foreach ($ministries as $ministryName) {
+    $ministryName = trim($ministryName);
+    if (!$ministryName) continue;
 
-                            // Get ministry ID or create if it doesn't exist
-                            $ministryId = $ministryModel->getIdByName($ministryName);
-                            if (!$ministryId) {
-                                $ministryId = $ministryModel->create($ministryName);
-                            }
+    $ministryId = $ministryModel->getIdByName($ministryName);
+    if (!$ministryId) $ministryId = $ministryModel->create($ministryName);
 
-                            // Link member to ministry
-                            $stmt = $db->prepare("INSERT INTO ministry_members (member_id, ministry_id, role, joined_date, created_at) VALUES (:member_id, :ministry_id, 'Member', :joined_date, NOW())");
-                            $stmt->execute([
-                                ':member_id' => $newMemberId,
-                                ':ministry_id' => $ministryId,
-                                ':joined_date' => $data['join_date'] ?? date('Y-m-d')
-                            ]);
-                        }
-                    }
-                }
+    $checkLink = $db->prepare("SELECT 1 FROM ministry_members WHERE member_id = :member_id AND ministry_id = :ministry_id");
+    $checkLink->execute([
+        ':member_id' => $newMemberId,
+        ':ministry_id' => $ministryId
+    ]);
+
+    if (!$checkLink->fetch()) {
+        $stmt = $db->prepare("INSERT INTO ministry_members (member_id, ministry_id, role, joined_date, created_at)
+                              VALUES (:member_id, :ministry_id, 'Member', :joined_date, NOW())");
+        $stmt->execute([
+            ':member_id' => $newMemberId,
+            ':ministry_id' => $ministryId,
+            ':joined_date' => $data['join_date'] ?? date('Y-m-d')
+        ]);
+    }
+}
+
+                } else {
+                    // Log or handle invalid row (missing required fields)  
+                    error_log("Skipping row due to missing required fields: " . implode(',', $row));
+            }
             }
 
             if ($importedCount > 0) {

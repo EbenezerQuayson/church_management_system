@@ -399,5 +399,25 @@ public function getAllForExport()
     $stmt->execute();
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
+
+public function exists($firstName, $lastName, $email = null, $phone = null) {
+    $sql = "SELECT id FROM members WHERE first_name = :first_name AND last_name = :last_name";
+    $params = [':first_name' => $firstName, ':last_name' => $lastName];
+
+    if ($email) {
+        $sql .= " AND email = :email";
+        $params[':email'] = $email;
+    }
+    if ($phone) {
+        $sql .= " AND phone = :phone";
+        $params[':phone'] = $phone;
+    }
+
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute($params);
+    $result = $stmt->fetch(PDO::FETCH_ASSOC);
+    return $result ? $result['id'] : false;
+}
+
 } 
 ?>
