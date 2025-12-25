@@ -6,15 +6,20 @@ require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../models/Donation.php';
 require_once __DIR__ . '/../models/Member.php';
+require_once __DIR__ . '/../models/Notifications.php';
 
 requireLogin();
 //Models
 $donation = new Donation();
 $member_model = new Member();
+$notification = new Notification();
 $donations = $donation->getAll();
 $members = $member_model->getAll();
 $monthly_total = $donation->getTotalByMonth();
 $total_amount = $donation->getTotalAmount();
+
+$user_id = $_SESSION['user_id'];
+
 
 
 $message = '';
@@ -90,8 +95,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message_type = 'error';
         } else {
             if ($donation->create($commonData)) {
-                // $message = 'Donation recorded successfully';
-                // $message_type = 'success';
+                
+                $notification->create(
+                    $_SESSION['user_id'],
+                    'New Income Recorded',
+                    'An income of ¢' . number_format($commonData['amount'], 2) . ' was recorded.',
+                    'donations.php');
                  header("Location: donations.php?msg=added");
                  exit();
                 $donations = $donation->getAll();
@@ -116,8 +125,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $message_type = 'error';
         } else {
             if ($donation->update($id, $commonData)) {
-                // $message = 'Donation updated successfully';
-                // $message_type = 'success';
+               $notification->create(
+                    $_SESSION['user_id'],
+                    'Income Updated',
+                    'An income of ¢' . number_format($commonData['amount'], 2) . ' was updated.',
+                    'donations.php');
+
                 header("Location: donations.php?msg=updated");
                 exit();
                 $donations = $donation->getAll();
@@ -138,8 +151,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $id = (int) $_POST['id'];
 
         if ($donation->delete($id)) {
-            // $message = 'Donation deleted successfully';
-            // $message_type = 'success';
+            $notification->create(
+                $_SESSION['user_id'],
+                'Income Deleted',
+                'An income record was deleted.',
+                'donations.php');
              header("Location: donations.php?msg=delete");
              exit();
             $donations = $donation->getAll();

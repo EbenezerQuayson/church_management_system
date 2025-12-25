@@ -13,6 +13,9 @@ require_once __DIR__ . '/../models/Donation.php';
 
 requireLogin();
 
+$user_id = $_SESSION['user_id'];
+
+
 $db = Database::getInstance();
 $pdo = Database::getInstance()->getConnection();
 
@@ -42,12 +45,16 @@ $events_count = $eventModel->getTotalCount();
 $events_scheduled_count = $eventModel->getTotalScheduledCount();
 $recent_events = $eventModel->getRecentEvents();
 
-//Donations
+//Income / Donations
 $donation_total = $donationModel->getTotalAmount();
 $donation_count = $donationModel->getTotalCount();
 
-//Ministries (yet to create a Ministries Model)
+//Ministries 
 $ministries_count = $db->fetch("SELECT COUNT(*) as count FROM ministries WHERE status = 'active'");
+
+//year
+$selectedYear = $_GET['year'] ?? date('Y');
+
 
 
 // $members_count = $db->fetch("SELECT COUNT(*) as count FROM members WHERE status = 'active'");
@@ -60,19 +67,81 @@ $ministries_count = $db->fetch("SELECT COUNT(*) as count FROM ministries WHERE s
 // $recent_events = $db->fetchAll("SELECT * FROM events ORDER BY created_at DESC LIMIT 5");
 
 //Chart Data
-$monthlyDonations = $db->fetchAll("SELECT MONTH(donation_date) AS month, COUNT(*) AS total FROM donations GROUP BY MONTH(donation_date)");
-$monthlyTotals = array_fill(0, 12, 0);
-foreach ($monthlyDonations as $d){
-    $monthlyTotals[$d['month'] - 1] = (int)$d['total'];
+$monthlyDonations = $db->fetchAll("
+    SELECT 
+        MONTH(donation_date) AS month,
+        COALESCE(SUM(amount), 0) AS total
+    FROM donations
+    WHERE YEAR(donation_date) = ?
+    GROUP BY MONTH(donation_date)
+", [$selectedYear]);
+
+$donationTotals = array_fill(0, 12, 0);
+foreach ($monthlyDonations as $d) {
+    $donationTotals[$d['month'] - 1] = (float)$d['total'];
 }
 
+$monthlyExpenses = $db->fetchAll("
+    SELECT 
+        MONTH(expense_date) AS month,
+        COALESCE(SUM(amount), 0) AS total
+    FROM expenses
+    WHERE YEAR(expense_date) = ?
+    GROUP BY MONTH(expense_date)
+", [$selectedYear]);
+
+$expenseTotals = array_fill(0, 12, 0);
+foreach ($monthlyExpenses as $e) {
+    $expenseTotals[$e['month'] - 1] = (float)$e['total'];
+}
+
+
+$ministryStats = $db->fetchAll("
+    SELECT 
+        m.name AS ministry_name,
+        COUNT(mm.member_id) AS total_members
+    FROM ministries m
+    LEFT JOIN ministry_members mm 
+        ON m.id = mm.ministry_id
+    WHERE m.status = 'active'
+    GROUP BY m.id
+    ORDER BY total_members DESC
+");
+
+$ministryLabels = [];
+$ministryCounts = [];
+
+foreach ($ministryStats as $row) {
+    $ministryLabels[] = $row['ministry_name'];
+    $ministryCounts[] = (int)$row['total_members'];
+}
+
+
 //Convert to JSON for JS
-$jsDonationData = json_encode($monthlyTotals);
+$jsDonationData = json_encode($donationTotals);
+$jsExpenseData  = json_encode($expenseTotals);
+
+$jsMinistryLabels = json_encode($ministryLabels);
+$jsMinistryCounts = json_encode($ministryCounts);
 ?>
 <?php include 'header.php'; ?>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+    .fa-chevron-down {
+    transition: transform 0.3s ease;
+}
+.fa-chevron-down.rotate {
+    transform: rotate(180deg);
+}
 
+.year-select {
+    min-width: 90px;
+    padding-right: 2rem; 
+}
+
+
+</style>
 <div class="main-content">
     <?php include 'sidebar.php'; ?>
     
@@ -84,98 +153,125 @@ $jsDonationData = json_encode($monthlyTotals);
         </div>
 
         <!-- Summary Cards -->
-        <div class="row mb-4 g-4">
-            <!-- Members Card -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card stat-card stat-card-blue">
-                    <div class="card-body">
-                        <div class="stat-icon">
-                            <i class="fas fa-users"></i>
-                        </div>
-                        <p class="stat-value"><?php echo $members_count; ?></p>
-                        <p class="stat-label">Active Members</p>
-                    </div>
-                </div>
-            </div>
+         <div class="row mb-2 g-3 justify-content-center">
 
-            <!-- Events Card -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card stat-card stat-card-green">
-                    <div class="card-body">
-                        <div class="stat-icon">
-                            <i class="fas fa-calendar"></i>
-                        </div>
-                        <p class="stat-value"><?php echo $events_scheduled_count; ?></p>
-                        <p class="stat-label">Upcoming Events</p>
-                    </div>
+    <!-- Income Card -->
+    <div class="col-md-6 col-lg-5">
+        <div class="card stat-card stat-card-lime">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="bi bi-cash-stack"></i>
                 </div>
-            </div>
-
-            <!-- Ministries Card -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card stat-card stat-card-purple">
-                    <div class="card-body">
-                        <div class="stat-icon">
-                            <i class="fas fa-handshake"></i>
-                        </div>
-                        <p class="stat-value"><?php echo $ministries_count['count']; ?></p>
-                        <p class="stat-label">Active Ministries</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Donations Card -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card stat-card stat-card-lime">
-                    <div class="card-body">
-                        <div class="stat-icon">
-                            <i class="bi bi-cash-stack"></i>
-                        </div>
-                        <p class="stat-value">¢<?php echo number_format($donation_total['total'], 0); ?></p>
-                        <p class="stat-label">Total Income</p>
-                    </div>
-                </div>
-            </div>
-
-                <!-- Expenses Card -->
-            <div class="col-md-6 col-lg-3">
-                <div class="card stat-card stat-card-gold">
-                    <div class="card-body">
-                        <div class="stat-icon">
-                            <i class="bi bi-credit-card"></i>
-                        </div>
-                        <p class="stat-value">¢<?php echo number_format($totalExpenses['total_amount'], 2); ?></p>
-                        <p class="stat-label">Total Expense</p>
-                    </div>
-                </div>
-            </div>
-
-            <!-- Total Males -->
-             <div class="col-md-6 col-lg-3">
-            <div class="card stat-card stat-card-teal">
-                <div class="card-body">
-                    <div class="stat-icon">
-                        <i class="fas fa-male"></i>
-                    </div>
-                    <h3 class="stat-value" id="totalMaleMembers"><?php echo $male_count; ?></h3>
-                    <p class="stat-label">Total Male Christians</p>
-                </div>
+                <p class="stat-value">
+                    ¢<?php echo number_format($donation_total['total'], 2); ?>
+                </p>
+                <p class="stat-label">Total Income</p>
             </div>
         </div>
+    </div>
 
-        <!-- Total Females -->
-             <div class="col-md-6 col-lg-3">
-            <div class="card stat-card stat-card-pink">
-                <div class="card-body">
-                    <div class="stat-icon">
-                        <i class="fas fa-female"></i>
-                    </div>
-                    <h3 class="stat-value" id="totalFemaleMembers"><?php echo $female_count;?></h3>
-                    <p class="stat-label">Total Female</p>
+    <!-- Expenses Card -->
+    <div class="col-md-6 col-lg-5">
+        <div class="card stat-card stat-card-pink">
+            <div class="card-body">
+                <div class="stat-icon">
+                    <i class="bi bi-credit-card"></i>
                 </div>
+                <p class="stat-value">
+                    ¢<?php echo number_format($totalExpenses['total_amount'], 2); ?>
+                </p>
+                <p class="stat-label">Total Expense</p>
             </div>
         </div>
+    </div>
+
+</div>
+<div class="card mb-4">
+    <div class="card-header  text-black d-flex justify-content-between align-items-center"
+         data-bs-toggle="collapse"
+         data-bs-target="#blueStatsGroup"
+         style="cursor:pointer;">
+        <span>
+            <i class="fas fa-users me-2 text-primary"></i>
+            <b>Church Statistics</b>
+        </span>
+        <i class="fas fa-chevron-down"></i>
+    </div>
+
+    <div id="blueStatsGroup" class="collapse">
+        <div class="card-body">
+            <div class="row g-3">
+
+                <!-- Members -->
+                <div class="col-6 col-md-3 col-lg">
+                    <div class="card stat-card stat-card-blue h-100">
+                        <div class="card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <p class="stat-value"><?php echo $members_count; ?></p>
+                            <p class="stat-label">Active Members</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Events -->
+                <div class="col-6 col-md-3 col-lg">
+                    <div class="card stat-card stat-card-blue h-100">
+                        <div class="card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <p class="stat-value"><?php echo $events_scheduled_count; ?></p>
+                            <p class="stat-label">Upcoming Events</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Ministries -->
+                <div class="col-6 col-md-3 col-lg">
+                    <div class="card stat-card stat-card-blue h-100">
+                        <div class="card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-handshake"></i>
+                            </div>
+                            <p class="stat-value"><?php echo $ministries_count['count']; ?></p>
+                            <p class="stat-label">Active Ministries</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Male -->
+                <!-- <div class="col-6 col-md-3 col-lg">
+                    <div class="card stat-card stat-card-blue h-100">
+                        <div class="card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-male"></i>
+                            </div>
+                            <p class="stat-value"><?php echo $male_count; ?></p>
+                            <p class="stat-label">Male Members</p>
+                        </div>
+                    </div>
+                </div> -->
+
+                <!-- Female -->
+                <!-- <div class="col-6 col-md-3 col-lg">
+                    <div class="card stat-card stat-card-blue h-100">
+                        <div class="card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-female"></i>
+                            </div>
+                            <p class="stat-value"><?php echo $female_count; ?></p>
+                            <p class="stat-label">Female Members</p>
+                        </div>
+                    </div>
+                </div> -->
+
+            </div>
         </div>
+    </div>
+</div>
+
 
         <!-- Quick Links -->
         <div class="row mb-4 g-4">
@@ -190,9 +286,18 @@ $jsDonationData = json_encode($monthlyTotals);
                             <a href="<?php echo BASE_URL; ?>/app/views/events.php" class="btn btn-outline-primary">
                                 <i class="fas fa-calendar-plus"></i> Create Event
                             </a>
-                            <a href="<?php echo BASE_URL; ?>/app/views/donations.php" class="btn btn-outline-primary">
-                                <i class="fas fa-gift"></i> Record Income
+
+                              <a href="<?php echo BASE_URL; ?>/app/views/events.php" class="btn btn-outline-primary">
+                                <i class="bi bi-building"></i> Add Organization
                             </a>
+
+                            <a href="<?php echo BASE_URL; ?>/app/views/donations.php" class="btn btn-outline-primary">
+                                <i class="fas fa-hand-holding-usd"></i> Record Income
+                            </a>
+                               <a href="<?php echo BASE_URL; ?>/app/views/expenses.php" class="btn btn-outline-primary">
+                                <i class="fas fa-cash-register"></i> Record Expense
+                            </a>
+
                             <a href="<?php echo BASE_URL; ?>/app/views/attendance.php" class="btn btn-outline-primary">
                                 <i class="fas fa-check-circle"></i> Mark Attendance
                             </a>
@@ -203,10 +308,35 @@ $jsDonationData = json_encode($monthlyTotals);
         </div>
 
         <!-- Charts Row -->
+         
           <div class="row g-4">
         <div class="col-lg-8">
+            
             <div class="chart-container">
-                <h5 class="mb-3"><i class="bi bi-bar-chart"></i> Church Expenses Chart</h5>
+                <div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Church Finance Chart</h5>
+
+    <div class="year-selector">
+    <form method="GET" class="d-flex align-items-center gap-2">
+        <label class="small text-muted mb-0">Year</label>
+        <select name="year" class="form-select form-select-sm year-select"
+                onchange="this.form.submit()">
+            <?php
+            $currentYear = date('Y');
+            $selectedYear = $_GET['year'] ?? $currentYear;
+
+            for ($y = $currentYear; $y >= $currentYear - 5; $y--) {
+                $selected = ($selectedYear == $y) ? 'selected' : '';
+                echo "<option value='$y' $selected>$y</option>";
+            }
+            ?>
+        </select>
+    </form>
+</div>
+
+</div>
+
+                
                 <canvas id="donationsChart"></canvas>
             </div>
         </div>
@@ -278,63 +408,116 @@ $jsDonationData = json_encode($monthlyTotals);
 </div>
 
 <script>
-    const donationData =<?php echo $jsDonationData;?>;
+    const donationData = <?= $jsDonationData ?>;
+    const expenseData  = <?= $jsExpenseData ?>;
     const ctx = document.getElementById("donationsChart");
     const ctx1 = document.getElementById("ministryChart");
-    const totalMales = <?php echo $male_count?>;
-    const totalFemales = <?php echo $female_count?>;
+    // const totalMales = <?php echo $male_count?>;
+    // const totalFemales = <?php echo $female_count?>;
+    const ministryLabels =<?php echo $jsMinistryLabels;?>;
+    const ministryCounts =<?php echo $jsMinistryCounts;?>;
 
 
-    console.log(donationData);
+    
 
-    // Chart for Donations
-    new Chart(ctx, {
-        type: "line",
-        data: {
-            labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
-            datasets: [{
-                label: "Monthly Donations",
+    // Chart for Income
+new Chart(ctx, {
+    type: "line",
+    data: {
+        labels: ["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"],
+        datasets: [
+            {
+                label: "Income",
                 data: donationData,
-                backgroundColor: [
-              "rgba(74, 144, 226, 0.8)",
-              "rgba(123, 104, 238, 0.8)",
-              "rgba(240, 147, 251, 0.8)",
-              "rgba(67, 233, 123, 0.8)",
-              "rgba(79, 172, 254, 0.8)",
-              "rgba(255, 193, 7, 0.8)",
-            ],
+                borderColor: "rgba(40, 167, 69, 1)",
+                backgroundColor: "rgba(40, 167, 69, 0.15)",
+                fill: true,
+                tension: 0.35,
                 borderWidth: 2
-            }]
+            },
+            {
+                label: "Expenses",
+                data: expenseData,
+                borderColor: "rgba(220, 53, 69, 1)",
+                backgroundColor: "rgba(220, 53, 69, 0.15)",
+                fill: true,
+                tension: 0.35,
+                borderWidth: 2
+            }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: "Amount (GHS)"
+                },
+                ticks: {
+                    callback: value => "¢" + value.toLocaleString()
+                }
+            }
         },
-
-       options: {
-         responsive: true,
-         maintainAspectRatio: true,
-         scales: {
-           y: {
-             beginAtZero: true,
-              ticks: {
-                precision: 0,
-            //    stepSize: 5,
-              },
-           },
-         },
-         plugins: {
-           legend: { position: "bottom" },
-         },
-       },
+        plugins: {
+            legend: {
+                position: "bottom"
+            },
+            tooltip: {
+                callbacks: {
+                    label: ctx => {
+                        return `${ctx.dataset.label}: ¢${ctx.parsed.y.toLocaleString()}`;
+                    }
+                }
+            }
+        }
+    }
 });
 
-//Chart for Gender
-new Chart(ctx1,{
-    type:'doughnut',
-    data:{
-        labels:['Male', 'Female'],
-        datasets:[{
-            data:[totalMales, totalFemales],
-            borderWidth:1
+
+
+
+//Chart for Ministries
+new Chart(ctx1, {
+    type: 'doughnut',
+    data: {
+        labels: ministryLabels,
+        datasets: [{
+            label: 'Members per Ministry',
+            data: ministryCounts,
+            borderWidth: 1
         }]
+    },
+    options: {
+        responsive: true,
+        plugins: {
+            legend: {
+                position: 'bottom'
+            }
+        }
     }
+});
+
+
+//Chart for Gender
+// new Chart(ctx1,{
+//     type:'doughnut',
+//     data:{
+//         labels:['Male', 'Female'],
+//         datasets:[{
+//             data:[totalMales, totalFemales],
+//             borderWidth:1
+//         }]
+//     }
+// });
+
+document.querySelectorAll('[data-bs-toggle="collapse"]').forEach(header => {
+    header.addEventListener('click', function () {
+        const icon = this.querySelector('.fa-chevron-down');
+        icon.classList.toggle('rotate');
+    });
 });
 
 </script>

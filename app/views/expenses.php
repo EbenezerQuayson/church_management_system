@@ -6,15 +6,19 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/config.php';
 
 require_once __DIR__ . '/../models/Expense.php';
+require_once __DIR__ . '/../models/Notifications.php';
 require_once __DIR__ . '/../models/ExpenseCategory.php';
 
 requireLogin();
+
+$user_id = $_SESSION['user_id'];
 
 $pdo = Database::getInstance()->getConnection();
 
 // MODELS
 $expenseModel = new Expense($pdo);
 $categoryModel = new ExpenseCategory($pdo);
+$notification = new Notification();
 // Expenses
 $expenses = $expenseModel->getAll();
 $categories = $categoryModel->getAll();
@@ -24,7 +28,7 @@ $total_amount = $expenseModel->getTotalAmount();
 
 
 
-// Message handling (optional)
+// Message handling 
 $message = '';
 $message_type = '';
 if (isset($_GET['success'])) {
@@ -75,7 +79,12 @@ if (isset($_POST['update_expense'])) {
         $description,     // description
         $receipt_path     // receipt_path
     );
-
+   $notification->create(
+        $_SESSION['user_id'],
+        'Expense Updated',
+        'An expense of ¢' . number_format($amount, 2) . ' was updated.',
+        'expenses.php'
+    );
     header("Location: expenses.php?updated=1");
     exit;
 }
@@ -87,7 +96,12 @@ if (isset($_POST['delete_expense'])) {
     $id = (int) ($_POST['expense_id'] ?? 0);
     // Optionally remove receipt file from disk before deleting (not implemented)
     $expenseModel->delete($id);
-
+$notification->create(
+        $_SESSION['user_id'],
+        'Expense Deleted',
+        'An expense record was deleted.',
+        'expenses.php'
+    );
     header("Location: expenses.php?deleted=1");
     exit;
 }
@@ -133,6 +147,12 @@ if (isset($_POST['create_expense'])) {
     }
 
     $expenseModel->create($date_spent, $categoryId, $amount, $description, $receipt_path);
+    $notification->create(
+        $_SESSION['user_id'],
+        'Expense Added',
+        'A new expense of ¢' . number_format($amount, 2) . ' was added.',
+        'expenses.php'
+    );
     header("Location: expenses.php?success=1");
     exit;
 }

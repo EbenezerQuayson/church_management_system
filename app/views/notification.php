@@ -82,7 +82,7 @@ $message_type = $_GET['type'] ?? "success";
 
                 <?php foreach ($unread as $n): ?>
                     <div class="notification-card unread mb-3 p-3 rounded shadow-sm" 
-                         onclick="markRead(<?php echo $n['id']; ?>)">
+                         onclick="markRead(<?php echo $n['id']; ?>, this)">
                         <div class="d-flex">
                             
                             <!-- Icon -->
@@ -137,19 +137,37 @@ $message_type = $_GET['type'] ?? "success";
 
     </div>
 </div>
-
+<?php include 'mark_all_read.php'; ?>
 <!-- JS -->
 <script>
-function markRead(id) {
+function markRead(id, element) {
     fetch("mark_read.php?id=" + id)
-        .then(() => location.reload());
+        .then(() => {
+            element.classList.remove('unread');
+            element.querySelector('.notif-icon').classList.add('read');
+        });
 }
 
+// Individual unread notification click
+document.querySelectorAll('.notification-card.unread').forEach(card => {
+    card.addEventListener('click', () => markRead(card.dataset.id, card));
+});
+
+// Mark all as read
 document.getElementById("markAllRead").addEventListener("click", () => {
-    fetch("mark_all_read.php").then(() => location.reload());
+    fetch("mark_all_read.php")
+        .then(() => {
+            // Update UI
+            document.querySelectorAll('.notification-card.unread').forEach(card => {
+                card.classList.remove('unread');
+                card.querySelector('.notif-icon').classList.add('read');
+            });
+            // Optional: reload page if you want everything refreshed
+            location.reload();
+        })
+        .catch(err => console.error("Failed to mark all as read:", err));
 });
 </script>
-
 <style>
 .notification-card {
     cursor: pointer;

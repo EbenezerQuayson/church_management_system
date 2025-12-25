@@ -7,6 +7,9 @@ require_once __DIR__ . '/../../config/database.php';
 
 requireLogin();
 
+$user_id = $_SESSION['user_id'];
+
+
 $db = Database::getInstance();
 $ministries = $db->fetchAll("SELECT * FROM ministries WHERE status = 'active' ORDER BY name");
 $message = '';
