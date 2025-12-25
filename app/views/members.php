@@ -371,7 +371,9 @@ if(isset($_GET['msg'])){
                                 <th>Gender</th>
                                 <th>Phone</th>
                                 <th>Email</th>
+                                <?php if ($viewMode === 'flat'): ?>
                                 <th>Ministry</th>
+                                <?php endif; ?>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -394,12 +396,13 @@ if(isset($_GET['msg'])){
                                 }
                                 ?>
 
-   <tbody id="membersTable">
+<tbody id="membersTable">
+
 <?php if ($viewMode === 'flat'): ?>
 
     <?php if (!empty($members)): ?>
         <?php foreach ($members as $m): ?>
-            <?php include 'members/member_row.php'; ?>
+            <?php include 'members/member_row_flat.php'; ?>
         <?php endforeach; ?>
     <?php else: ?>
         <tr>
@@ -411,51 +414,65 @@ if(isset($_GET['msg'])){
 
 <?php endif; ?>
 
-<?php if ($viewMode === 'grouped'): ?>
 
-<?php foreach ($groupedMembers as $ministryName => $group): ?>
-    <?php $collapseId = 'ministry_' . md5($ministryName); ?>
-
-    <!-- Ministry Header -->
-    <tr class="table-light">
-        <td colspan="6">
-            <button class="btn btn-sm btn-link text-decoration-none fw-bold"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#<?= $collapseId ?>">
-                <i class="fas fa-chevron-down me-2"></i>
-                <?= htmlspecialchars($ministryName) ?>
-                <span class="badge bg-secondary ms-2"><?= count($group) ?></span>
-            </button>
-        </td>
-    </tr>
 </tbody>
-    <!-- Members -->
-    <tr class="collapse show" id="<?= $collapseId ?>">
-        <td colspan="6" class="p-0">
-            <table class="table mb-0">
-                <tbody>
+                    </table>
+
+    <?php if ($viewMode === 'grouped'): ?>
+
+<div class="accordion" id="membersAccordion">
+
+<?php foreach ($groupedMembers as $ministryName => $group): 
+    $collapseId = 'collapse_' . md5($ministryName);
+?>
+
+<div class="accordion-item">
+    <h2 class="accordion-header">
+        <button class="accordion-button collapsed"
+                data-bs-toggle="collapse"
+                data-bs-target="#<?= $collapseId ?>">
+            <?= htmlspecialchars($ministryName) ?>
+            <span class="badge bg-secondary ms-2"><?= count($group) ?></span>
+        </button>
+    </h2>
+
+    <div id="<?= $collapseId ?>" class="accordion-collapse collapse">
+        <div class="accordion-body p-0">
+
+            <ul class="list-group list-group-flush">
                 <?php foreach ($group as $m): ?>
-                    <?php include 'members/member_row.php'; ?>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong><?= htmlspecialchars($m['first_name'].' '.$m['last_name']) ?></strong><br>
+                            <small class="text-muted"><?= htmlspecialchars($m['phone'] ?? 'N/A') ?></small>
+                        </div>
+
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editMemberModal<?= $m['id'] ?>">
+                                <i class="fas fa-edit"></i>
+                            </button>
+
+                            <button class="btn btn-sm btn-outline-danger"
+                                    onclick="confirmDelete(<?= $m['id'] ?>)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </li>
                 <?php endforeach; ?>
-                </tbody>
-            </table>
-        </td>
-    </tr>
+            </ul>
+
+        </div>
+    </div>
+</div>
 
 <?php endforeach; ?>
 
+</div>
 <?php endif; ?>
-</tbody>
 
-
-
-
-
-
-
-
-
-
+                    
 <?php 
 $includedMembers = [];
 foreach ($members as $m): 
@@ -465,9 +482,6 @@ foreach ($members as $m):
     }
 endforeach; 
 ?>
-
-
-                    </table>
                 </div>
             </div>
         </div>
@@ -623,6 +637,7 @@ endforeach;
 <?php include 'footer.php'; ?>
 <script>
 const searchInput = document.getElementById('memberSearch');
+
 const tableBody = document.getElementById('membersTable');
 
 searchInput.addEventListener('keyup', function () {
