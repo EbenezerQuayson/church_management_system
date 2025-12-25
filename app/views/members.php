@@ -341,12 +341,12 @@ if(isset($_GET['msg'])){
                     <div class="card-body ">
                         <h5 class="card-title mb-3 ">Quick Actions</h5>
                         <div class="d-flex gap-2 flex-wrap">
-                            <a href="members.php?view=flat" class="btn btn-outline-primary <?= $viewMode === 'flat' ? 'active' : '' ?>">
+                            <!-- <a href="members.php?view=flat" class="btn btn-outline-primary <?= $viewMode === 'flat' ? 'active' : '' ?>">
                                 <i class="bi bi-layout-text-sidebar-reverse"></i> Flat View
                             </a>
                             <a href="members.php?view=grouped" class="btn btn-outline-primary <?= $viewMode === 'grouped' ? 'active' : '' ?>">
                                 <i class="bi bi-diagram-3"></i> Grouped by Ministry
-                            </a>
+                            </a> -->
                             <a href="<?= BASE_URL ?>/app/views/members/export_members.php" class="btn btn-success" onclick="return confirm('Export members to Excel?');">
                              <i class="bi bi-file-earmark-excel"></i> Export Members </a>
 
@@ -415,48 +415,64 @@ if(isset($_GET['msg'])){
 <?php endif; ?>
 
 
-<?php if ($viewMode === 'grouped'): ?>
+</tbody>
+                    </table>
 
-<?php foreach ($groupedMembers as $ministryName => $group): ?>
-    <?php $collapseId = 'ministry_' . md5($ministryName); ?>
+    <?php if ($viewMode === 'grouped'): ?>
 
-    <!-- Ministry Header -->
-    <tr class="table-light">
-        <td colspan="5">
-            <button class="btn btn-sm btn-link text-decoration-none fw-bold"
-                    data-bs-toggle="collapse"
-                    data-bs-target="#<?= $collapseId ?>">
-                <i class="fas fa-chevron-down me-2"></i>
-                <?= htmlspecialchars($ministryName) ?>
-                <span class="badge bg-secondary ms-2"><?= count($group) ?></span>
-            </button>
-        </td>
-    </tr>
+<div class="accordion" id="membersAccordion">
 
-    <!-- Collapsible Members Row -->
-    <tr>
-        <td colspan="5" class="p-0">
-            <div class="collapse show" id="<?= $collapseId ?>">
-                <table class="table mb-0">
-                    <tbody>
-                        <?php foreach ($group as $m): ?>
-                            <?php include 'members/member_row_grouped.php'; ?>
-                        <?php endforeach; ?>
-                    </tbody>
-                </table>
-            </div>
-        </td>
-    </tr>
+<?php foreach ($groupedMembers as $ministryName => $group): 
+    $collapseId = 'collapse_' . md5($ministryName);
+?>
+
+<div class="accordion-item">
+    <h2 class="accordion-header">
+        <button class="accordion-button collapsed"
+                data-bs-toggle="collapse"
+                data-bs-target="#<?= $collapseId ?>">
+            <?= htmlspecialchars($ministryName) ?>
+            <span class="badge bg-secondary ms-2"><?= count($group) ?></span>
+        </button>
+    </h2>
+
+    <div id="<?= $collapseId ?>" class="accordion-collapse collapse">
+        <div class="accordion-body p-0">
+
+            <ul class="list-group list-group-flush">
+                <?php foreach ($group as $m): ?>
+                    <li class="list-group-item d-flex justify-content-between align-items-center">
+                        <div>
+                            <strong><?= htmlspecialchars($m['first_name'].' '.$m['last_name']) ?></strong><br>
+                            <small class="text-muted"><?= htmlspecialchars($m['phone'] ?? 'N/A') ?></small>
+                        </div>
+
+                        <div>
+                            <button class="btn btn-sm btn-outline-primary"
+                                    data-bs-toggle="modal"
+                                    data-bs-target="#editMemberModal<?= $m['id'] ?>">
+                                <i class="fas fa-edit"></i>
+                            </button>
+
+                            <button class="btn btn-sm btn-outline-danger"
+                                    onclick="confirmDelete(<?= $m['id'] ?>)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </li>
+                <?php endforeach; ?>
+            </ul>
+
+        </div>
+    </div>
+</div>
 
 <?php endforeach; ?>
 
+</div>
 <?php endif; ?>
 
-</tbody>
-
-
-
-
+                    
 <?php 
 $includedMembers = [];
 foreach ($members as $m): 
@@ -466,9 +482,6 @@ foreach ($members as $m):
     }
 endforeach; 
 ?>
-
-
-                    </table>
                 </div>
             </div>
         </div>
@@ -624,6 +637,7 @@ endforeach;
 <?php include 'footer.php'; ?>
 <script>
 const searchInput = document.getElementById('memberSearch');
+
 const tableBody = document.getElementById('membersTable');
 
 searchInput.addEventListener('keyup', function () {
