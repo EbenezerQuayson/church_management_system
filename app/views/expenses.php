@@ -1,6 +1,6 @@
 <?php
 $activePage = 'expenses';
-// expenses.php
+
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../../config/config.php';
@@ -165,6 +165,17 @@ if (isset($_POST['create_expense'])) {
     <?php include 'sidebar.php'; ?>
 
     <div class="container-fluid mt-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="fw-bold" style="color: var(--primary-color);">Expenses</h2>
+            <div>
+                    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportSummaryModal">
+                <i class="fas fa-file-export"></i> Export Summary
+            </button>
+            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
+                <i class="fas fa-plus"></i> Add Expense
+            </button>
+</div>
+        </div>
 
     <!-- Summary Cards -->
       <div class="row mb-4">
@@ -175,7 +186,7 @@ if (isset($_POST['create_expense'])) {
                             <i class="bis bi-cash-stack"></i>
                         </div>
                         <p class="stat-value">¢<?php echo number_format($monthly_total['total_expense'], 2); ?></p>
-                        <p class="stat-label">This Month</p>
+                        <p class="stat-label">This Month (<?php echo date('F Y'); ?>)</p>
                     </div>
                 </div>
             </div>
@@ -203,13 +214,8 @@ if (isset($_POST['create_expense'])) {
             </div>
         </div>
 
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h2 class="fw-bold" style="color: var(--primary-color);">Expenses</h2>
-            <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
-                <i class="fas fa-plus"></i> Add Expense
-            </button>
-        </div>
-
+        
+<!-- Message Display -->
         <?php if ($message): ?>
             <div class="alert alert-<?php echo $message_type === 'error' ? 'danger' : 'success'; ?> alert-dismissible fade show">
                 <?php echo htmlspecialchars($message); ?>
@@ -417,4 +423,40 @@ if (isset($_POST['create_expense'])) {
         
     </div>
 </div>
+<!-- EXPORT SUMMARY MODAL -->
+ d<iv class="modal fade" id="exportSummaryModal" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+
+      <div class="modal-header">
+        <h5 class="modal-title">Export Expenses Summary</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+
+      <div class="modal-body">
+        <p>Select the format you want to export the summary in:</p>
+
+        <div class="d-grid gap-2">
+          <button class="btn btn-success" id="exportExcelBtn">Export as Excel</button>
+          <!-- <button class="btn btn-warning" id="exportCsvBtn">Export as CSV</button> -->
+          <button class="btn btn-secondary" id="exportPdfBtn">Export as PDF</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<script>
+    document.getElementById("exportPdfBtn").addEventListener("click", function() {
+    window.location.href = "export/expense_export_summary_pdf.php";
+});
+
+document.getElementById("exportExcelBtn").addEventListener("click", function() {
+    window.location.href = "export/expense_export_summary_excel.php";
+});
+
+</script>
+
 <?php include 'footer.php'; ?>
