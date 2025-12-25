@@ -341,12 +341,12 @@ if(isset($_GET['msg'])){
                     <div class="card-body ">
                         <h5 class="card-title mb-3 ">Quick Actions</h5>
                         <div class="d-flex gap-2 flex-wrap">
-                            <!-- <a href="members.php?view=flat" class="btn btn-outline-primary <?= $viewMode === 'flat' ? 'active' : '' ?>">
+                            <a href="members.php?view=flat" class="btn btn-outline-primary <?= $viewMode === 'flat' ? 'active' : '' ?>">
                                 <i class="bi bi-layout-text-sidebar-reverse"></i> Flat View
                             </a>
                             <a href="members.php?view=grouped" class="btn btn-outline-primary <?= $viewMode === 'grouped' ? 'active' : '' ?>">
                                 <i class="bi bi-diagram-3"></i> Grouped by Ministry
-                            </a> -->
+                            </a>
                             <a href="<?= BASE_URL ?>/app/views/members/export_members.php" class="btn btn-success" onclick="return confirm('Export members to Excel?');">
                              <i class="bi bi-file-earmark-excel"></i> Export Members </a>
 
@@ -371,7 +371,9 @@ if(isset($_GET['msg'])){
                                 <th>Gender</th>
                                 <th>Phone</th>
                                 <th>Email</th>
+                                <?php if ($viewMode === 'flat'): ?>
                                 <th>Ministry</th>
+                                <?php endif; ?>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -394,12 +396,13 @@ if(isset($_GET['msg'])){
                                 }
                                 ?>
 
-   <tbody id="membersTable">
+<tbody id="membersTable">
+
 <?php if ($viewMode === 'flat'): ?>
 
     <?php if (!empty($members)): ?>
         <?php foreach ($members as $m): ?>
-            <?php include 'members/member_row.php'; ?>
+            <?php include 'members/member_row_flat.php'; ?>
         <?php endforeach; ?>
     <?php else: ?>
         <tr>
@@ -411,6 +414,7 @@ if(isset($_GET['msg'])){
 
 <?php endif; ?>
 
+
 <?php if ($viewMode === 'grouped'): ?>
 
 <?php foreach ($groupedMembers as $ministryName => $group): ?>
@@ -418,7 +422,7 @@ if(isset($_GET['msg'])){
 
     <!-- Ministry Header -->
     <tr class="table-light">
-        <td colspan="6">
+        <td colspan="5">
             <button class="btn btn-sm btn-link text-decoration-none fw-bold"
                     data-bs-toggle="collapse"
                     data-bs-target="#<?= $collapseId ?>">
@@ -428,30 +432,27 @@ if(isset($_GET['msg'])){
             </button>
         </td>
     </tr>
-</tbody>
-    <!-- Members -->
-    <tr class="collapse show" id="<?= $collapseId ?>">
-        <td colspan="6" class="p-0">
-            <table class="table mb-0">
-                <tbody>
-                <?php foreach ($group as $m): ?>
-                    <?php include 'members/member_row.php'; ?>
-                <?php endforeach; ?>
-                </tbody>
-            </table>
+
+    <!-- Collapsible Members Row -->
+    <tr>
+        <td colspan="5" class="p-0">
+            <div class="collapse show" id="<?= $collapseId ?>">
+                <table class="table mb-0">
+                    <tbody>
+                        <?php foreach ($group as $m): ?>
+                            <?php include 'members/member_row_grouped.php'; ?>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
         </td>
     </tr>
 
 <?php endforeach; ?>
 
 <?php endif; ?>
+
 </tbody>
-
-
-
-
-
-
 
 
 
