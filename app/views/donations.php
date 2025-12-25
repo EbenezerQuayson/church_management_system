@@ -64,12 +64,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $action = $_POST['action'] ?? 'create';
 
-    // Normalize Member ID
-    if (!empty($_POST['member_id']) && $_POST['member_id'] !== 'service_total') {
-        $member_id = (int) $_POST['member_id'];
-    } else {
-        $member_id = null;
-    }
+   
+
+
+$income_source = 'anonymous' ;
+   if(!empty($_POST['member_id']) && $_POST['member_id'] !== 'service_total'){
+    $member_id = (int) $_POST['member_id'];
+    $income_source = 'member';
+   } elseif($_POST['member_id'] === 'service_total'){
+    $member_id = null;
+    $income_source = 'service_total';
+   } else{
+    $member_id = null;
+    $income_source = 'anonymous';
+   }
 
     // Shared Data
     $commonData = [
@@ -77,13 +85,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         'amount'         => $_POST['amount'] ?? 0,
         'donation_type'  => $_POST['donation_type'] ?? 'General',
         'donation_date'  => $_POST['donation_date'] ?? date('Y-m-d'),
-        'notes'          => trim($_POST['notes'] ?? '')
+        'notes'          => trim($_POST['notes'] ?? ''),
+        'income_source' => $income_source
     ];
-
-    // Replace notes if service total
-    if (!empty($_POST['member_id']) && $_POST['member_id'] === 'service_total') {
-        $commonData['notes'] = 'service_total';
-    }
 
     /* ------------------------------
        CREATE DONATION
@@ -146,7 +150,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     /* ------------------------------
        DELETE DONATION
     ------------------------------ */
-    if ($action === 'delete') {
+    if ($action === 'delete' && isset($_POST['id'])) {
 
         $id = (int) $_POST['id'];
 
@@ -156,7 +160,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 'Income Deleted',
                 'An income record was deleted.',
                 'donations.php');
-             header("Location: donations.php?msg=delete");
+
+             header("Location: donations.php?msg=deleted");
              exit();
             $donations = $donation->getAll();
         } else {
@@ -168,13 +173,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     }
 }
 
+$count = 1;
 
 ?>
 <?php include 'header.php'; ?>
 <div class="main-content">
     <?php include 'sidebar.php'; ?>
     
-    <div class="container-fluid">
+    <div class="container-fluid mt-4">
         <!-- Page Title -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold" style="color: var(--primary-color);">Income</h2>
@@ -183,7 +189,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <i class="fas fa-file-export"></i> Export Summary
             </button>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDonationModal">
-                <i class="fas fa-gift"></i> Record Income
+                <i class="fas fa-plus"></i> Add Income
             </button>
 </div>
         </div>
@@ -197,7 +203,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <i class="fas fa-hand-holding-heart"></i>
                         </div>
                         <p class="stat-value">¢<?php echo number_format($monthly_total['total'], 2); ?></p>
-                        <p class="stat-label">This Month</p>
+                        <p class="stat-label">This Month (<?php echo date('F Y'); ?>)</p>
                     </div>
                 </div>
             </div>
@@ -240,24 +246,32 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <table class="table table-hover">
                         <thead style="background-color: var(--primary-color); color: white;">
                             <tr>
+                                <th>#</th>
                                 <th>Member</th>
-                                <th>Amount</th>
+                                <th>Amount (¢)</th>
                                 <th>Type</th>
                                 <th>Date</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
+                            <?php if (empty($donations)): ?>
+                            <tr>
+                                <td colspan="7" class="text-center text-muted">No income recorded yet.</td>
+                            </tr>
+                        <?php endif; ?>
+
                             <?php foreach ($donations as $d): ?>
                                 <tr>
+                                    <td><?= $count++ ?></td>
                                     <td><?php 
-if ($d['member_id'] === null && $d['notes'] === 'service_total') {
-    echo "Service Total";
-} elseif ($d['first_name']) {
-    echo htmlspecialchars($d['first_name'] . ' ' . $d['last_name']);
-} else {
-    echo "Anonymous";
-}
+                                    if($d['income_source'] === 'service_total'){
+                                        echo 'Service Total';
+                                    } elseif ($d['member_id'] === 'member' && !empty($d['first_name'])) {
+                                        echo htmlspecialchars($d['first_name'] . ' ' . $d['last_name']);
+                                    } else {
+                                        echo 'Anonymous';
+                                    }
  ?></td>
      <td><strong>¢<?php echo number_format($d['amount'], 2); ?></strong></td>
      <td><?php echo ucfirst($d['donation_type']); ?></td>
@@ -265,11 +279,13 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
      <td>
     <button class="btn btn-sm btn-outline-primary viewDonationBtn" data-donation-id="<?= $d['id']; ?>"
     data-member-id="<?= $d['member_id'] ?? '' ?>" 
-     data-member="<?php 
-        if ($d['member_id'] === null && $d['notes'] === 'service_total') echo 'Service Total';
-        elseif ($d['first_name']) echo $d['first_name'] . ' ' . $d['last_name'];
-        else echo 'Anonymous';
-    ?>"
+   data-member="<?php
+    if ($d['income_source'] === 'service_total') echo 'Service Total';
+    elseif ($d['income_source'] === 'member' && $d['first_name'])
+        echo $d['first_name'] . ' ' . $d['last_name'];
+    else echo 'Anonymous';
+?>"
+data-source="<?= $d['income_source']; ?>"
     data-amount="<?= $d['amount']; ?>"
     data-type="<?= $d['donation_type']; ?>"
     data-date="<?= $d['donation_date']; ?>"
@@ -368,17 +384,8 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
     <tr><th>Type</th><td id="detail_type"></td></tr>
     <tr><th>Date</th><td id="detail_date"></td></tr>
     <tr><th>Notes</th><td id="detail_notes"></td></tr>
-</table>
-
-    <!-- <div id="details-<?= $don['id'] ?>" class="donation-details hidden">
-        <p><strong>Member:</strong> <?= $don['member_id'] ?></p>
-        <p><strong>Amount:</strong> <?= $don['amount'] ?></p>
-        <p><strong>Date:</strong> <?= $don['donation_date'] ?></p>
-        <p><strong>Type:</strong> <?= $don['donation_type'] ?></p>
-        <p><strong>Purpose:</strong> <?= $don['notes'] ?></p>
-    </div> -->
-
-                </div>
+</table>   
+            </div>
 
             </div>
 
@@ -411,7 +418,7 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
                 <div class="mb-3">
                     <label class="form-label">Member (Optional)</label>
                     <select class="form-select" name="member_id" id="edit_member_id">
-                        <option value="">Anonymous</option>
+                        <option value="anonymous">Anonymous</option>
                         <option value="service_total">Service Total</option>
                         <?php foreach ($members as $m): ?>
                             <option value="<?= $m['id']; ?>"><?= htmlspecialchars($m['first_name'] . ' ' . $m['last_name']); ?></option>
@@ -464,7 +471,7 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
                 <p>Are you sure you want to delete this income?</p>
             </div>
             <div class="modal-footer">
-                <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
                 <button class="btn btn-danger" type="submit">Delete</button>
             </div>
         </form>
@@ -479,7 +486,7 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
     <div class="modal-content">
 
       <div class="modal-header">
-        <h5 class="modal-title">Export Financial Summary</h5>
+        <h5 class="modal-title">Export Income Summary</h5>
         <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
       </div>
 
@@ -487,9 +494,9 @@ if ($d['member_id'] === null && $d['notes'] === 'service_total') {
         <p>Select the format you want to export the summary in:</p>
 
         <div class="d-grid gap-2">
-          <button class="btn btn-success" id="exportCsvBtn">Export as CSV</button>
+          <button class="btn btn-success" id="exportExcelBtn">Export as Excel</button>
+          <!-- <button class="btn btn-warning" id="exportCsvBtn">Export as CSV</button> -->
           <button class="btn btn-secondary" id="exportPdfBtn">Export as PDF</button>
-          <button class="btn btn-warning" id="exportExcelBtn">Export as Excel</button>
         </div>
       </div>
 
@@ -525,8 +532,16 @@ document.addEventListener("DOMContentLoaded", () => {
             // };
 
             // Edit modal
+        const editMemberSelect = document.getElementById("edit_member_id");
         document.getElementById("edit_donation_id").value = donationId;
-        document.getElementById("edit_member_id").value = this.dataset.memberId || "";
+        if (this.dataset.source === 'service_total') {
+            editMemberSelect.value = 'service_total';
+        } else if( this.dataset.source === 'anonymous') {
+            editMemberSelect.value = 'anonymous';
+        }  else {
+            editMemberSelect.value = this.dataset.memberId;
+        }
+
         document.getElementById("edit_amount").value = this.dataset.amount;
         document.getElementById("edit_type").value = this.dataset.type;
         document.getElementById("edit_date").value = this.dataset.date;
@@ -546,16 +561,16 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 // Export Buttons
-document.getElementById("exportCsvBtn").addEventListener("click", function() {
-    window.location.href = "export/export_summary_csv.php";
-});
+// document.getElementById("exportCsvBtn").addEventListener("click", function() {
+//     window.location.href = "export/income_export_summary_csv.php";
+// });
 
 document.getElementById("exportPdfBtn").addEventListener("click", function() {
-    window.location.href = "export/export_summary_pdf.php";
+    window.location.href = "export/income_export_summary_pdf.php";
 });
 
 document.getElementById("exportExcelBtn").addEventListener("click", function() {
-    window.location.href = "export/export_summary_excel.php";
+    window.location.href = "export/income_export_summary_excel.php";
 });
 
 

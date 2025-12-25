@@ -12,8 +12,8 @@ class Donation {
     public function create($data) {
         $member_id = $data['member_id'] ?? null;
 
-        $sql = "INSERT INTO {$this->table} (member_id, amount, donation_type, donation_date, notes)
-                VALUES (:member_id, :amount, :donation_type, :donation_date, :notes)";
+        $sql = "INSERT INTO {$this->table} (member_id, amount, donation_type, donation_date, notes, income_source)
+                VALUES (:member_id, :amount, :donation_type, :donation_date, :notes, :income_source)";
         $stmt = $this->db->prepare($sql);
         
         //Preparing variables for insertion
@@ -21,13 +21,14 @@ class Donation {
         $donation_type = $data['donation_type'];
         $donation_date = $data['donation_date'];
         $notes = $data['notes'] ?? null;
+        $income_source = $data['income_source'] ?? 'anonymous';
 
         $stmt->bindParam(':member_id', $member_id, PDO::PARAM_INT);
         $stmt->bindParam(':amount', $amount);
         $stmt->bindParam(':donation_type', $donation_type);
         $stmt->bindParam(':donation_date', $donation_date);
         $stmt->bindParam(':notes', $notes);
-        
+        $stmt->bindParam(':income_source', $income_source);        
         return $stmt->execute();
     }
 
@@ -37,7 +38,8 @@ class Donation {
                 amount = :amount,
                 donation_type = :donation_type,
                 donation_date = :donation_date,
-                notes = :notes
+                notes = :notes,
+                income_source = :income_source
                 WHERE id = :id";
         $stmt = $this->db->prepare($sql);
 
@@ -47,6 +49,7 @@ class Donation {
         ':donation_type' => $data['donation_type'],
         ':donation_date' => $data['donation_date'],
         ':notes'         => $data['notes'],
+        ':income_source' => $data['income_source'],
         ':id'            => $id
     ]);
     }
