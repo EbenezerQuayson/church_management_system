@@ -356,20 +356,20 @@ $jsMinistryCounts = json_encode($ministryCounts);
                 <div class="chart-container">
                     <h5><i class="fas fa-users"></i> Recent Members</h5>
                     <div class="table-responsive">
-                        <table class="table table-hover mb-0">
+                        <table class="table table-hover mb-0 table-mobile-friendly">
                             <thead>
                                 <tr style="background: var(--primary-color); color: white;">
-                                    <th>Name</th>
-                                    <th>Email</th>
-                                    <th>Joined</th>
+                                    <th class="col-essential">Name</th>
+                                    <th class="col-essential">Email</th>
+                                    <th class="col-hide-mobile">Joined</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <?php foreach ($recent_members as $member): ?>
                                     <tr>
-                                        <td><?php echo htmlspecialchars($member['first_name'] . ' ' . $member['last_name']); ?></td>
-                                        <td><?php echo htmlspecialchars($member['email'] ?? 'N/A'); ?></td>
-                                        <td><?php echo date('M d, Y', strtotime($member['join_date'] ?? $member['created_at'])); ?></td>
+                                        <td class="col-essential"><?php echo htmlspecialchars($member['first_name'] . ' ' . $member['last_name']); ?></td>
+                                        <td class="col-essential"><?php echo htmlspecialchars($member['email'] ?? 'N/A'); ?></td>
+                                        <td class="col-hide-mobile"><?php echo date('M d, Y', strtotime($member['join_date'] ?? $member['created_at'])); ?></td>
                                     </tr>
                                 <?php endforeach; ?>
                             </tbody>
