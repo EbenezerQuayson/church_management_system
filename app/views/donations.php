@@ -243,15 +243,15 @@ $count = 1;
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover table-mobile-friendly">
                         <thead style="background-color: var(--primary-color); color: white;">
                             <tr>
-                                <th>#</th>
-                                <th>Member</th>
-                                <th>Amount (¢)</th>
-                                <th>Type</th>
-                                <th>Date</th>
-                                <th>Actions</th>
+                                <th class="col-essential">#</th>
+                                <th class="col-essential">Member</th>
+                                <th class="col-essential">Amount (¢)</th>
+                                <th class="col-essential">Type</th>
+                                <th class="col-hide-mobile">Date</th>
+                                <th class="col-essential text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -263,8 +263,8 @@ $count = 1;
 
                             <?php foreach ($donations as $d): ?>
                                 <tr>
-                                    <td><?= $count++ ?></td>
-                                    <td><?php 
+                                    <td class="col-essential"><?= $count++ ?></td>
+                                    <td class="col-essential"><?php 
                                     if($d['income_source'] === 'service_total'){
                                         echo 'Service Total';
                                     } elseif ($d['member_id'] === 'member' && !empty($d['first_name'])) {
@@ -273,10 +273,10 @@ $count = 1;
                                         echo 'Anonymous';
                                     }
  ?></td>
-     <td><strong>¢<?php echo number_format($d['amount'], 2); ?></strong></td>
-     <td><?php echo ucfirst($d['donation_type']); ?></td>
-     <td><?php echo date('M d, Y', strtotime($d['donation_date'])); ?></td>
-     <td>
+     <td class="col-essential"><strong>¢<?php echo number_format($d['amount'], 2); ?></strong></td>
+     <td class="col-essential"><?php echo ucfirst($d['donation_type']); ?></td>
+     <td class="col-hide-mobile"><?php echo date('M d, Y', strtotime($d['donation_date'])); ?></td>
+     <td class="col-essential text-end">
     <button class="btn btn-sm btn-outline-primary viewDonationBtn" data-donation-id="<?= $d['id']; ?>"
     data-member-id="<?= $d['member_id'] ?? '' ?>" 
    data-member="<?php

@@ -364,17 +364,17 @@ if(isset($_GET['msg'])){
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover table-mobile-friendly">
                         <thead style="background-color: var(--primary-color); color: white;">
                             <tr>
-                                <th>Name</th>
-                                <th>Gender</th>
-                                <th>Phone</th>
-                                <th>Email</th>
+                                <th class="col-essential">Name</th>
+                                <th class="col-hide-mobile" >Gender</th>
+                                <th class="col-hide-mobile" >Phone</th>
+                                <th class="col-hide-mobile">Email</th>
                                 <?php if ($viewMode === 'flat'): ?>
-                                <th>Ministry</th>
+                                <th class="col-hide-mobile">Ministry</th>
                                 <?php endif; ?>
-                                <th>Actions</th>
+                                <th class="col-essential text-end">Actions</th>
                             </tr>
                         </thead>
 

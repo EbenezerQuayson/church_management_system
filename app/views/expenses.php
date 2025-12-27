@@ -160,7 +160,6 @@ if (isset($_POST['create_expense'])) {
 
 ?>
 <?php include 'header.php'; ?>
-
 <div class="main-content">
     <?php include 'sidebar.php'; ?>
 
@@ -225,16 +224,16 @@ if (isset($_POST['create_expense'])) {
 
         <div class="card mb-4">
             <div class="card-body table-responsive">
-                <table class="table table-hover align-middle">
+                <table class="table table-hover align-middle table-mobile-friendly">
                     <thead style="background-color: var(--primary-color); color: #fff;">
                         <tr>
-                            <th>#</th>
-                            <th>Category</th>
-                            <th>Amount (¢)</th>
-                            <th>Date</th>
-                            <th>Description</th>
-                            <th>Receipt</th>
-                            <th>Actions</th>
+                            <th class="col-essential">#</th>
+                            <th class="col-essential">Category</th>
+                            <th class="col-essential">Amount (¢)</th>
+                            <th class="col-hide-mobile">Date</th>
+                            <th class="col-hide-mobile">Description</th>
+                            <th class="col-hide-mobile">Receipt</th>
+                            <th class="col-essential text-end" >Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -246,12 +245,12 @@ if (isset($_POST['create_expense'])) {
 
                         <?php foreach ($expenses as $i => $row): ?>
                             <tr>
-                                <td><?= $i + 1 ?></td>
-                                <td><?= htmlspecialchars($row['category_name'] ?? 'Uncategorized') ?></td>
-                                <td><strong>¢<?= number_format($row['amount'], 2) ?></strong></td>
-                                <td><?= date('M d, Y', strtotime($row['expense_date'])) ?></td>
-                                <td><?= nl2br(htmlspecialchars($row['description'] ?? '')) ?></td>
-                                <td>
+                                <td class="col-essential"><?= $i + 1 ?></td>
+                                <td class="col-essential"><?= htmlspecialchars($row['category_name'] ?? 'Uncategorized') ?></td>
+                                <td class="col-essential"><strong>¢<?= number_format($row['amount'], 2) ?></strong></td>
+                                <td class="col-hide-mobile"><?= date('M d, Y', strtotime($row['expense_date'])) ?></td>
+                                <td class="col-hide-mobile"><?= nl2br(htmlspecialchars($row['description'] ?? '')) ?></td>
+                                <td class="col-hide-mobile">
                                     <?php if (!empty($row['receipt_path'])): ?>
                                         <!-- <a href="<?= BASE_URL . '/assets/uploads/receipts/1765547204_Screenshot_2025-11-06_024117.png' ?>" target="_blank">View</a> -->
                                         <a href="<?= BASE_URL .'/'. htmlspecialchars($row['receipt_path']) ?>" target="_blank">View</a>
@@ -259,7 +258,7 @@ if (isset($_POST['create_expense'])) {
                                         —
                                     <?php endif; ?>
                                 </td>
-                                <td>
+                                <td class="col-essential text-end">
                                     <button class="btn btn-sm btn-outline-primary"
                                             data-bs-toggle="modal"
                                             data-bs-target="#editExpenseModal<?= $row['id'] ?>">

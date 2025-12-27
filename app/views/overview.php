@@ -215,15 +215,16 @@ $expenseTotals = array_column($expenseBreakdown, 'total');
     </div>
 
     <!-- Recent Transactions -->
-    <div class="card shadow border-0 mb-4">
+    <!-- <div class="card shadow border-0 mb-4">
         <div class="card-header bg-white">
             <h5 class="mb-0">Recent Transactions</h5>
-        </div>
-
-        <div class="card-body p-0">
-            <table class="table mb-0 table-striped">
+        </div> -->
+    <div class="chart-container">
+        <h5>Recent Transactions</h5>
+        <div class="table-responsive">
+            <table class="table  table-hover mb-0 table-mobile-friendly">
                 <thead>
-                    <tr>
+                    <tr style="background-color: var(--primary-color); color: #fff;">
                         <th>Date</th>
                         <th>Type</th>
                         <th>Category</th>
@@ -251,35 +252,10 @@ $expenseTotals = array_column($expenseBreakdown, 'total');
 <?php endforeach; ?>
 </tbody>
 
-
-                <!-- <tbody>
-                    <tr>
-                        <td>2025-02-01</td>
-                        <td><span class="badge bg-success">Donation</span></td>
-                        <td>Tithe</td>
-                        <td>300</td>
-                        <td>Sunday Service</td>
-                    </tr>
-
-                    <tr>
-                        <td>2025-02-03</td>
-                        <td><span class="badge bg-danger">Expense</span></td>
-                        <td>Maintenance</td>
-                        <td>120</td>
-                        <td>Generator Fuel</td>
-                    </tr>
-
-                    <tr>
-                        <td>2025-02-05</td>
-                        <td><span class="badge bg-success">Donation</span></td>
-                        <td>Offering</td>
-                        <td>150</td>
-                        <td>Youth Meeting</td>
-                    </tr>
-                </tbody> -->
             </table>
         </div>
     </div>
+    <!-- </div> -->
 
 </div>
 </div>
