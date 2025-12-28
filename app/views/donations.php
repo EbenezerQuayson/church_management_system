@@ -254,10 +254,10 @@ $count = 1;
                     <table class="table table-hover table-mobile-friendly">
                         <thead style="background-color: var(--primary-color); color: white;">
                             <tr>
-                                <th class="col-essential">#</th>
+                                <th class="col-hide-mobile">#</th>
                                 <th class="col-essential">Member</th>
                                 <th class="col-essential">Amount (¢)</th>
-                                <th class="col-essential">Type</th>
+                                <th class="col-hide-mobile">Type</th>
                                 <th class="col-hide-mobile">Date</th>
                                 <th class="col-essential text-end">Actions</th>
                             </tr>
@@ -271,7 +271,7 @@ $count = 1;
 
                             <?php foreach ($donations as $d): ?>
                                 <tr>
-                                    <td class="col-essential"><?= $count++ ?></td>
+                                    <td class="col-hide-mobile"><?= $count++ ?></td>
                                     <td class="col-essential"><?php 
                                     if($d['income_source'] === 'service_total'){
                                         echo 'Service Total';
@@ -282,7 +282,7 @@ $count = 1;
                                     }
  ?></td>
      <td class="col-essential"><strong>¢<?php echo number_format($d['amount'], 2); ?></strong></td>
-     <td class="col-essential"><?php echo ucfirst($d['donation_type']); ?></td>
+     <td class="col-hide-mobile"><?php echo ucfirst($d['donation_type']); ?></td>
      <td class="col-hide-mobile"><?php echo date('M d, Y', strtotime($d['donation_date'])); ?></td>
      <td class="col-essential text-end">
     <button class="btn btn-sm btn-outline-primary viewDonationBtn" data-donation-id="<?= $d['id']; ?>"
