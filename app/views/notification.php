@@ -10,28 +10,22 @@ requireLogin();
 $db = Database::getInstance();
 
 $user_id = $_SESSION['user_id'];
+$admins = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
+
 
 // Fetch notifications
+
 $unread = $db->fetchAll("SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC", [$user_id]);
 $read   = $db->fetchAll("SELECT * FROM notifications WHERE user_id = ? AND is_read = 1 ORDER BY created_at DESC", [$user_id]);
 
 $unread_count = $db->fetch("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0", [$user_id]);
 
-// $notification_id = $_GET['id'];
-// $db->query("UPDATE notifications SET is_read = 1 WHERE id = ? ", [$notification_id]);
-// $db->query("UPDATE notifications SET is_read = 1 WHERE id = ?", [$user_id]);
 
 
 $message = $_GET['msg'] ?? null;
 $message_type = $_GET['type'] ?? "success";
 
-// function addNotification($user_id, $message, $link = null)
-// {
-//    global $db;
-//     $db->query("INSERT INTO notifications (user_id, message, link) VALUES (?, ?, ?)", [$user_id, $message, $link]);
-// }
 
-// addNotification(5, "A new member has registered", "members/view.php?id=22");
 
 ?>
 
