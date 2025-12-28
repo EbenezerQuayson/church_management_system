@@ -16,7 +16,8 @@ $notification = new Notification();
 
 
 $user_id = $_SESSION['user_id'];
-
+$member_notification = Database::getInstance();
+$admins = $member_notification->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
 
 requireLogin();
 
@@ -101,15 +102,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_member'])) {
 if ($newMemberId) {
     // Get selected ministries
     $ministryIds = $_POST['ministries'] ?? [];
+    forEach($admins as $admin){
     $notification->create(
-        $_SESSION['user_id'],
+        $admin['id'],
         'New Member Added',
         $data['first_name'] . ' ' . $data['last_name'] . ' was added.',
         'members.php'
-    );
+    );}
     // If none selected, assign default ministry (e.g., id = 1)
     if (empty($ministryIds)) {
-        $ministryIds = [1]; // Replace 1 with your default ministry ID
+        $ministryIds = [1]; // Replace 1 with default ministry ID
     }
 
     $insertSql = "INSERT INTO ministry_members (member_id, ministry_id, role, joined_date, created_at)
@@ -126,12 +128,13 @@ if ($newMemberId) {
     }
 
     //Notification
-    $notification->create(
-        $_SESSION['user_id'],
+    foreach($admins as $admin){
+        $notification->create(
+        $admin['id'],
         'New Member Added',
         $data['first_name'] . ' ' . $data['last_name'] . ' was added.',
         'members.php'
-    );
+    ); }
 
     header("Location: members.php?msg=added");
 } else {
@@ -181,13 +184,13 @@ if (isset($_POST['update_member'])) {
         // Update ministries
         $selectedMinistries = $_POST['ministries'] ?? [];
         $member->updateMinistries($editId, $selectedMinistries);
-
+        foreach($admins as $admin){
         $notification->create(
-            $_SESSION['user_id'],
+            $admin['id'],
             'Member Updated',
             $data['first_name'] . ' ' . $data['last_name'] . ' was updated.',
             'members.php'
-        );
+        );}
 
         header("Location: members.php?msg=updated");
         exit();
@@ -204,24 +207,21 @@ if(isset($_GET['delete'])) {
     $id = $_GET['delete'];
     // Implement delete functionality in Member model
     if ($member->permanentDelete($id)) {
+        foreach($admins as $admin){
         $notification->create(
-            $_SESSION['user_id'],
+            $admin['id'],
             'Member Deleted',
             'A member was deleted.',
             'members.php'
-        );
+        );}
         header("Location: members.php?msg=deleted");
         exit();
-        // $message = 'Member deleted successfully!';
-        // $message_type = 'success';
+  
     } else {
         header("Location: members.php?msg=delete_failed");
         exit();
-        // $message = 'Failed to delete member';
-        // $message_type = 'error';
 
     }
-    // $members = $member->getAll();
 }
 
 //Logic to prevent resubmission after any refresh
