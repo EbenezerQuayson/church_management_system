@@ -86,7 +86,7 @@ foreach ($monthlyData as $data) {
 $expenseLabels = array_column($expenseBreakdown, 'category');
 $expenseTotals = array_column($expenseBreakdown, 'total');
 
-
+$count = 1;
 
 ?>
 <!--  -->
@@ -215,39 +215,38 @@ $expenseTotals = array_column($expenseBreakdown, 'total');
     </div>
 
     <!-- Recent Transactions -->
-    <!-- <div class="card shadow border-0 mb-4">
-        <div class="card-header bg-white">
-            <h5 class="mb-0">Recent Transactions</h5>
-        </div> -->
     <div class="chart-container">
         <h5>Recent Transactions</h5>
         <div class="table-responsive">
             <table class="table  table-hover mb-0 table-mobile-friendly">
                 <thead>
                     <tr style="background-color: var(--primary-color); color: #fff;">
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th>Category</th>
-                        <th>Amount (GHS)</th>
-                        <th>Description</th>
+                        <th class="col-essential">#</th>
+                        <th class="col-hide-mobile">Date</th>
+                        <th class="col-essential">Type</th>
+                        <th class="col-hide-mobile">Category</th>
+                        <th class="col-essential">Amount (GHS)</th>
+                        <th class="col-hide-mobile">Description</th>
                     </tr>
                 </thead>
                 <tbody>
 <?php foreach ($transactions as $row): ?>
     <tr>
-        <td><?= htmlspecialchars($row['trans_date']) ?></td>
+                    <td class="col-essential"><?= $count++ ?></td>
 
-        <td>
+        <td class="col-hide-mobile"><?= htmlspecialchars($row['trans_date']) ?></td>
+
+        <td class="col-essential">
             <span class="badge <?= $row['type'] === 'Donation' ? 'bg-success' : 'bg-danger' ?>">
                 <?= $row['type'] ?>
             </span>
         </td>
 
-        <td><?= htmlspecialchars($row['category'] ?? '—') ?></td>
+        <td class="col-hide-mobile"><?= htmlspecialchars($row['category'] ?? '—') ?></td>
 
-        <td><?= number_format($row['amount'], 2) ?></td>
+        <td class="col-essential"><?= number_format($row['amount'], 2) ?></td>
 
-        <td><?= htmlspecialchars($row['description'] ?? '') ?></td>
+        <td class="col-hide-mobile"><?= htmlspecialchars($row['description'] ?? '') ?></td>
     </tr>
 <?php endforeach; ?>
 </tbody>
@@ -255,7 +254,7 @@ $expenseTotals = array_column($expenseBreakdown, 'total');
             </table>
         </div>
     </div>
-    <!-- </div> -->
+    
 
 </div>
 </div>

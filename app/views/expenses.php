@@ -168,6 +168,31 @@ if (isset($_POST['create_expense'])) {
 
 ?>
 <?php include 'header.php'; ?>
+<style>
+    /* Mobile optimization */
+@media (max-width: 576px) {
+
+    .btn {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.8rem;
+    }
+
+    .btn i {
+        font-size: 0.8rem;         /* smaller icons */
+        margin-right: 4px;
+    }
+
+    h2 {
+        font-size: 1.25rem;        /* reduce page title size */
+    }
+
+    .btn span {
+        display: none;
+    }
+
+    }
+
+</style>
 <div class="main-content">
     <?php include 'sidebar.php'; ?>
 
@@ -176,10 +201,10 @@ if (isset($_POST['create_expense'])) {
             <h2 class="fw-bold" style="color: var(--primary-color);">Expenses</h2>
             <div>
                     <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportSummaryModal">
-                <i class="fas fa-file-export"></i> Export Summary
+                <i class="fas fa-file-export"></i> <span>Export Summary</span>
             </button>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addExpenseModal">
-                <i class="fas fa-plus"></i> Add Expense
+                <i class="fas fa-plus"></i> <span>Add Expense</span>
             </button>
 </div>
         </div>
@@ -235,7 +260,7 @@ if (isset($_POST['create_expense'])) {
                 <table class="table table-hover align-middle table-mobile-friendly">
                     <thead style="background-color: var(--primary-color); color: #fff;">
                         <tr>
-                            <th class="col-essential">#</th>
+                            <th class="col-hide-mobile">#</th>
                             <th class="col-essential">Category</th>
                             <th class="col-essential">Amount (¢)</th>
                             <th class="col-hide-mobile">Date</th>
@@ -253,7 +278,7 @@ if (isset($_POST['create_expense'])) {
 
                         <?php foreach ($expenses as $i => $row): ?>
                             <tr>
-                                <td class="col-essential"><?= $i + 1 ?></td>
+                                <td class="col-hide-mobile"><?= $i + 1 ?></td>
                                 <td class="col-essential"><?= htmlspecialchars($row['category_name'] ?? 'Uncategorized') ?></td>
                                 <td class="col-essential"><strong>¢<?= number_format($row['amount'], 2) ?></strong></td>
                                 <td class="col-hide-mobile"><?= date('M d, Y', strtotime($row['expense_date'])) ?></td>
