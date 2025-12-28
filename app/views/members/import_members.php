@@ -11,6 +11,8 @@ require_once __DIR__ . '/../../models/Notifications.php';
 
 $notification = new Notification();
 
+$db = Database::getInstance();
+$admins = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
 
 
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
@@ -111,12 +113,13 @@ try {
 
         $importedCount++;
     }
+    forEach($admins as $admin){
     $notification->create(
-    $_SESSION['user_id'],
+    $admin['id'],
     'Members Imported',
     "$importedCount members were successfully imported.",
     'members.php'
-);
+);}
 
 
     header("Location:" . BASE_URL . "/app/views/members.php?msg=imported&count=$importedCount");

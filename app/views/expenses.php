@@ -25,6 +25,10 @@ $categories = $categoryModel->getAll();
 $monthly_total = $expenseModel->getTotalByMonth(date('Y'), date('m'));
 $total_amount = $expenseModel->getTotalAmount();
 
+//Notification Admins
+$db = Database::getInstance();
+$admins = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
+
 
 
 
@@ -79,12 +83,14 @@ if (isset($_POST['update_expense'])) {
         $description,     // description
         $receipt_path     // receipt_path
     );
-   $notification->create(
-        $_SESSION['user_id'],
+    foreach($admins as $admin){
+        $notification->create(
+        $admin['id'],
         'Expense Updated',
         'An expense of ¢' . number_format($amount, 2) . ' was updated.',
         'expenses.php'
     );
+    }
     header("Location: expenses.php?updated=1");
     exit;
 }
@@ -96,12 +102,13 @@ if (isset($_POST['delete_expense'])) {
     $id = (int) ($_POST['expense_id'] ?? 0);
     // Optionally remove receipt file from disk before deleting (not implemented)
     $expenseModel->delete($id);
-$notification->create(
-        $_SESSION['user_id'],
+    foreach($admins as $admin){
+        $notification->create(
+        $admin['id'],
         'Expense Deleted',
         'An expense record was deleted.',
         'expenses.php'
-    );
+    ); }
     header("Location: expenses.php?deleted=1");
     exit;
 }
@@ -147,12 +154,13 @@ if (isset($_POST['create_expense'])) {
     }
 
     $expenseModel->create($date_spent, $categoryId, $amount, $description, $receipt_path);
-    $notification->create(
-        $_SESSION['user_id'],
+    foreach($admins as $admin){
+        $notification->create(
+        $admin['id'],
         'Expense Added',
         'A new expense of ¢' . number_format($amount, 2) . ' was added.',
         'expenses.php'
-    );
+    ); }
     header("Location: expenses.php?success=1");
     exit;
 }
@@ -423,7 +431,7 @@ if (isset($_POST['create_expense'])) {
     </div>
 </div>
 <!-- EXPORT SUMMARY MODAL -->
- d<iv class="modal fade" id="exportSummaryModal" tabindex="-1" aria-hidden="true">
+ <div class="modal fade" id="exportSummaryModal" tabindex="-1" aria-hidden="true">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
 

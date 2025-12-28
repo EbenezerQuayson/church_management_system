@@ -5,7 +5,7 @@ $activePage = 'events';
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../models/Event.php';
-require_once __DIR__ . '/../models/NOtifications.php';
+require_once __DIR__ . '/../models/Notifications.php';
 
 requireLogin();
 
@@ -16,6 +16,8 @@ $message = '';
 $message_type = '';
 
 $user_id = $_SESSION['user_id'];
+$db = Database::getInstance();
+$admins = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
 
 
 
@@ -37,17 +39,17 @@ if(isset($_POST['edit_event'])){
         $message_type = 'error';
     } else {
         if ($event->edit($eventId, $data)) {
-            $notification->create(
-                $_SESSION['user_id'],
-                'Event Updated',
-                'The event "' . $data['title'] . '" was updated.',
-                'events.php'
-            );
+            foreach($admins as $admin){
+             $notification->create(
+                  $admin['id'],
+                  'Event Updated',
+                  'The event "' . $data['title'] . '" was updated.',
+                  'events.php'
+              );
+             }
             header("Location: events.php?msg=updated");
             exit();
         } else {
-            // $message = 'Failed to update event';
-            // $message_type = 'error';
             header("Location: events.php?msg=update_failed");
             exit();
         }
@@ -70,17 +72,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['edit_event'])) {
         $message_type = 'error';
     } else {
         if ($event->create($data)) {
+            foreach($admins as $admin){
                $notification->create(
-                    $_SESSION['user_id'],
+                    $admin['id'],
                     'New Event Created',
                     'The event "' . $data['title'] . '" was created.',
                     'events.php'
                 );
+            }
                 header("Location: events.php?msg=created");
                 exit();
         } else {
-                    // $message = 'Failed to create event';
-                    // $message_type = 'error';
                     header("Location: events.php?msg=create_failed");
                     exit();
         }
@@ -90,17 +92,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['edit_event'])) {
 if(isset($_GET['delete'])){
     $eventId = $_GET['delete'];
     if($event->hardDelete($eventId)){
+        foreach($admins as $admin){
       $notification->create(
-            $_SESSION['user_id'],
+            $admin['id'],
             'Event Deleted',
             'An event record was deleted.',
             'events.php'
-        );
+        );}
         header("Location: events.php?msg=deleted");
         exit();
     } else {
-        // $message = 'Failed to delete event';
-        // $message_type = 'error';
         header("Location: events.php?msg=delete_failed");
         exit();
     }

@@ -7,11 +7,11 @@ class Notification {
         $this->db = Database::getInstance()->getConnection();
     }
 
-    public function create($user_id, $title, $message, $link = null) {
-        $sql = "INSERT INTO notifications (user_id, title, message, link)
-                VALUES (?, ?, ?, ?)";
+    public function create($user_id, $title, $message, $is_read=0, $link = null) {
+        $sql = "INSERT INTO notifications (user_id, title, message, is_read, link)
+                VALUES (?, ?, ?, ?, ?)";
         $stmt = $this->db->prepare($sql);
-        return $stmt->execute([$user_id, $title, $message, $link]);
+        return $stmt->execute([$user_id, $title, $message, $is_read, $link]);
     }
 
     public function markRead($id, $user_id) {

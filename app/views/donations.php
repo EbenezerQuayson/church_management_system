@@ -8,7 +8,9 @@ require_once __DIR__ . '/../models/Donation.php';
 require_once __DIR__ . '/../models/Member.php';
 require_once __DIR__ . '/../models/Notifications.php';
 
+
 requireLogin();
+
 //Models
 $donation = new Donation();
 $member_model = new Member();
@@ -19,6 +21,10 @@ $monthly_total = $donation->getTotalByMonth();
 $total_amount = $donation->getTotalAmount();
 
 $user_id = $_SESSION['user_id'];
+$db = Database::getInstance();
+$admins = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
+
+
 
 
 
@@ -99,12 +105,14 @@ $income_source = 'anonymous' ;
             $message_type = 'error';
         } else {
             if ($donation->create($commonData)) {
-                
-                $notification->create(
-                    $_SESSION['user_id'],
+                foreach($admins as $admin){
+                     $notification->create(
+                    $admin['id'],
                     'New Income Recorded',
                     'An income of ¢' . number_format($commonData['amount'], 2) . ' was recorded.',
                     'donations.php');
+                }
+               
                  header("Location: donations.php?msg=added");
                  exit();
                 $donations = $donation->getAll();
@@ -129,12 +137,13 @@ $income_source = 'anonymous' ;
             $message_type = 'error';
         } else {
             if ($donation->update($id, $commonData)) {
-               $notification->create(
-                    $_SESSION['user_id'],
-                    'Income Updated',
-                    'An income of ¢' . number_format($commonData['amount'], 2) . ' was updated.',
-                    'donations.php');
-
+                    foreach($admins as $admin){
+                        $notification->create(
+                        $admin['id'],
+                        'Income Updated',
+                        'An income of ¢' . number_format($commonData['amount'], 2) . ' was updated.',
+                        'donations.php');
+                    }
                 header("Location: donations.php?msg=updated");
                 exit();
                 $donations = $donation->getAll();
@@ -155,18 +164,17 @@ $income_source = 'anonymous' ;
         $id = (int) $_POST['id'];
 
         if ($donation->delete($id)) {
-            $notification->create(
-                $_SESSION['user_id'],
+           foreach($admins as $admin){
+                $notification->create(
+                $admin['id'],
                 'Income Deleted',
                 'An income record was deleted.',
                 'donations.php');
-
+            }
              header("Location: donations.php?msg=deleted");
              exit();
             $donations = $donation->getAll();
         } else {
-            // $message = 'Failed to delete donation';
-            // $message_type = 'error';
              header("Location: donations.php?msg=delete_failed");
              exit();
         }
@@ -267,7 +275,7 @@ $count = 1;
                                     <td class="col-essential"><?php 
                                     if($d['income_source'] === 'service_total'){
                                         echo 'Service Total';
-                                    } elseif ($d['member_id'] === 'member' && !empty($d['first_name'])) {
+                                    } elseif ($d['income_source'] === 'member' && !empty($d['first_name'])) {
                                         echo htmlspecialchars($d['first_name'] . ' ' . $d['last_name']);
                                     } else {
                                         echo 'Anonymous';
@@ -591,78 +599,6 @@ document.getElementById("editDonationBtn").addEventListener("click", () => {
 
 </script>
 
-
-
-
-<!-- 
-<script>
-document.addEventListener("DOMContentLoaded", function () {
-
-    // When eye button is clicked
-    document.querySelectorAll(".viewDonationBtn").forEach(btn => {
-        btn.addEventListener("click", function () {
-
-            const id = this.dataset.id;
-
-            // Show modal immediately
-            const modal = new bootstrap.Modal(document.getElementById('donationDetailsModal'));
-            modal.show();
-
-            // Show loading
-            document.getElementById("donationDetailsContent").innerHTML =
-                '<p class="text-center text-muted">Loading...</p>';
-
-            // Fetch details
-            // fetch('<?php echo BASE_URL; ?>/app/ajax/get_donation.php?id=' + id)
-            // .then(res => res.json())
-            // .then(res => {
-            //     if (res.status === 'success') {
-            //         let d = res.data;
-
-            //         // Handle service total
-            //         let member = "Anonymous";
-            //         if (d.member_id === null && d.notes === 'service_total') {
-            //             member = "Service Total";
-            //         } else if (d.first_name) {
-            //             member = d.first_name + " " + d.last_name;
-            //         }
-
-            //         document.getElementById("donationDetailsContent").innerHTML = `
-            //             <table class="table table-bordered">
-            //                 <tr><th>Member</th><td>${member}</td></tr>
-            //                 <tr><th>Amount</th><td>¢${parseFloat(d.amount).toFixed(2)}</td></tr>
-            //                 <tr><th>Type</th><td>${d.donation_type}</td></tr>
-            //                 <tr><th>Date</th><td>${d.donation_date}</td></tr>
-            //                 <tr><th>Notes</th><td>${d.notes || "-"}</td></tr>
-            //             </table>
-            //         `;
-
-            //         // Attach actions
-            //         document.getElementById("editDonationBtn").onclick = () => {
-            //             window.location.href = "edit_donation.php?id=" + d.id;
-            //         };
-
-            //         document.getElementById("deleteDonationBtn").onclick = () => {
-            //             if (confirm("Are you sure you want to delete this donation?")) {
-            //                 window.location.href = "delete_donation.php?id=" + d.id;
-            //             }
-            //         };
-
-            //         document.getElementById("printDonationBtn").onclick = () => {
-            //             window.open("print_donation.php?id=" + d.id, "_blank");
-            //         };
-
-            //     } else {
-            //         document.getElementById("donationDetailsContent").innerHTML =
-            //             '<p class="text-danger">Error loading donation details.</p>';
-            //     }
-            // });
-
-        });
-    });
-
-});
-</script> -->
 
 
 </body>

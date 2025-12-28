@@ -4,6 +4,9 @@ $activePage = 'organizations';
 
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../models/Notifications.php';
+
+$notification = new Notification();
 
 requireLogin();
 
@@ -11,6 +14,8 @@ $user_id = $_SESSION['user_id'];
 
 
 $db = Database::getInstance();
+$admins = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
+
 $ministries = $db->fetchAll("SELECT * FROM ministries WHERE status = 'active' ORDER BY name");
 $message = '';
 $message_type = '';
@@ -63,13 +68,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $stmt->bindParam(':id', $id);
 
             if ($stmt->execute()) {
-                // $message = "Ministry deleted successfully!";
-                // $message_type = "success";
+                foreach($admins as $admin){
+                $notification->create(
+                    $admin['id'],
+                    'Organization Deleted',
+                    'An organization was deleted.',
+                    'ministries.php'
+                );
+                }
                 header("Location: ministries.php?msg=deleted");
                 exit();
             } else {
-                // $message = "Failed to delete ministry.";
-                // $message_type = "error";
                 header("Location: ministries.php?msg=delete_failed");
                 exit();
             }
@@ -103,13 +112,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':id', $id);
 
         if ($stmt->execute()) {
-            // $message = "Ministry updated successfully!";
-            // $message_type = "success";
+           foreach($admins as $admin){
+           $notification->create(
+                $admin['id'],
+                'Organization Updated',
+                'An organization was updated.',
+                'ministries.php'
+            );
+           }
               header("Location: ministries.php?msg=updated");
                 exit();
         } else {
-            // $message = "Failed to update ministry.";
-            // $message_type = "error";
               header("Location: ministries.php?msg=update_failed");
                 exit();
         }
@@ -146,14 +159,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $stmt->bindParam(':status', $data['status']);
 
         if ($stmt->execute()) {
-            // $message = 'Ministry created successfully!';
-            // $message_type = 'success';
+           foreach($admins as $admin){
+           $notification->create(
+                $admin['id'],
+                'New Organization Added',
+                'A new organization was added.',
+                'ministries.php');}
               header("Location: ministries.php?msg=added");
               exit();
             $ministries = $db->fetchAll("SELECT * FROM ministries WHERE status = 'active' ORDER BY name");
         } else {
-            // $message = 'Failed to create ministry';
-            // $message_type = 'error';
               header("Location: ministries.php?msg=add_failed");
                 exit();
         }

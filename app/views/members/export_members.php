@@ -15,6 +15,9 @@ $members = $member->getAllForExport();
 $spreadsheet = new Spreadsheet();
 $sheet = $spreadsheet->getActiveSheet();
 
+$db = Database::getInstance();
+$admins = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
+
 /* ===== HEADERS ===== */
 $headers = [
     'A1' => 'ID',
@@ -66,12 +69,13 @@ header('Cache-Control: max-age=0');
 
 $writer = new Xlsx($spreadsheet);
 $writer->save('php://output');
+foreach($admins as $admin){
 $notifcation->create(
-    $_SESSION['user_id'],
+    $admin['id'],
     'Members Exported',
     'Members data was exported.',
     'members.php'
-);
+); }
 exit;
 
 
