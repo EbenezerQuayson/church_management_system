@@ -23,7 +23,7 @@ if (empty($members)) {
 
 foreach ($members as $m): ?>
 <tr>
-    <td>
+    <td class="col-essential">
         <div class="d-flex align-items-center">
             <?php 
    $uploadDir = __DIR__ . '/../../assets/uploads/members/'; // For server check
@@ -60,10 +60,10 @@ $imgUrl  = BASE_URL . '/assets/uploads/members/' . ($m['member_img'] ?? '');
             </div>
         </div>
     </td>
-    <td><?= htmlspecialchars($m['gender'] ?? 'N/A'); ?></td>
-    <td><?= htmlspecialchars($m['phone'] ?? 'N/A'); ?></td>
-    <td><?= htmlspecialchars($m['email'] ?? 'N/A'); ?></td>
-    <td>
+    <td class="col-hide-mobile"><?= htmlspecialchars($m['gender'] ?? 'N/A'); ?></td>
+    <td class="col-hide-mobile"><?= htmlspecialchars($m['phone'] ?? 'N/A'); ?></td>
+    <td class="col-hide-mobile"><?= htmlspecialchars($m['email'] ?? 'N/A'); ?></td>
+    <td class="col-hide-mobile">
         <?php
             $memberMinistries = $member->getMemberMinistries($m['id']);
             if (!empty($memberMinistries)) {
@@ -76,7 +76,7 @@ $imgUrl  = BASE_URL . '/assets/uploads/members/' . ($m['member_img'] ?? '');
         ?>
     </td>
 
-       <td>
+       <td class="col-essential text-end"> 
         <button class="btn btn-sm btn-outline-primary"
                 data-bs-toggle="modal"
                 data-bs-target="#editMemberModal<?= $m['id']; ?>">
