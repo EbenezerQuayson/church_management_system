@@ -265,7 +265,7 @@ if (isset($_POST['create_expense'])) {
                             <th class="col-essential">Amount (¢)</th>
                             <th class="col-hide-mobile">Date</th>
                             <th class="col-hide-mobile">Description</th>
-                            <th class="col-hide-mobile">Receipt</th>
+                            <!-- <th class="col-hide-mobile">Receipt</th> -->
                             <th class="col-essential text-end" >Actions</th>
                         </tr>
                     </thead>
@@ -283,29 +283,28 @@ if (isset($_POST['create_expense'])) {
                                 <td class="col-essential"><strong>¢<?= number_format($row['amount'], 2) ?></strong></td>
                                 <td class="col-hide-mobile"><?= date('M d, Y', strtotime($row['expense_date'])) ?></td>
                                 <td class="col-hide-mobile"><?= nl2br(htmlspecialchars($row['description'] ?? '')) ?></td>
-                                <td class="col-hide-mobile">
-                                    <?php if (!empty($row['receipt_path'])): ?>
-                                        <!-- <a href="<?= BASE_URL . '/assets/uploads/receipts/1765547204_Screenshot_2025-11-06_024117.png' ?>" target="_blank">View</a> -->
-                                        <a href="<?= BASE_URL .'/'. htmlspecialchars($row['receipt_path']) ?>" target="_blank">View</a>
-                                    <?php else: ?>
-                                        —
-                                    <?php endif; ?>
-                                </td>
-                                <td class="col-essential text-end">
-                                    <button class="btn btn-sm btn-outline-primary"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#editExpenseModal<?= $row['id'] ?>">
-                                        <i class="fas fa-edit"></i>
-                                    </button>
-
-                                    <button class="btn btn-sm btn-outline-danger"
-                                            data-bs-toggle="modal"
-                                            data-bs-target="#deleteExpenseModal<?= $row['id'] ?>">
-                                        <i class="fas fa-trash"></i>
-                                    </button>
+                                <!-- <td class="col-hide-mobile"> -->
+                                    <!-- <?php if (!empty($row['receipt_path'])): ?> -->
+                                        <!-- <a href="<?= BASE_URL .'/'. htmlspecialchars($row['receipt_path']) ?>" target="_blank">View</a> -->
+                                    <!-- <?php else: ?> -->
+                                        <!-- — -->
+                                    <!-- <?php endif; ?> -->
+                                <!-- </td> -->
+                                <td class="col-essential text-end">    
+                                <button class="btn btn-sm btn-outline-primary viewExpenseBtn" data-expense-id="<?= $row['id']; ?>"
+                                    data-member-id="<?= $row['member_id'] ?? '' ?>"
+                                    data-category="<?= htmlspecialchars($row['category_name'] ?? ''); ?>"   
+                                    data-amount="<?= $row['amount']; ?>"
+                                    data-date="<?= $row['expense_date']; ?>"
+                                    data-notes="<?= htmlspecialchars($row['description'] ?? ''); ?>"
+                                    data-receipt="<?= htmlspecialchars($row['receipt_path'] ?? '') ?>"
+                                    data-bs-target="#expenseDetails"
+                                    data-bs-toggle="modal">
+                                    <i class="fas fa-eye"></i>
+                                </button>
                                 </td>
                             </tr>
-
+               
                             <!-- EDIT MODAL -->
                             <div class="modal fade" id="editExpenseModal<?= $row['id'] ?>" tabindex="-1">
                                 <div class="modal-dialog">
@@ -391,6 +390,48 @@ if (isset($_POST['create_expense'])) {
                         <?php endforeach; ?>
                     </tbody>
                 </table>
+
+<!-- EXPENSE DETAILS MODAL -->
+                <div class="modal fade" id="expenseDetails" tabindex="-1">
+                <div class="modal-dialog modal-lg">
+                    <div class="modal-content">
+
+                    <div class="modal-header" style="background-color: var(--primary-color); color:white;">
+                        <h5 class="modal-title">
+                        <i class="fas fa-gift"></i> Expense Details
+                        </h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+
+                    <div class="modal-body">
+                        <table class="table table-bordered">
+                        <tr><th>Category</th><td id="detail_category"></td></tr>
+                        <tr><th>Amount</th><td id="detail_amount"></td></tr>
+                        <tr><th>Date</th><td id="detail_date"></td></tr>
+                        <tr><th>Notes</th><td id="detail_notes"></td></tr>
+                        <tr><th>Receipt</th><td id="detail_receipt"></td>
+                        </table>
+                    </div>
+
+                    <div class="modal-footer d-flex justify-content-between">
+                        
+                        <button class="btn btn-sm btn-outline-primary" id="openEditExpense">
+                            <i class="fas fa-edit"></i> Edit
+                        </button>
+                        <button class="btn btn-sm btn-outline-danger" id="openDeleteExpense">
+                            <i class="fas fa-trash"></i> Delete
+                        </button>
+                       
+
+                        <!-- <button class="btn btn-primary" id="printExpenseBtn">
+                        <i class="fas fa-print"></i> Print Receipt
+                        </button> -->
+                    </div>
+
+                    </div>
+                </div>
+                </div>
+
             </div>
         </div>
 
@@ -481,12 +522,78 @@ if (isset($_POST['create_expense'])) {
 
 
 <script>
+   let currentExpenseId = null;
+   const receiptCell = document.getElementById("detail_receipt");
+
+
+
+document.addEventListener("DOMContentLoaded", () => {
+
+
+        document.querySelectorAll(".viewExpenseBtn").forEach(btn => {
+            btn.addEventListener("click", function () {
+
+                currentExpenseId = this.dataset.expenseId;
+
+                document.getElementById("detail_category").textContent = this.dataset.category;
+                document.getElementById("detail_amount").textContent =
+                    "¢" + parseFloat(this.dataset.amount).toFixed(2);
+                document.getElementById("detail_date").textContent = this.dataset.date;
+                document.getElementById("detail_notes").textContent =
+                    this.dataset.notes || "-";
+                const receiptPath = this.dataset.receipt;
+
+              if (receiptPath.match(/\.(jpg|jpeg|png|webp)$/i)) {
+                    receiptCell.innerHTML = `
+                        <img src="<?= BASE_URL ?>/${receiptPath}" 
+                            class="img-fluid rounded mb-2" style="max-height:300px">
+                        <br>
+                        <a href="<?= BASE_URL ?>/${receiptPath}" target="_blank">Open full size</a>
+                    `;
+                } else if (receiptPath) {
+                    receiptCell.innerHTML = `
+                        <a href="<?= BASE_URL ?>/${receiptPath}" target="_blank">View Receipt</a>
+                    `;
+                } else {
+                    receiptCell.innerHTML = `<span class="text-muted">No receipt uploaded</span>`;
+                }
+            });
+        });
+
+});
+
+
+
+
     document.getElementById("exportPdfBtn").addEventListener("click", function() {
     window.location.href = "export/expense_export_summary_pdf.php";
 });
 
 document.getElementById("exportExcelBtn").addEventListener("click", function() {
     window.location.href = "export/expense_export_summary_excel.php";
+});
+
+//Prevent edit model to be opened on top of details model
+document.getElementById("openEditExpense").addEventListener("click", () => {
+    bootstrap.Modal.getInstance(
+        document.getElementById("expenseDetails")
+    ).hide();
+
+    const editModal = new bootstrap.Modal(
+        document.getElementById("editExpenseModal" + currentExpenseId)
+    );
+    editModal.show();
+});
+
+document.getElementById("openDeleteExpense").addEventListener("click", () => {
+    bootstrap.Modal.getInstance(
+        document.getElementById("expenseDetails")
+    ).hide();
+
+    const deleteModal = new bootstrap.Modal(
+        document.getElementById("deleteExpenseModal" + currentExpenseId)
+    );
+    deleteModal.show();
 });
 
 </script>
