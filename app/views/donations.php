@@ -185,6 +185,31 @@ $count = 1;
 
 ?>
 <?php include 'header.php'; ?>
+<style>
+    /* Mobile optimization */
+@media (max-width: 576px) {
+
+    .btn {
+        padding: 0.35rem 0.6rem;
+        font-size: 0.8rem;
+    }
+
+    .btn i {
+        font-size: 0.8rem;         /* smaller icons */
+        margin-right: 4px;
+    }
+
+    h2 {
+        font-size: 1.25rem;        /* reduce page title size */
+    }
+
+    .btn span {
+        display: none;
+    }
+
+    }
+
+</style>
 <div class="main-content">
     <?php include 'sidebar.php'; ?>
     
@@ -194,10 +219,10 @@ $count = 1;
             <h2 class="fw-bold" style="color: var(--primary-color);">Income</h2>
             <div>
              <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#exportSummaryModal">
-                <i class="fas fa-file-export"></i> Export Summary
+                <i class="fas fa-file-export"></i> <span>Export Summary</span>
             </button>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addDonationModal">
-                <i class="fas fa-plus"></i> Add Income
+                <i class="fas fa-plus"></i> <span>Add Income</span>
             </button>
 </div>
         </div>
