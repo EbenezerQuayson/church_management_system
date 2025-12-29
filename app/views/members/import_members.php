@@ -60,31 +60,67 @@ if (!in_array($fileExtension, ['xlsx', 'xls', 'csv'])) {
 /* ===== IMPORT ===== */
 try {
     $rows = IOFactory::load($fileTmpPath)->getActiveSheet()->toArray();
-    array_shift($rows); // remove header
+
+    if (count($rows) < 2) {
+        throw new Exception('Empty file');
+    }
+
+    /* ===== NORMALIZE HEADERS ===== */
+    $rawHeaders = array_shift($rows);
+
+    $headers = array_map(function ($h) {
+        return strtolower(
+            str_replace([' ', '-'], '_', trim($h))
+        );
+    }, $rawHeaders);
+
+    /* ===== REQUIRED FIELDS ===== */
+    $requiredFields = ['first_name', 'last_name', 'phone_number', 'gender'];
 
     $importedCount = 0;
+    
 
-    foreach ($rows as $row) {
+    foreach ($rows as $index => $row) {
 
+        $rowData = array_combine($headers, $row);
+
+        if ($rowData === false) continue;
+
+        // Trim values
+        $rowData = array_map(fn($v) => trim((string)$v), $rowData);
+
+        /* ===== VALIDATION ===== */
+        $missing = [];
+        foreach ($requiredFields as $field) {
+            if (empty($rowData[$field])) {
+                $missing[] = $field;
+            }
+        }
+
+        if (!empty($missing)) {
+            // skip invalid row (optionally log)
+            continue;
+        }
+
+        /* ===== BUILD DATA ===== */
         $data = [
-            'first_name' => trim($row[1] ?? ''),
-            'last_name'  => trim($row[2] ?? ''),
-            'email'      => trim($row[3] ?? ''),
-            'phone'      => trim($row[4] ?? ''),
-            'gender'     => ucfirst(trim($row[5] ?? '')),
-           'date_of_birth' => excelDateToYmd($row[6] ?? null),
-            'join_date'   => excelDateToYmd($row[7] ?? null) ?? date('Y-m-d'),
-            'address'    => $row[10] ?? '',
-            'city'       => $row[11] ?? '',
-            'region'     => $row[9] ?? '',
-            'area'       => $row[12] ?? '',
-            'emergency_contact_name' => $row[13] ?? '',
-            'emergency_phone' => $row[14] ?? '',
+            'first_name' => $rowData['first_name'],
+            'last_name'  => $rowData['last_name'],
+            'email'      => $rowData['email'] ?? null,
+            'phone'      => $rowData['phone_number'],
+            'gender'     => ucfirst(strtolower($rowData['gender'])),
+            'date_of_birth' => excelDateToYmd($rowData['date_of_birth'] ?? null),
+            'join_date'  => excelDateToYmd($rowData['join_date'] ?? null) ?? date('Y-m-d'),
+            'region'     => $rowData['region'] ?? null,
+            'city'       => $rowData['city'] ?? null,
+            'area'       => $rowData['area'] ?? null,
+            'address'    => $rowData['address'] ?? null,
+            'emergency_contact_name' => $rowData['emergency_contact'] ?? null,
+            'emergency_phone'        => $rowData['emergency_phone'] ?? null,
             'member_img' => null
         ];
 
-        if (!$data['first_name'] || !$data['last_name']) continue;
-
+        /* ===== DUPLICATE CHECK ===== */
         $existingId = $member->exists(
             $data['first_name'],
             $data['last_name'],
@@ -95,13 +131,15 @@ try {
         $memberId = $existingId ?: $member->create($data);
         if (!$memberId) continue;
 
-        // Ministries
-        foreach (explode(',', $row[8] ?? '') as $ministryName) {
+        /* ===== MINISTRIES ===== */
+        $ministries = explode(',', $rowData['ministries'] ?? '');
+
+        foreach ($ministries as $ministryName) {
             $ministryName = trim($ministryName);
             if (!$ministryName) continue;
 
             $ministryId = $ministryModel->getIdByName($ministryName)
-                          ?? $ministryModel->create($ministryName);
+                ?? $ministryModel->create($ministryName);
 
             $stmt = $db->prepare("
                 INSERT IGNORE INTO ministry_members
@@ -113,14 +151,16 @@ try {
 
         $importedCount++;
     }
-    forEach($admins as $admin){
-    $notification->create(
-    $admin['id'],
-    'Members Imported',
-    "$importedCount members were successfully imported.",
-    'members.php'
-);}
 
+    /* ===== NOTIFICATIONS ===== */
+    foreach ($admins as $admin) {
+        $notification->create(
+            $admin['id'],
+            'Members Imported',
+            "$importedCount members were successfully imported.",
+            'members.php'
+        );
+    }
 
     header("Location:" . BASE_URL . "/app/views/members.php?msg=imported&count=$importedCount");
     exit;
@@ -129,4 +169,3 @@ try {
     header("Location:" . BASE_URL . "/app/views/members.php?msg=import_failed");
     exit;
 }
-
