@@ -202,20 +202,7 @@ if(isset($_GET['msg'])){
                                     data-bs-toggle="modal">
                                     <i class="fas fa-eye"></i>
                                 </button>
-                                        <!-- <button 
-    class="btn btn-sm btn-outline-primary editBtn"
-    data-id="<?php echo $e['id']; ?>"
-    data-title="<?php echo htmlspecialchars($e['title']); ?>"
-    data-description="<?php echo htmlspecialchars($e['description']); ?>"
-    data-date="<?php echo $e['event_date']; ?>"
-    data-location="<?php echo htmlspecialchars($e['location']); ?>"
-    data-capacity="<?php echo $e['capacity']; ?>"
-    data-status="<?php echo $e['status']; ?>"
->
-    <i class="fas fa-edit"></i>
-</button>
- <button class="btn btn-sm btn-outline-danger" onclick=confirmDelete(<?php echo $e['id']; ?>)><i class="fas fa-trash"></i>
-                                        </button> -->
+                                     
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -355,7 +342,7 @@ if(isset($_GET['msg'])){
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Location</label>
-                            <input type="text" class="form-control" id="edit_location" name="location">
+                            <input type="text" class="form-control" id="edit_location" name="lo cation">
                         </div>
                     </div>
 

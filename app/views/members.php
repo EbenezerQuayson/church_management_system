@@ -473,20 +473,7 @@ if(isset($_GET['msg'])){
 <?php endif; ?>
 
                     
-<?php 
-$includedMembers = [];
-foreach ($members as $m): 
-    if (!in_array($m['id'], $includedMembers)) {
-        include 'members/edit_member_modal.php';
-        $includedMembers[] = $m['id'];
-    }
-endforeach; 
-?>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <!-- Add Member Modal -->
 <div class="modal fade" id="addMemberModal" tabindex="-1">
@@ -605,6 +592,9 @@ endforeach;
     </div>
 </div>
 
+<?php include 'members/edit_member_modal.php'; ?>
+
+
 <!-- Import Members Modal -->
 <div class="modal fade" id="importMembersModal" tabindex="-1">
     <div class="modal-dialog">
@@ -630,15 +620,102 @@ endforeach;
     </div>
 </div>
 
-
-
-
+<!-- Member Details Modal -->
+<div class="modal fade" id="memberDetails" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header member-header">
+                <div class="d-flex align-items-center gap-3">
+                    <img id="detail_image"
+                         src=""
+                         class="member-avatar"
+                         alt="Member photo">
+                    <div>
+                        <h5 class="mb-0" id="detail_name"></h5>
+                        <small id="detail_ministry" class="text-light opacity-75"></small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <!-- Body -->
+            <div class="modal-body">
+                <!-- Contact -->
+                <div class="detail-section">
+                    <h6 class="section-title">Contact Information</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <span class="label">Email</span>
+                            <p id="detail_email"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="label">Phone</span>
+                            <p id="detail_phone"></p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Personal -->
+                <div class="detail-section">
+                    <h6 class="section-title">Personal Details</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <span class="label">Gender</span>
+                            <p id="detail_gender"></p>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="label">Date of Birth</span>
+                            <p id="detail_date_of_birth"></p>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="label">Join Date</span>
+                            <p id="detail_join_date"></p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Location -->
+                <div class="detail-section">
+                    <h6 class="section-title">Location</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <span class="label">City</span>
+                            <p id="detail_city"></p>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="label">Region</span>
+                            <p id="detail_region"></p>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="label">GPS</span>
+                            <p id="detail_gps"></p>
+                        </div>
+                        <div class="col-12">
+                            <span class="label">Address</span>
+                            <p id="detail_address"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer -->
+            <div class="modal-footer justify-content-between">
+                <button class="btn btn-outline-primary" id="openEditMember">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn btn-outline-danger" id="openDeleteMember">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
 
 <?php include 'footer.php'; ?>
 <script>
 const searchInput = document.getElementById('memberSearch');
 
 const tableBody = document.getElementById('membersTable');
+const BASE_URL = "<?= BASE_URL ?>";
+
+
 
 searchInput.addEventListener('keyup', function () {
     const query = this.value.trim();
@@ -679,12 +756,124 @@ searchInput.addEventListener('keyup', function () {
     }, 300);
 });
 
+let currentMemberData = {};
+// Member Details
+document.getElementById('membersTable').addEventListener('click', function(e) {
+    const btn = e.target.closest('.viewMemberBtn');
+    if (!btn) return;
+
+    const currentMemberData = btn.dataset;
+
+    const img = currentMemberData.memberImg
+        ? currentMemberData.memberImg
+        : '/church_management_system/assets/images/avatar-placeholder.png';
+    document.getElementById('detail_image').src = img;
+
+    document.getElementById('detail_name').innerText = currentMemberData.firstName + ' ' + currentMemberData.lastName;
+    document.getElementById('detail_gender').innerText = currentMemberData.gender;
+    document.getElementById('detail_phone').innerText = currentMemberData.phone || '-';
+    document.getElementById('detail_email').innerText = currentMemberData.email || '-';
+    const ministries = JSON.parse(currentMemberData.ministry || '[]');
+    document.getElementById('detail_ministry').innerText = ministries.length ? ministries.join(', ') : 'N/A';
+    document.getElementById('detail_address').innerText = currentMemberData.address || '-';
+    document.getElementById('detail_date_of_birth').innerText = currentMemberData.dateOfBirth
+        ? new Date(currentMemberData.dateOfBirth).toLocaleDateString()
+        : '-';
+    document.getElementById('detail_join_date').innerText = currentMemberData.joinDate
+        ? new Date(currentMemberData.joinDate).toLocaleDateString()
+        : '-';
+    document.getElementById('detail_city').innerText = currentMemberData.city || '-';
+    document.getElementById('detail_region').innerText = currentMemberData.region || '-';
+    // document.getElementById('detail_landmark').innerText = currentMemberData.landmark || '-';
+    document.getElementById('detail_gps').innerText = currentMemberData.gps || '-';
+
+    // Show modal
+    new bootstrap.Modal(document.getElementById('memberDetails')).show();
+
+        // Edit Button
+        const editBtn = document.getElementById('openEditMember');
+        editBtn.onclick = () => {
+    document.getElementById('edit_member_id').value = currentMemberData.memberId;
+    document.getElementById('edit_first_name').value = currentMemberData.firstName || '';
+    document.getElementById('edit_last_name').value = currentMemberData.lastName || '';
+    document.getElementById('edit_phone').value = currentMemberData.phone || '';
+    document.getElementById('edit_email').value = currentMemberData.email || '';
+    document.getElementById('edit_gender').value = currentMemberData.gender || '';
+    document.getElementById('edit_date_of_birth').value = currentMemberData.dateOfBirth || '';
+
+    document.getElementById('edit_address').value = currentMemberData.address || '';
+    document.getElementById('edit_city').value = currentMemberData.city || '';
+    document.getElementById('edit_region').value = currentMemberData.region || '';
+    document.getElementById('edit_area').value = currentMemberData.area || '';
+    document.getElementById('edit_landmark').value = currentMemberData.landmark || '';
+    document.getElementById('edit_gps').value = currentMemberData.gps || '';
+   
+     // Populate member image preview/link
+        const currentImgDiv = document.getElementById('currentMemberImg');
+        const imgPath = currentMemberData.memberImg;
+        currentImgDiv.innerHTML = imgPath 
+            ? `<small class="text-muted">Current: 
+        <a href="${imgPath}" target="_blank">View</a>
+       </small>`
+    : '';
+
+    document.getElementById('edit_emergency_contact_name').value =
+        currentMemberData.emergencyContactName || '';
+    document.getElementById('edit_emergency_phone').value =
+        currentMemberData.emergencyPhone || '';
+
+    // Ministries (multi-select)
+    const ministrySelect = document.getElementById('edit_ministries');
+    const memberMinistries = JSON.parse(currentMemberData.ministry || '[]');
+
+    [...ministrySelect.options].forEach(opt => {
+        opt.selected = memberMinistries.includes(opt.text);
+    });
+
+    new bootstrap.Modal(document.getElementById('editMemberModal')).show();
+};
 
 
-function confirmDelete(id) {
-    if (confirm('Are you sure you want to delete this member?')) {
-        window.location.href = '?delete=' + id;
-        console.log('Delete member:', id);
-    }
+        // Delete Button
+        const deleteBtn = document.getElementById('openDeleteMember');
+        deleteBtn.onclick = () => {
+            if (confirm('Are you sure you want to delete this member?')) {
+                window.location.href = '?delete=' + this.dataset.memberId;
+            }
+        };
+    });
+    
+
+document.addEventListener('show.bs.modal', function (event) {
+    const openModals = document.querySelectorAll('.modal.show');
+
+    openModals.forEach(modal => {
+        if (modal !== event.target) {
+            const instance = bootstrap.Modal.getInstance(modal);
+            if (instance) {
+                instance.hide();
+            }
+        }
+    });
+});
+
+// Function to remove all modal backdrops
+function removeBackdrops() {
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    backdrops.forEach(b => b.remove());
 }
+
+// Listen for any modal being hidden (works when close/cancel buttons are clicked)
+document.addEventListener('hidden.bs.modal', function (event) {
+    removeBackdrops();
+});
+
+// Also catch cancel buttons explicitly (if needed)
+document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        // Give Bootstrap a tiny delay to finish hiding animation
+        setTimeout(removeBackdrops, 200);
+    });
+});
+
 </script>
