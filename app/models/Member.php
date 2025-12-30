@@ -10,7 +10,7 @@ class Member {
     }
 
     public function update($id, $data, $ministries = []) {
-    // 1️⃣ Update member info
+    // Update member info
     $sql = "UPDATE {$this->table} 
             SET first_name = :first_name,
                 last_name  = :last_name,
@@ -24,7 +24,9 @@ class Member {
                 region     = :region,
                 area       = :area,
                 landmark   = :landmark,
-                gps        = :gps
+                gps        = :gps,
+                emergency_contact_name = :emergency_contact_name,
+                emergency_phone = :emergency_phone
             WHERE id = :id";
 
     $stmt = $this->db->prepare($sql);
@@ -42,13 +44,15 @@ class Member {
     $stmt->bindParam(':area', $data['area']);
     $stmt->bindParam(':landmark', $data['landmark']);
     $stmt->bindParam(':gps', $data['gps']);
+    $stmt->bindParam(':emergency_contact_name', $data['emergency_contact_name']);
+    $stmt->bindParam(':emergency_phone', $data['emergency_phone']);
     $stmt->bindParam(':id', $id, PDO::PARAM_INT);
 
     $updated = $stmt->execute();
 
     if (!$updated) return false;
 
-    // 2️⃣ Handle image update if needed
+    //Handle image update if needed
     if (!empty($data['member_img'])) {
         $imgSql = "UPDATE {$this->table} SET member_img = :member_img WHERE id = :id";
         $imgStmt = $this->db->prepare($imgSql);
@@ -57,7 +61,7 @@ class Member {
         $imgStmt->execute();
     }
 
-    // 3️⃣ Update ministries
+    //Update ministries
     // Delete previous entries
     $deleteSql = "DELETE FROM ministry_members WHERE member_id = :member_id";
     $deleteStmt = $this->db->prepare($deleteSql);

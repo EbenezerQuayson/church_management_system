@@ -171,40 +171,38 @@ if(isset($_GET['msg'])){
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover table-mobile-friendly">
                         <thead style="background-color: var(--primary-color); color: white;">
                             <tr>
-                                <th>Title</th>
-                                <th>Date</th>
-                                <th>Location</th>
-                                <th>Capacity</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th class="col-essential">Title</th>
+                                <th class="col-hide-mobile">Date</th>
+                                <th class="col-hide-mobile">Location</th>
+                                <th class="col-hide-mobile">Capacity</th>
+                                <th class="col-essential">Status</th>
+                                <th class="col-essential text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($events as $e): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($e['title']); ?></td>
-                                    <td><?php echo date('M d, Y - g:i A', strtotime($e['event_date'])); ?></td>
-                                    <td><?php echo htmlspecialchars($e['location'] ?? 'TBD'); ?></td>
-                                    <td><?php echo $e['capacity'] ?? '-'; ?></td>
-                                    <td><span class="badge bg-info"><?php echo ucfirst($e['status']); ?></span></td>
+                                    <td class="col-essential"><?php echo htmlspecialchars($e['title']); ?></td>
+                                    <td class="col-hide-mobile"><?php echo date('M d, Y - g:i A', strtotime($e['event_date'])); ?></td>
+                                    <td class="col-hide-mobile"><?php echo htmlspecialchars($e['location'] ?? 'TBD'); ?></td>
+                                    <td class="col-hide-mobile"><?php echo $e['capacity'] ?? '-'; ?></td>
+                                    <td class="col-essential text-end"><span class="badge bg-info"><?php echo ucfirst($e['status']); ?></span></td>
                                     <td>
-                                        <button 
-    class="btn btn-sm btn-outline-primary editBtn"
-    data-id="<?php echo $e['id']; ?>"
-    data-title="<?php echo htmlspecialchars($e['title']); ?>"
-    data-description="<?php echo htmlspecialchars($e['description']); ?>"
-    data-date="<?php echo $e['event_date']; ?>"
-    data-location="<?php echo htmlspecialchars($e['location']); ?>"
-    data-capacity="<?php echo $e['capacity']; ?>"
-    data-status="<?php echo $e['status']; ?>"
->
-    <i class="fas fa-edit"></i>
-</button>
- <button class="btn btn-sm btn-outline-danger" onclick=confirmDelete(<?php echo $e['id']; ?>)><i class="fas fa-trash"></i>
-                                        </button>
+                                        <button class="btn btn-sm btn-outline-primary viewEventBtn" data-expense-id="<?= $e['id']; ?>"
+                                   data-title="<?php echo htmlspecialchars($e['title']); ?>"
+                                    data-description="<?php echo htmlspecialchars($e['description']); ?>"
+                                    data-date="<?php echo $e['event_date']; ?>"
+                                    data-location="<?php echo htmlspecialchars($e['location']); ?>"
+                                    data-capacity="<?php echo $e['capacity']; ?>"
+                                    data-status="<?php echo $e['status']; ?>"
+                                    data-bs-target="#eventDetails"
+                                    data-bs-toggle="modal">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                     
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -215,6 +213,51 @@ if(isset($_GET['msg'])){
         </div>
     </div>
 </div>
+<!-- Event Details Modal -->
+    <div class="modal fade" id="eventDetails" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+
+                        <div class="modal-header" style="background-color: var(--primary-color); color:white;">
+                            <h5 class="modal-title">
+                            <i class="fas fa-calendar"></i> Event Details
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <table class="table table-bordered">
+                            <tr><th>Title</th><td id="detail_title"></td></tr>
+                            <tr><th>Date</th><td id="detail_date"></td></tr>
+                            <tr><th>Location</th><td id="detail_location"></td></tr>
+                            <tr><th>Description</th><td id="detail_description"></td></tr>
+                            <tr><th>Capacity</th><td id="detail_capacity"></td></tr>
+                            <tr><th>Status</th><td id="detail_status"></td></tr>
+                            </table>
+                        </div>
+
+                        <div class="modal-footer d-flex justify-content-between">
+                            
+                            <button class="btn btn-sm btn-outline-primary" id="openEditEvent">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" id="openDeleteEvent">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        
+
+                            <!-- <button class="btn btn-primary" id="printExpenseBtn">
+                            <i class="fas fa-print"></i> Print Receipt
+                            </button> -->
+                        </div>
+
+                        </div>
+                    </div>
+    </div>
+
+        
+
+
 
 <!-- Add Event Modal -->
 <div class="modal fade" id="addEventModal" tabindex="-1">
@@ -299,7 +342,7 @@ if(isset($_GET['msg'])){
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Location</label>
-                            <input type="text" class="form-control" id="edit_location" name="location">
+                            <input type="text" class="form-control" id="edit_location" name="lo cation">
                         </div>
                     </div>
 
@@ -335,12 +378,45 @@ if(isset($_GET['msg'])){
 
 <?php include 'footer.php'; ?>
 <script>
-    function confirmDelete(eventId) {
-        if (confirm('Are you sure you want to delete this event?')) {
-            window.location.href = '?delete=' + eventId;
-            console.log("Deleting event with ID: " + eventId);
-        }
-    }
+    // function confirmDelete(eventId) {
+    //     if (confirm('Are you sure you want to delete this event?')) {
+    //         window.location.href = '?delete=' + eventId;
+    //         console.log("Deleting event with ID: " + eventId);
+    //     }
+    // }
+    // ----- View Event Details Population -----
+document.querySelectorAll('.viewEventBtn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        document.getElementById('detail_title').innerText = this.dataset.title;
+        document.getElementById('detail_description').innerText = this.dataset.description;
+        document.getElementById('detail_date').innerText = new Date(this.dataset.date).toLocaleString();
+        document.getElementById('detail_location').innerText = this.dataset.location || 'TBD';
+        document.getElementById('detail_capacity').innerText = this.dataset.capacity || '-';
+        document.getElementById('detail_status').innerText = this.dataset.status.charAt(0).toUpperCase() + this.dataset.status.slice(1);
+
+        // Set up Edit button
+        const editBtn = document.getElementById('openEditEvent');
+        editBtn.onclick = () => {
+            document.getElementById('edit_event_id').value = this.dataset.expenseId;
+            document.getElementById('edit_title').value = this.dataset.title;
+            document.getElementById('edit_description').value = this.dataset.description;
+            document.getElementById('edit_event_date').value = this.dataset.date.replace(" ", "T");
+            document.getElementById('edit_location').value = this.dataset.location;
+            document.getElementById('edit_capacity').value = this.dataset.capacity;
+            document.getElementById('edit_status').value = this.dataset.status;
+
+            new bootstrap.Modal(document.getElementById('editEventModal')).show();
+        };
+
+        // Set up Delete button
+        const deleteBtn = document.getElementById('openDeleteEvent');
+        deleteBtn.onclick = () => {
+            if (confirm('Are you sure you want to delete this event?')) {
+                window.location.href = '?delete=' + this.dataset.expenseId;
+            }
+        };
+    });
+});
 
 
     
@@ -357,6 +433,19 @@ document.querySelectorAll('.editBtn').forEach(btn => {
 
         new bootstrap.Modal(document.getElementById('editEventModal')).show();
     });
+});
+
+// Prevent edit model to be opened on top of details model
+document.getElementById("openEditEvent").addEventListener("click", () => {
+    const detailsModal = bootstrap.Modal.getInstance(
+        document.getElementById("eventDetails")
+    );
+    detailsModal.hide();
+
+    const editModal = new bootstrap.Modal(
+        document.getElementById("editEventModal")
+    );
+    editModal.show();
 });
 
 </script>

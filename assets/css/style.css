@@ -957,3 +957,40 @@ body {
         border-radius: 0;
     }
 }
+
+/* Member Details */
+.member-header {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.member-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255,255,255,0.5);
+    background: #eee;
+}
+
+.detail-section {
+    margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-weight: 600;
+    margin-bottom: .75rem;
+    color: var(--primary-color);
+}
+
+.label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #888;
+}
+
+.detail-section p {
+    margin: 0;
+    font-weight: 500;
+}
+

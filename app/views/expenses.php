@@ -392,13 +392,13 @@ if (isset($_POST['create_expense'])) {
                 </table>
 
 <!-- EXPENSE DETAILS MODAL -->
-                <div class="modal fade" id="expenseDetails" tabindex="-1">
+            <div class="modal fade" id="expenseDetails" tabindex="-1">
                 <div class="modal-dialog modal-lg">
                     <div class="modal-content">
 
                     <div class="modal-header" style="background-color: var(--primary-color); color:white;">
                         <h5 class="modal-title">
-                        <i class="fas fa-gift"></i> Expense Details
+                        <i class="fas fa-file-invoice-dollar"></i> Expense Details
                         </h5>
                         <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                     </div>
