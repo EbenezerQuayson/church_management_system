@@ -31,7 +31,7 @@
                     </ul>
 
                     <!-- TABS CONTENT -->
-                    <div class="tab-content">
+    <div class="tab-content px-3 pt-3" style="max-height: 60vh; overflow-y: auto;">
 
                         <!-- PERSONAL INFO -->
                         <div class="tab-pane fade show active" id="tab-personal">
@@ -143,10 +143,19 @@
                 </div>
 
                 <!-- FOOTER -->
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" name="update_member" class="btn btn-primary">Update Member</button>
-                </div>
+                <div class="modal-footer d-flex flex-wrap gap-2">
+    <button type="button"
+            class="btn btn-secondary flex-fill"
+            data-bs-dismiss="modal">
+        Cancel
+    </button>
+
+    <button type="submit"
+            class="btn btn-primary flex-fill">
+        Save Changes
+    </button>
+</div>
+
 
             </form>
         </div>
