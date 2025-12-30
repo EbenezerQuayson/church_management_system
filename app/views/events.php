@@ -178,7 +178,7 @@ if(isset($_GET['msg'])){
                                 <th class="col-hide-mobile">Date</th>
                                 <th class="col-hide-mobile">Location</th>
                                 <th class="col-hide-mobile">Capacity</th>
-                                <th class="col-essential">Status</th>
+                                <th class="col-hide-mobile">Status</th>
                                 <th class="col-essential text-end">Actions</th>
                             </tr>
                         </thead>
@@ -189,8 +189,8 @@ if(isset($_GET['msg'])){
                                     <td class="col-hide-mobile"><?php echo date('M d, Y - g:i A', strtotime($e['event_date'])); ?></td>
                                     <td class="col-hide-mobile"><?php echo htmlspecialchars($e['location'] ?? 'TBD'); ?></td>
                                     <td class="col-hide-mobile"><?php echo $e['capacity'] ?? '-'; ?></td>
-                                    <td class="col-essential text-end"><span class="badge bg-info"><?php echo ucfirst($e['status']); ?></span></td>
-                                    <td>
+                                    <td class="col-hide-mobile"><span class="badge bg-info"><?php echo ucfirst($e['status']); ?></span></td>
+                                    <td class="col-essential text-end">
                                         <button class="btn btn-sm btn-outline-primary viewEventBtn" data-expense-id="<?= $e['id']; ?>"
                                    data-title="<?php echo htmlspecialchars($e['title']); ?>"
                                     data-description="<?php echo htmlspecialchars($e['description']); ?>"

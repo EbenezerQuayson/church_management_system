@@ -210,7 +210,7 @@ $jsMinistryCounts = json_encode($ministryCounts);
                                 <i class="fas fa-users"></i>
                             </div>
                             <p class="stat-value"><?php echo $members_count; ?></p>
-                            <p class="stat-label">Active Members</p>
+                            <p class="stat-label">Members</p>
                         </div>
                     </div>
                 </div>
@@ -236,7 +236,7 @@ $jsMinistryCounts = json_encode($ministryCounts);
                                 <i class="fas fa-handshake"></i>
                             </div>
                             <p class="stat-value"><?php echo $ministries_count['count']; ?></p>
-                            <p class="stat-label">Active Ministries</p>
+                            <p class="stat-label">Organizations</p>
                         </div>
                     </div>
                 </div>

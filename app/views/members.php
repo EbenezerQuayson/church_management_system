@@ -14,7 +14,7 @@ $ministries = $ministryModel->getAllActive();
 $member = new Member();
 $notification = new Notification();
 
-
+$members_count = $member->getTotalCount();
 $user_id = $_SESSION['user_id'];
 $member_notification = Database::getInstance();
 $admins = $member_notification->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
@@ -298,13 +298,14 @@ if(isset($_GET['msg'])){
     <div class="container-fluid">
         <!-- Page Title -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold" style="color: var(--primary-color);">Members</h2>
+            <h2 class="fw-bold" style="color: var(--primary-color);">Members <small>(<?php echo $members_count; ?>)</small>  </h2>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMemberModal">
                 <i class="fas fa-user-plus"></i> Add Member
             </button>
             
 
         </div>
+        
         
 
         <!-- Message Display -->
