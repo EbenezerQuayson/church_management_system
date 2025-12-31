@@ -389,6 +389,7 @@ public function getAllForExport()
             m.region,
             m.city,
             m.area,
+            m.address,
             m.emergency_contact_name,
             m.emergency_phone,
             GROUP_CONCAT(min.name SEPARATOR ', ') AS ministries

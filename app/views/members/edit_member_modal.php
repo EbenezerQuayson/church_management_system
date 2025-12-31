@@ -151,7 +151,9 @@
     </button>
 
     <button type="submit"
-            class="btn btn-primary flex-fill">
+            class="btn btn-primary flex-fill"
+            name="update_member"
+            >
         Save Changes
     </button>
 </div>

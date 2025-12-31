@@ -7,7 +7,7 @@ $memberMinistries = $member->getMemberMinistries($m['id']);
 
 
 <tr>
-    <td class="col-essential">
+    <td class="col-essential member-clickable" style="cursor: pointer;">
         <div class="d-flex align-items-center">
             <?php 
 $imgPath = $uploadDir . ($m['member_img'] ?? '');

@@ -783,6 +783,21 @@ searchInput.addEventListener('keyup', function () {
     }, 300);
 });
 
+document.addEventListener('click', function (e) {
+    const cell = e.target.closest('.member-clickable');
+    if (!cell) return;
+
+    // Prevent accidental clicks on links or buttons inside
+    if (e.target.closest('button, a, input')) return;
+
+    const row = cell.closest('tr');
+    const viewBtn = row.querySelector('.viewMemberBtn');
+
+    if (viewBtn) {
+        viewBtn.click();
+    }
+});
+
 let currentMemberData = {};
 // Member Details
 document.getElementById('membersTable').addEventListener('click', function(e) {

@@ -20,7 +20,7 @@ $admins = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.
 
 /* ===== HEADERS ===== */
 $headers = [
-    'A1' => 'ID',
+    'A1' => 'Serial Number',
     'B1' => 'First Name',
     'C1' => 'Last Name',
     'D1' => 'Email',
@@ -32,8 +32,9 @@ $headers = [
     'J1' => 'Region',
     'K1' => 'City',
     'L1' => 'Area',
-    'M1' => 'Emergency Contact',
-    'N1' => 'Emergency Phone',
+    'M1' => 'Address',
+    'N1' => 'Emergency Contact',
+    'O1' => 'Emergency Phone',
 ];
 
 foreach ($headers as $cell => $text) {
@@ -42,8 +43,9 @@ foreach ($headers as $cell => $text) {
 
 /* ===== DATA ===== */
 $row = 2;
+$count = 1;
 foreach ($members as $m) {
-    $sheet->setCellValue("A$row", $m['id']);
+    $sheet->setCellValue("A$row", $count++);
     $sheet->setCellValue("B$row", $m['first_name']);
     $sheet->setCellValue("C$row", $m['last_name']);
     $sheet->setCellValue("D$row", $m['email']);
@@ -55,8 +57,9 @@ foreach ($members as $m) {
     $sheet->setCellValue("J$row", $m['region']);
     $sheet->setCellValue("K$row", $m['city']);
     $sheet->setCellValue("L$row", $m['area']);
-    $sheet->setCellValue("M$row", $m['emergency_contact_name']);
-    $sheet->setCellValue("N$row", $m['emergency_phone']);
+    $sheet->setCellValue("M$row", $m['address']);
+    $sheet->setCellValue("N$row", $m['emergency_contact_name']);
+    $sheet->setCellValue("O$row", $m['emergency_phone']);
     $row++;
 }
 
