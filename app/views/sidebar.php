@@ -44,7 +44,7 @@ function isCollapsed($group, $current){
     <!-- User Card -->
     <div class="sidebar-user-card">
         <div class="user-avatar">
-            <img src="<?php echo BASE_URL; echo '/'; echo htmlspecialchars($user['profile_photo'] ?? '/assets/images/placeholder-user.jpg'); ?>" alt="User">
+            <img src="<?php echo BASE_URL; echo '/'; echo htmlspecialchars($user['profile_photo'] ?? '/assets/images/avatar-placeholder.png'); ?>" alt="User">
         </div>
         <div class="user-info">
             <h6><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></h6>

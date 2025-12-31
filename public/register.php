@@ -204,9 +204,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <label for="role_id" class="form-label">User Role</label>
                             <select class="form-control" id="role_id" name="role_id" required>
                                 <option value="">Select a role</option>
-                                <option value="4" selected>Member</option>
-                                <option value="3">Leader</option>
-                                <option value="2">Pastor</option>
+                                <option value="4" disabled >Member</option>
+                                <option value="3" disabled>Leader</option>
+                                <option value="2" disabled>Pastor</option>
                                 <option value="1">Admin</option>
                             </select>
                         </div>

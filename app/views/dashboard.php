@@ -157,6 +157,7 @@ $jsMinistryCounts = json_encode($ministryCounts);
 
     <!-- Income Card -->
     <div class="col-md-6 col-lg-5">
+        <a href="donations.php" class="text-decoration-none">
         <div class="card stat-card stat-card-lime">
             <div class="card-body">
                 <div class="stat-icon">
@@ -168,11 +169,13 @@ $jsMinistryCounts = json_encode($ministryCounts);
                 <p class="stat-label">Total Income</p>
             </div>
         </div>
+        </a>
     </div>
 
     <!-- Expenses Card -->
-    <div class="col-md-6 col-lg-5">
-        <div class="card stat-card stat-card-pink">
+ <div class="col-md-6 col-lg-5">
+    <a href="expenses.php" class="text-decoration-none">
+        <div class="card stat-card stat-card-pink stat-link">
             <div class="card-body">
                 <div class="stat-icon">
                     <i class="bi bi-credit-card"></i>
@@ -183,7 +186,9 @@ $jsMinistryCounts = json_encode($ministryCounts);
                 <p class="stat-label">Total Expense</p>
             </div>
         </div>
-    </div>
+    </a>
+</div>
+
 
 </div>
 <div class="card mb-4">
@@ -204,19 +209,22 @@ $jsMinistryCounts = json_encode($ministryCounts);
 
                 <!-- Members -->
                 <div class="col-6 col-md-3 col-lg">
+                    <a href="members.php" class="text-decoration-none">
                     <div class="card stat-card stat-card-blue h-100">
                         <div class="card-body">
                             <div class="stat-icon">
                                 <i class="fas fa-users"></i>
                             </div>
                             <p class="stat-value"><?php echo $members_count; ?></p>
-                            <p class="stat-label">Active Members</p>
+                            <p class="stat-label">Members</p>
                         </div>
                     </div>
+                </a>
                 </div>
 
                 <!-- Events -->
                 <div class="col-6 col-md-3 col-lg">
+                    <a href="events.php" class="text-decoration-none">
                     <div class="card stat-card stat-card-blue h-100">
                         <div class="card-body">
                             <div class="stat-icon">
@@ -226,19 +234,23 @@ $jsMinistryCounts = json_encode($ministryCounts);
                             <p class="stat-label">Upcoming Events</p>
                         </div>
                     </div>
+                    </a>
                 </div>
 
                 <!-- Ministries -->
                 <div class="col-6 col-md-3 col-lg">
+                    <a href="ministries.php" class="text-decoration-none">
+
                     <div class="card stat-card stat-card-blue h-100">
                         <div class="card-body">
                             <div class="stat-icon">
                                 <i class="fas fa-handshake"></i>
                             </div>
                             <p class="stat-value"><?php echo $ministries_count['count']; ?></p>
-                            <p class="stat-label">Active Ministries</p>
+                            <p class="stat-label">Organizations</p>
                         </div>
                     </div>
+                    </a>
                 </div>
 
                 <!-- Male -->

@@ -14,7 +14,7 @@ $ministries = $ministryModel->getAllActive();
 $member = new Member();
 $notification = new Notification();
 
-
+$members_count = $member->getTotalCount();
 $user_id = $_SESSION['user_id'];
 $member_notification = Database::getInstance();
 $admins = $member_notification->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
@@ -40,8 +40,34 @@ if($search !== ''){
 $message = '';
 $message_type = '';
 
+
+// HANDLE DELETE MEMBER (POST)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_member'])) {
+
+    $id = (int) $_POST['delete_id'];
+
+    if ($member->permanentDelete($id)) {
+        foreach ($admins as $admin) {
+            $notification->create(
+                $admin['id'],
+                'Member Deleted',
+                'A member was deleted.',
+                'members.php'
+            );
+        }
+        header("Location: members.php?msg=deleted");
+        exit();
+    } else {
+        header("Location: members.php?msg=delete_failed");
+        exit();
+    }
+}
+
+
+
+
 // Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_member'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_member']) && !isset($_POST['delete_member'])) {
 
     // Ministries come separately (array)
     $ministries = $_POST['ministries'] ?? [];
@@ -137,6 +163,7 @@ if ($newMemberId) {
     ); }
 
     header("Location: members.php?msg=added");
+    exit();
 } else {
     header("Location: members.php?msg=add_failed");
 }
@@ -201,28 +228,6 @@ if (isset($_POST['update_member'])) {
 }
 
 
-
-//Handle Delete Member
-if(isset($_GET['delete'])) {
-    $id = $_GET['delete'];
-    // Implement delete functionality in Member model
-    if ($member->permanentDelete($id)) {
-        foreach($admins as $admin){
-        $notification->create(
-            $admin['id'],
-            'Member Deleted',
-            'A member was deleted.',
-            'members.php'
-        );}
-        header("Location: members.php?msg=deleted");
-        exit();
-  
-    } else {
-        header("Location: members.php?msg=delete_failed");
-        exit();
-
-    }
-}
 
 //Logic to prevent resubmission after any refresh
 
@@ -298,13 +303,14 @@ if(isset($_GET['msg'])){
     <div class="container-fluid">
         <!-- Page Title -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold" style="color: var(--primary-color);">Members</h2>
+            <h2 class="fw-bold" style="color: var(--primary-color);">Members <small>(<?php echo $members_count; ?>)</small>  </h2>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMemberModal">
                 <i class="fas fa-user-plus"></i> Add Member
             </button>
             
 
         </div>
+        
         
 
         <!-- Message Display -->
@@ -708,6 +714,27 @@ if(isset($_GET['msg'])){
     </div>
 </div>
 
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteMemberModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" class="modal-content" id="deleteMemberForm">
+            <input type="hidden" name="delete_member" value="1">
+            <input type="hidden" name="delete_id" id="delete_member_id">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-trash"></i> Delete Member</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this member?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
+                <button class="btn btn-danger" type="submit">Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
+
 <?php include 'footer.php'; ?>
 <script>
 const searchInput = document.getElementById('memberSearch');
@@ -756,13 +783,28 @@ searchInput.addEventListener('keyup', function () {
     }, 300);
 });
 
+document.addEventListener('click', function (e) {
+    const cell = e.target.closest('.member-clickable');
+    if (!cell) return;
+
+    // Prevent accidental clicks on links or buttons inside
+    if (e.target.closest('button, a, input')) return;
+
+    const row = cell.closest('tr');
+    const viewBtn = row.querySelector('.viewMemberBtn');
+
+    if (viewBtn) {
+        viewBtn.click();
+    }
+});
+
 let currentMemberData = {};
 // Member Details
 document.getElementById('membersTable').addEventListener('click', function(e) {
     const btn = e.target.closest('.viewMemberBtn');
     if (!btn) return;
 
-    const currentMemberData = btn.dataset;
+    currentMemberData = btn.dataset;
 
     const img = currentMemberData.memberImg
         ? currentMemberData.memberImg
@@ -835,12 +877,18 @@ document.getElementById('membersTable').addEventListener('click', function(e) {
 
 
         // Delete Button
-        const deleteBtn = document.getElementById('openDeleteMember');
-        deleteBtn.onclick = () => {
-            if (confirm('Are you sure you want to delete this member?')) {
-                window.location.href = '?delete=' + this.dataset.memberId;
-            }
-        };
+       const deleteBtn = document.getElementById('openDeleteMember');
+
+deleteBtn.onclick = function () {
+    document.getElementById('delete_member_id').value = currentMemberData.memberId;
+
+    const deleteModal = new bootstrap.Modal(
+        document.getElementById('deleteMemberModal')
+    );
+
+    deleteModal.show();
+};
+
     });
     
 

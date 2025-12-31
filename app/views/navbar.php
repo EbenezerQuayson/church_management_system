@@ -13,6 +13,9 @@ $unread_count = $db->fetch("SELECT COUNT(*) FROM notifications WHERE user_id = ?
             <button class="btn sidebar-toggle d-md-none" id="sidebarToggle">
                 <i class="fas fa-bars"></i>
             </button>
+             <a href="dashboard.php" class="btn sidebar-toggle d-md-none">
+                <i class="fas fa-home"></i>
+</a>
             <div class="d-none d-md-flex align-items-center">
                 <img src="<?php echo BASE_URL;?>/assets/images/methodist-logo.png" alt="Logo" style="height: 40px; margin-right: 10px;">
                 <span class="fw-bold text-dark"><?php echo htmlspecialchars($church_name); ?></span>
@@ -54,7 +57,7 @@ if (!empty($notifications)) {
          </div>
             <div class="dropdown user-dropdown ms-2">
                 <button class="user-profile-btn dropdown-toggle" data-bs-toggle="dropdown">
-                    <img src="<?php echo BASE_URL; echo '/'; echo htmlspecialchars($user['profile_photo'] ?? '/assets/images/placeholder-user.jpg'); ?>" alt="User" class="user-thumbnail">
+                    <img src="<?php echo BASE_URL; echo '/'; echo htmlspecialchars($user['profile_photo'] ?? '/assets/images/avatar-placeholder.png'); ?>" alt="User" class="user-thumbnail">
                     <span class="d-none d-md-inline user-name-top"><?php echo htmlspecialchars($user['first_name'] . ' ' . $user['last_name']); ?></span>
                 </button>
                 <ul class="dropdown-menu dropdown-menu-end">

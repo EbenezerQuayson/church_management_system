@@ -994,3 +994,36 @@ body {
     font-weight: 500;
 }
 
+/* Make edit modal scrollable on small screens */
+@media (max-width: 576px) {
+    #editMemberModal .modal-dialog {
+        max-height: 90vh;
+        margin: 0.75rem auto;
+    }
+
+    #editMemberModal .modal-content {
+        max-height: 90vh;
+    }
+
+    #editMemberModal .modal-body {
+        overflow-y: auto;
+        max-height: calc(90vh - 120px); /* header + footer space */
+    }
+}
+
+
+@media (max-width: 576px) {
+    #editMemberModal .nav-tabs {
+        flex-wrap: wrap;
+    }
+
+    #editMemberModal .nav-link {
+        flex: 1 1 auto;
+        text-align: center;
+        font-size: 0.85rem;
+        padding: 0.5rem;
+    }
+}
+
+
+

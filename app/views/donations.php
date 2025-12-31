@@ -553,16 +553,6 @@ document.addEventListener("DOMContentLoaded", () => {
             document.getElementById("detail_date").textContent = this.dataset.date;
             document.getElementById("detail_notes").textContent = this.dataset.notes || "-";
 
-            // Buttons
-            // document.getElementById("editDonationBtn").onclick = () => {
-            //     window.location.href = "edit_donation.php?id=" + this.dataset.donationId;
-            // };
-
-            // document.getElementById("deleteDonationBtn").onclick = () => {
-            //     if (confirm("Are you sure?")) {
-            //         window.location.href = "delete_donation.php?id=" + this.dataset.donationId;
-            //     }
-            // };
 
             // Edit modal
         const editMemberSelect = document.getElementById("edit_member_id");
@@ -593,10 +583,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
-// Export Buttons
-// document.getElementById("exportCsvBtn").addEventListener("click", function() {
-//     window.location.href = "export/income_export_summary_csv.php";
-// });
+
 
 document.getElementById("exportPdfBtn").addEventListener("click", function() {
     window.location.href = "export/income_export_summary_pdf.php";
