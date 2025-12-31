@@ -30,43 +30,231 @@ foreach ($settings as $setting) {
     $settings_array[$setting['setting_key']] = $setting['setting_value'];
 }
 
-// Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_settings'])) {
-    $updates = [
-        'church_name' => trim($_POST['church_name'] ?? ''),
-        'church_address' => trim($_POST['church_address'] ?? ''),
-        'church_phone' => trim($_POST['church_phone'] ?? ''),
-        'church_email' => trim($_POST['church_email'] ?? ''),
-        'primary_color' => $_POST['primary_color'] ?? '#003DA5',
-        'secondary_color' => $_POST['secondary_color'] ?? '#CC0000',
-        'accent_color' => $_POST['accent_color'] ?? '#F4C43F',
-    ];
+// Handle form submissions
+if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $success = true;
+
+    // --- General Settings ---
+    if (isset($_POST['update_general'])) {
+        $updates = [
+            'church_name' => trim($_POST['church_name'] ?? ''),
+            'church_address' => trim($_POST['church_address'] ?? ''),
+            'church_phone' => trim($_POST['church_phone'] ?? ''),
+            'church_email' => trim($_POST['church_email'] ?? '')
+        ];
+
+        foreach ($updates as $key => $value) {
+            // Preserve old value if empty
+            if ($value === '') {
+                $value = $settings_array[$key] ?? '';
+            }
+
+            $sql = "INSERT INTO settings (setting_key, setting_value) VALUES (:key, :value)
+                    ON DUPLICATE KEY UPDATE setting_value = :value";
+            $stmt = $db->getConnection()->prepare($sql);
+            $stmt->bindParam(':key', $key);
+            $stmt->bindParam(':value', $value);
+            if (!$stmt->execute()) {
+                $success = false;
+            }
+        }
+
+        $message = $success ? 'General settings updated successfully!' : 'Failed to update general settings';
+        $message_type = $success ? 'success' : 'error';
+    }
+
+    // --- Branding Settings ---
+    if (isset($_POST['update_branding'])) {
+        $updates = [
+            'primary_color' => $_POST['primary_color'] ?? $settings_array['primary_color'] ?? '#003DA5',
+            'secondary_color' => $_POST['secondary_color'] ?? $settings_array['secondary_color'] ?? '#CC0000',
+            'accent_color' => $_POST['accent_color'] ?? $settings_array['accent_color'] ?? '#F4C43F'
+        ];
+
+        foreach ($updates as $key => $value) {
+            $sql = "INSERT INTO settings (setting_key, setting_value) VALUES (:key, :value)
+                    ON DUPLICATE KEY UPDATE setting_value = :value";
+            $stmt = $db->getConnection()->prepare($sql);
+            $stmt->bindParam(':key', $key);
+            $stmt->bindParam(':value', $value);
+            if (!$stmt->execute()) {
+                $success = false;
+            }
+        }
+
+        $message = $success ? 'Branding settings updated successfully!' : 'Failed to update branding settings';
+        $message_type = $success ? 'success' : 'error';
+    }
+
+    // --- Profile Settings (e.g., password change) ---
+     if (isset($_POST['update_profile'])) {
+        $success = true;
+
+        $fullName = trim($_POST['name'] ?? '');
+        $firstName = $lastName = '';
+
+        if ($fullName !== '') {
+            $parts = explode(' ', $fullName, 2); // Split into max 2 parts
+            $firstName = $parts[0];
+            $lastName = $parts[1] ?? ''; // If no last name, empty string
+        } else {
+            $firstName = $user['first_name'];
+            $lastName = $user['last_name'];
+        }
+        $name = $firstName .' ' . $lastName;
+        $email = trim($_POST['email'] ?? '');
+
+        // Update name and email if not empty
+        if ($name !== '' || $email !== '') {
+            $sql = "UPDATE users SET first_name = :first_name, last_name = :last_name, email = :email WHERE id = :id";
+            $stmt = $db->getConnection()->prepare($sql);
+            $stmt->bindValue(':first_name', $firstName);
+            $stmt->bindValue(':last_name', $lastName);
+            $stmt->bindValue(':email', $email ?: $user['email']);
+            $stmt->bindValue(':id', $userId);
+            if (!$stmt->execute()) {
+                $success = false;
+            }
+        }
+
+        // Handle profile photo upload
+        if (isset($_FILES['profile_photo']) && $_FILES['profile_photo']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = __DIR__ . '/../../uploads/profile_photos/';
+            $filename = uniqid() . '_' . basename($_FILES['profile_photo']['name']);
+            $targetPath = $uploadDir . $filename;
+
+            if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+            if (move_uploaded_file($_FILES['profile_photo']['tmp_name'], $targetPath)) {
+                // Update in database
+                $sql = "UPDATE users SET profile_photo = :photo WHERE id = :id";
+                $stmt = $db->getConnection()->prepare($sql);
+                $stmt->bindValue(':photo', 'uploads/profile_photos/' . $filename);
+                $stmt->bindValue(':id', $userId);
+                if (!$stmt->execute()) {
+                    $success = false;
+                } else {
+                    $user['profile_photo'] = 'uploads/profile_photos/' . $filename;
+                }
+            } else {
+                $success = false;
+            }
+        }
+
+        $message = $success ? 'Profile updated successfully!' : 'Failed to update profile';
+        $message_type = $success ? 'success' : 'error';
+
+        // Refresh session data if needed
+        $_SESSION['user_name'] = $name ?: $_SESSION['user_name'];
+        $_SESSION['user_email'] = $email ?: $_SESSION['user_email'];
+    }
+    if (isset($_POST['change_password'])) {
+       $success = true;
+
+    $old_password = $_POST['old_password'] ?? '';
+    $new_password = $_POST['new_password'] ?? '';
+    $confirm_password = $_POST['confirm_password'] ?? '';
+
+    // 1. Fetch current hashed password from DB
+    $stmt = $db->getConnection()->prepare("SELECT password FROM users WHERE id = :id");
+    $stmt->bindValue(':id', $userId);
+    $stmt->execute();
+    $current_user = $stmt->fetch(PDO::FETCH_ASSOC);
+
+    if (!$current_user || !password_verify($old_password, $current_user['password'])) {
+        $success = false;
+        $message = "Current password is incorrect!";
+        $message_type = 'error';
+    } elseif ($new_password !== $confirm_password) {
+        $success = false;
+        $message = "New password and confirmation do not match!";
+        $message_type = 'error';
+    } elseif (strlen($new_password) < 6) { // Optional: minimum length check
+        $success = false;
+        $message = "New password must be at least 6 characters!";
+        $message_type = 'error';
+    } else {
+        // 2. Hash the new password
+        $hashed_password = password_hash($new_password, PASSWORD_DEFAULT);
+
+        // 3. Update in database
+        $stmt = $db->getConnection()->prepare("UPDATE users SET password = :password WHERE id = :id");
+        $stmt->bindValue(':password', $hashed_password);
+        $stmt->bindValue(':id', $userId);
+        if ($stmt->execute()) {
+            $message = "Password changed successfully!";
+            $message_type = 'success';
+        } else {
+            $message = "Failed to update password!";
+            $message_type = 'error';
+        }
+    }
+    }
+
+    
+
+    // Refresh settings array after any update
+    $settings = $db->fetchAll("SELECT * FROM settings");
+    $settings_array = [];
+    foreach ($settings as $setting) {
+        $settings_array[$setting['setting_key']] = $setting['setting_value'];
+    }
+
+
+    //HomepageSettings
+    if (isset($_POST['update_homepage'])) {
+    $updates = [
+        'homepage_hero_title' => $_POST['hero_title'] ?? '',
+        'homepage_hero_subtitle' => $_POST['hero_subtitle'] ?? '',
+        'homepage_hero_tagline' => $_POST['hero_tagline'] ?? '',
+        'homepage_hero_cta1_text' => $_POST['hero_cta1_text'] ?? '',
+        'homepage_hero_cta1_link' => $_POST['hero_cta1_link'] ?? '',
+        'homepage_hero_cta2_text' => $_POST['hero_cta2_text'] ?? '',
+        'homepage_hero_cta2_link' => $_POST['hero_cta2_link'] ?? '',
+        'homepage_about_text' => $_POST['about_text'] ?? '',
+        'homepage_social_facebook' => $_POST['social_facebook'] ?? '',
+        'homepage_social_instagram' => $_POST['social_instagram'] ?? '',
+        'homepage_social_tiktok' => $_POST['social_tiktok'] ?? '',
+        'homepage_social_youtube' => $_POST['social_youtube'] ?? '',
+        'homepage_social_x' => $_POST['social_x'] ?? '',
+    ];
+
+    // Handle file uploads
+    $upload_dir = __DIR__ . '/../../assets/images/uploads/';
+    if (!empty($_FILES['hero_image']['name'])) {
+        $target = $upload_dir . basename($_FILES['hero_image']['name']);
+        move_uploaded_file($_FILES['hero_image']['tmp_name'], $target);
+        $updates['homepage_hero_image'] = 'uploads/homepage/' . basename($_FILES['hero_image']['name']);
+    }
+    if (!empty($_FILES['about_image']['name'])) {
+        $target = $upload_dir . basename($_FILES['about_image']['name']);
+        move_uploaded_file($_FILES['about_image']['tmp_name'], $target);
+        $updates['homepage_about_image'] = 'uploads/homepage/' . basename($_FILES['about_image']['name']);
+    }
+
     foreach ($updates as $key => $value) {
         $sql = "INSERT INTO settings (setting_key, setting_value) VALUES (:key, :value)
                 ON DUPLICATE KEY UPDATE setting_value = :value";
         $stmt = $db->getConnection()->prepare($sql);
         $stmt->bindParam(':key', $key);
         $stmt->bindParam(':value', $value);
-        if (!$stmt->execute()) {
-            $success = false;
-        }
+        $stmt->execute();
     }
 
-    if ($success) {
-        $message = 'Settings updated successfully!';
-        $message_type = 'success';
-        $settings = $db->fetchAll("SELECT * FROM settings");
-        $settings_array = [];
-        foreach ($settings as $setting) {
-            $settings_array[$setting['setting_key']] = $setting['setting_value'];
-        }
-    } else {
-        $message = 'Failed to update settings';
-        $message_type = 'error';
+    $message = "Homepage settings updated successfully!";
+    $message_type = 'success';
+
+    // Reload updated settings
+    $settings = $db->fetchAll("SELECT * FROM settings");
+    $settings_array = [];
+    foreach ($settings as $setting) {
+        $settings_array[$setting['setting_key']] = $setting['setting_value'];
     }
 }
+
+}
+
 ?>
 <?php include 'header.php'; ?>
 <div class="main-content">
@@ -95,128 +283,325 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['update_settings'])) {
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button">Profile</button>
             </li>
+            <li class="nav-item" role="presentation">
+                <button class="nav-link" id="homepage-tab" data-bs-toggle="tab" data-bs-target="#homepage" type="button" disabled>Homepage</button>
+            </li>
+            <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#homepage-programs" disabled>
+                    Homepage Programs
+                </button>
+            </li>
+             <li class="nav-item">
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#homepage-ministries" disabled>
+                    Homepage Organisations
+                </button>
+            </li>
+
+
         </ul>
 
-        <!-- Tab Content -->
-        <div class="tab-content">
-            <!-- General Settings -->
-            <div class="tab-pane fade show active" id="general" role="tabpanel">
-                <div class="card">
-                    <div class="card-body">
-                        <form method="POST">
-                            <div class="mb-3">
-                                <label for="church_name" class="form-label">Church Name</label>
-                                <input type="text" class="form-control" name="church_name" value="<?php echo htmlspecialchars($settings_array['church_name'] ?? ''); ?>">
-                            </div>
-                            <div class="mb-3">
-                                <label for="church_address" class="form-label">Church Address</label>
-                                <input type="text" class="form-control" name="church_address" value="<?php echo htmlspecialchars($settings_array['church_address'] ?? ''); ?>">
-                            </div>
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="church_phone" class="form-label">Church Phone</label>
-                                    <input type="tel" class="form-control" name="church_phone" value="<?php echo htmlspecialchars($settings_array['church_phone'] ?? ''); ?>">
-                                </div>
-                                <div class="col-md-6 mb-3">
-                                    <label for="church_email" class="form-label">Church Email</label>
-                                    <input type="email" class="form-control" name="church_email" value="<?php echo htmlspecialchars($settings_array['church_email'] ?? ''); ?>">
-                                </div>
-                            </div>
-                            <button type="submit" name="update_settings" class="btn btn-primary">Save Changes</button>
-                        </form>
-                    </div>
-                </div>
-            </div>
+<div class="tab-content">
 
-            <!-- Branding Settings -->
-            <div class="tab-pane fade" id="branding" role="tabpanel">
-                <div class="card">
-                    <div class="card-body">
-                        <form method="POST">
-                            <div class="row">
-                                <div class="col-md-4 mb-3">
-                                    <label for="primary_color" class="form-label">Primary Color</label>
-                                    <div class="input-group">
-                                        <input type="color" class="form-control form-control-color" name="primary_color" value="<?php echo htmlspecialchars($settings_array['primary_color'] ?? '#003DA5'); ?>">
-                                        <input type="text" class="form-control" value="<?php echo htmlspecialchars($settings_array['primary_color'] ?? '#003DA5'); ?>" disabled>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="secondary_color" class="form-label">Secondary Color</label>
-                                    <div class="input-group">
-                                        <input type="color" class="form-control form-control-color" name="secondary_color" value="<?php echo htmlspecialchars($settings_array['secondary_color'] ?? '#CC0000'); ?>">
-                                        <input type="text" class="form-control" value="<?php echo htmlspecialchars($settings_array['secondary_color'] ?? '#CC0000'); ?>" disabled>
-                                    </div>
-                                </div>
-                                <div class="col-md-4 mb-3">
-                                    <label for="accent_color" class="form-label">Accent Color</label>
-                                    <div class="input-group">
-                                        <input type="color" class="form-control form-control-color" name="accent_color" value="<?php echo htmlspecialchars($settings_array['accent_color'] ?? '#F4C43F'); ?>">
-                                        <input type="text" class="form-control" value="<?php echo htmlspecialchars($settings_array['accent_color'] ?? '#F4C43F'); ?>" disabled>
-                                    </div>
-                                </div>
-                            </div>
-                            <button type="submit" name="update_settings" class="btn btn-primary">Save Changes</button>
-                        </form>
-                    </div>
-                </div>
+    <!-- --- General Settings --- -->
+    <div class="tab-pane fade show active" id="general" role="tabpanel">
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-cog me-2"></i>General Settings</h5>
             </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="church_name" class="form-label fw-bold">Church Name</label>
+                        <input type="text" name="church_name" class="form-control" value="<?php echo htmlspecialchars($settings_array['church_name'] ?? ''); ?>" placeholder="Enter church name">
+                    </div>
+                    <div class="mb-3">
+                        <label for="church_address" class="form-label fw-bold">Church Address</label>
+                        <input type="text" name="church_address" class="form-control" value="<?php echo htmlspecialchars($settings_array['church_address'] ?? ''); ?>" placeholder="Enter church address">
+                    </div>
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label for="church_phone" class="form-label fw-bold">Church Phone</label>
+                            <input type="tel" name="church_phone" class="form-control" value="<?php echo htmlspecialchars($settings_array['church_phone'] ?? ''); ?>" placeholder="Enter phone number">
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label for="church_email" class="form-label fw-bold">Church Email</label>
+                            <input type="email" name="church_email" class="form-control" value="<?php echo htmlspecialchars($settings_array['church_email'] ?? ''); ?>" placeholder="Enter email">
+                        </div>
+                    </div>
+                    <button type="submit" name="update_general" class="btn btn-primary"><i class="fas fa-save me-1"></i> Save Changes</button>
+                </form>
+            </div>
+        </div>
+    </div>
 
-            <!-- Profile Settings -->
-            <div class="tab-pane fade" id="profile" role="tabpanel">
-                <div class="card">
-                    <div class="card-body">
-                        <h5 class="mb-3">My Profile</h5>
-                        <div class="row">
-                            <div class="col-md-3">
-                                <img src="<?php echo BASE_URL; echo '/'; echo htmlspecialchars($user['profile_photo'] ?? '/assets/images/placeholder-user.jpg'); ?>" alt="Profile" class="img-fluid rounded">
+    <!-- --- Branding Settings --- -->
+    <div class="tab-pane fade" id="branding" role="tabpanel">
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-success text-white">
+                <h5 class="mb-0"><i class="fas fa-paint-brush me-2"></i>Branding Settings</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Primary Color</label>
+                            <div class="input-group">
+                                <input type="color" name="primary_color" class="form-control form-control-color" value="<?php echo htmlspecialchars($settings_array['primary_color'] ?? '#003DA5'); ?>">
+                                <input type="text" class="form-control" value="<?php echo htmlspecialchars($settings_array['primary_color'] ?? '#003DA5'); ?>" disabled>
                             </div>
-                            <div class="col-md-9">
-                                <p><strong>Name:</strong> <?php echo htmlspecialchars($_SESSION['user_name']); ?></p>
-                                <p><strong>Email:</strong> <?php echo htmlspecialchars($_SESSION['user_email']); ?></p>
-                                <p><strong>Role:</strong> <?php echo htmlspecialchars($_SESSION['user_role']); ?></p>
-                                <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#changePasswordModal">
-                                    <i class="fas fa-key"></i> Change Password
-                                </button>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Secondary Color</label>
+                            <div class="input-group">
+                                <input type="color" name="secondary_color" class="form-control form-control-color" value="<?php echo htmlspecialchars($settings_array['secondary_color'] ?? '#CC0000'); ?>">
+                                <input type="text" class="form-control" value="<?php echo htmlspecialchars($settings_array['secondary_color'] ?? '#CC0000'); ?>" disabled>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-bold">Accent Color</label>
+                            <div class="input-group">
+                                <input type="color" name="accent_color" class="form-control form-control-color" value="<?php echo htmlspecialchars($settings_array['accent_color'] ?? '#F4C43F'); ?>">
+                                <input type="text" class="form-control" value="<?php echo htmlspecialchars($settings_array['accent_color'] ?? '#F4C43F'); ?>" disabled>
                             </div>
                         </div>
                     </div>
+                    <button type="submit" name="update_branding" class="btn btn-success mt-3"><i class="fas fa-save me-1"></i> Save Branding</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- --- Profile Settings --- -->
+    <div class="tab-pane fade" id="profile" role="tabpanel">
+        <!-- Profile Info Card -->
+        <div class="card mb-4 shadow-sm">
+            <div class="card-header bg-primary text-white">
+                <h5 class="mb-0"><i class="fas fa-user-circle me-2"></i>Profile Information</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST" enctype="multipart/form-data">
+                    <div class="row align-items-center mb-3">
+                        <!-- Profile Photo -->
+                        <div class="col-md-3 text-center mb-3 mb-md-0">
+                            <img id="profilePreview" src="<?php echo BASE_URL . '/' . htmlspecialchars($user['profile_photo'] ?? 'assets/images/avatar-placeholder.png'); ?>" class="img-fluid rounded-circle border shadow-sm mb-2" style="max-width:150px;" alt="Profile Photo">
+                            <input type="file" name="profile_photo" class="form-control form-control-sm mt-2" onchange="previewProfile(this)">
+                        </div>
+
+                        <!-- Name & Email -->
+                        <div class="col-md-9">
+                            <div class="mb-3">
+                                <label for="name" class="form-label fw-bold">Full Name</label>
+                                <input type="text" name="name" class="form-control" value="<?php echo htmlspecialchars($_SESSION['user_name']); ?>" placeholder="Enter your full name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="email" class="form-label fw-bold">Email</label>
+                                <input type="email" name="email" class="form-control" value="<?php echo htmlspecialchars($_SESSION['user_email']); ?>" placeholder="Enter your email">
+                            </div>
+                            <button type="submit" name="update_profile" class="btn btn-primary"><i class="fas fa-save me-1"></i> Save Profile</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Password Change Card -->
+        <div class="card shadow-sm">
+            <div class="card-header bg-warning text-dark">
+                <h5 class="mb-0"><i class="fas fa-key me-2"></i>Change Password</h5>
+            </div>
+            <div class="card-body">
+                <form method="POST">
+                    <div class="mb-3">
+                        <label for="old_password" class="form-label fw-bold">Current Password</label>
+                        <input type="password" class="form-control" name="old_password" required placeholder="Enter current password">
+                    </div>
+                    <div class="mb-3">
+                        <label for="new_password" class="form-label fw-bold">New Password</label>
+                        <input type="password" class="form-control" name="new_password" required placeholder="Enter new password">
+                    </div>
+                    <div class="mb-3">
+                        <label for="confirm_password" class="form-label fw-bold">Confirm Password</label>
+                        <input type="password" class="form-control" name="confirm_password" required placeholder="Confirm new password">
+                    </div>
+                    <button type="submit" name="change_password" class="btn btn-warning"><i class="fas fa-lock me-1"></i> Change Password</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="tab-pane fade" id="homepage" role="tabpanel">
+    <form method="POST" enctype="multipart/form-data">
+        <h5 class="mb-3">Hero Section</h5>
+        <div class="mb-3">
+            <label class="form-label">Hero Title</label>
+            <input type="text" name="hero_title" class="form-control" value="<?php echo htmlspecialchars($settings_array['homepage_hero_title'] ?? ''); ?>">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Hero Subtitle</label>
+            <input type="text" name="hero_subtitle" class="form-control" value="<?php echo htmlspecialchars($settings_array['homepage_hero_subtitle'] ?? ''); ?>">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">Hero Tagline</label>
+            <input type="text" name="hero_tagline" class="form-control" value="<?php echo htmlspecialchars($settings_array['homepage_hero_tagline'] ?? ''); ?>">
+        </div>
+        <div class="mb-3 text-center">
+            <label class="form-label">Hero Background Image</label>
+            <input type="file" name="hero_image" class="form-control mb-2" onchange="previewImage(this, 'heroPreview')">
+            <?php if(!empty($settings_array['homepage_hero_image'])): ?>
+                <img id="heroPreview" src="<?php echo BASE_URL . '/assets/images/' . htmlspecialchars($settings_array['homepage_hero_image']); ?>" class="img-fluid rounded mb-2" style="max-height:200px;">
+            <?php else: ?>
+                <img id="heroPreview" src="" class="img-fluid rounded mb-2" style="display:none; max-height:200px;">
+            <?php endif; ?>
+        </div>
+
+        <hr>
+
+        <h5 class="mb-3">Hero CTA Buttons</h5>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">CTA 1 Text</label>
+                <input type="text" name="hero_cta1_text" class="form-control" value="<?php echo htmlspecialchars($settings_array['homepage_hero_cta1_text'] ?? ''); ?>">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">CTA 1 Link</label>
+                <input type="text" name="hero_cta1_link" class="form-control" value="<?php echo htmlspecialchars($settings_array['homepage_hero_cta1_link'] ?? ''); ?>">
+            </div>
+        </div>
+        <div class="row mb-3">
+            <div class="col-md-6">
+                <label class="form-label">CTA 2 Text</label>
+                <input type="text" name="hero_cta2_text" class="form-control" value="<?php echo htmlspecialchars($settings_array['homepage_hero_cta2_text'] ?? ''); ?>">
+            </div>
+            <div class="col-md-6">
+                <label class="form-label">CTA 2 Link</label>
+                <input type="text" name="hero_cta2_link" class="form-control" value="<?php echo htmlspecialchars($settings_array['homepage_hero_cta2_link'] ?? ''); ?>">
+            </div>
+        </div>
+
+        <hr>
+
+        <h5 class="mb-3">About Section</h5>
+        <div class="mb-3">
+            <label class="form-label">About Text</label>
+            <textarea name="about_text" class="form-control" rows="4"><?php echo htmlspecialchars($settings_array['homepage_about_text'] ?? ''); ?></textarea>
+        </div>
+        <div class="mb-3 text-center">
+            <label class="form-label">About Image</label>
+            <input type="file" name="about_image" class="form-control mb-2" onchange="previewImage(this, 'aboutPreview')">
+            <?php if(!empty($settings_array['homepage_about_image'])): ?>
+                <img id="aboutPreview" src="<?php echo BASE_URL . '/assets/images/' . htmlspecialchars($settings_array['homepage_about_image']); ?>" class="img-fluid rounded mb-2" style="max-height:200px;">
+            <?php else: ?>
+                <img id="aboutPreview" src="" class="img-fluid rounded mb-2" style="display:none; max-height:200px;">
+            <?php endif; ?>
+        </div>
+
+        <hr>
+
+        <h5 class="mb-3">Social Links (Footer)</h5>
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label class="form-label">Facebook</label>
+                <input type="text" name="social_facebook" class="form-control" value="<?php echo htmlspecialchars($settings_array['homepage_social_facebook'] ?? ''); ?>">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Instagram</label>
+                <input type="text" name="social_instagram" class="form-control" value="<?php echo htmlspecialchars($settings_array['homepage_social_instagram'] ?? ''); ?>">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">TikTok</label>
+                <input type="text" name="social_tiktok" class="form-control" value="<?php echo htmlspecialchars($settings_array['homepage_social_tiktok'] ?? ''); ?>">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">YouTube</label>
+                <input type="text" name="social_youtube" class="form-control" value="<?php echo htmlspecialchars($settings_array['homepage_social_youtube'] ?? ''); ?>">
+            </div>
+        </div>
+
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <label class="form-label">X / Twitter</label>
+                <input type="text" name="social_x" class="form-control" value="<?php echo htmlspecialchars($settings_array['homepage_social_x'] ?? ''); ?>">
+            </div>
+        </div>
+
+        <button type="submit" name="update_homepage" class="btn btn-primary mt-3">Save Homepage Settings</button>
+    </form>
+    </div>
+
+<div class="tab-pane fade" id="homepage-programs" role="tabpanel">
+    <h4>Homepage Programs</h4>
+    <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addProgramModal">Add Program</button>
+    
+    <div class="row">
+        <?php foreach($programs as $program): ?>
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <h5><i class="<?php echo $program['icon_class']; ?>"></i> <?php echo htmlspecialchars($program['title']); ?></h5>
+                        <div>
+                            <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editProgramModal<?php echo $program['id']; ?>">Edit</button>
+                            <a href="delete_program.php?id=<?php echo $program['id']; ?>" class="btn btn-sm btn-danger">Delete</a>
+                        </div>
+                    </div>
+                    <p class="text-muted"><?php echo htmlspecialchars($program['description']); ?></p>
+                    <?php if($program['day_time']): ?>
+                        <small class="text-secondary"><?php echo htmlspecialchars($program['day_time']); ?></small>
+                    <?php endif; ?>
+                    <?php if($program['image_path']): ?>
+                        <img src="<?php echo BASE_URL.'/assets/images/'.$program['image_path']; ?>" class="img-fluid mt-2" alt="">
+                    <?php endif; ?>
                 </div>
             </div>
         </div>
+        <?php endforeach; ?>
     </div>
 </div>
 
-<!-- Change Password Modal -->
-<div class="modal fade" id="changePasswordModal" tabindex="-1">
-    <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header" style="background-color: var(--primary-color); color: white;">
-                <h5 class="modal-title">Change Password</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+<div class="tab-pane fade" id="homepage-ministries" role="tabpanel">
+    <h4>Homepage Ministries</h4>
+    <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addMinistryModal">Add Ministry</button>
+
+    <div class="row">
+        <?php foreach($ministries as $ministry): ?>
+        <div class="col-md-6 col-lg-4 mb-3">
+            <div class="card">
+                <img src="<?php echo BASE_URL.'/'.$ministry['image_path']; ?>" class="card-img-top" alt="">
+                <div class="card-body">
+                    <h5><i class="<?php echo $ministry['icon_class']; ?>"></i> <?php echo htmlspecialchars($ministry['title']); ?></h5>
+                    <p class="text-muted"><?php echo htmlspecialchars($ministry['description']); ?></p>
+                    <?php if($ministry['link_url']): ?>
+                        <a href="<?php echo htmlspecialchars($ministry['link_url']); ?>" class="btn btn-sm btn-primary">Learn More</a>
+                    <?php endif; ?>
+                    <div class="mt-2">
+                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editMinistryModal<?php echo $ministry['id']; ?>">Edit</button>
+                        <a href="delete_ministry.php?id=<?php echo $ministry['id']; ?>" class="btn btn-sm btn-danger">Delete</a>
+                    </div>
+                </div>
             </div>
-            <form method="POST">
-                <div class="modal-body">
-                    <div class="mb-3">
-                        <label for="old_password" class="form-label">Current Password</label>
-                        <input type="password" class="form-control" name="old_password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="new_password" class="form-label">New Password</label>
-                        <input type="password" class="form-control" name="new_password" required>
-                    </div>
-                    <div class="mb-3">
-                        <label for="confirm_password" class="form-label">Confirm Password</label>
-                        <input type="password" class="form-control" name="confirm_password" required>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                    <button type="submit" name="change_password" class="btn btn-primary">Change Password</button>
-                </div>
-            </form>
         </div>
+        <?php endforeach; ?>
     </div>
 </div>
+
+
+
+</div>
+
+<!-- Live Preview Script -->
+<script>
+function previewProfile(input) {
+    const file = input.files[0];
+    if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            document.getElementById('profilePreview').src = e.target.result;
+        }
+        reader.readAsDataURL(file);
+    }
+}
+</script>
+
+
 
 <?php include 'footer.php'; ?>
