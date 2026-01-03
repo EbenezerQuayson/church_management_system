@@ -383,7 +383,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     <div class="row align-items-center mb-3">
                         <!-- Profile Photo -->
                         <div class="col-md-3 text-center mb-3 mb-md-0">
-                            <img id="profilePreview" src="<?php echo BASE_URL . '/' . htmlspecialchars($user['profile_photo'] ?? 'assets/images/avatar-placeholder.png'); ?>" class="img-fluid rounded-circle border shadow-sm mb-2" style="max-width:150px;" alt="Profile Photo">
+                            <img id="profilePreview" src="<?php echo BASE_URL . '/' . htmlspecialchars($user['profile_photo'] ?? 'assets/images/avatar-placeholder.png'); ?>" class="img-fluid rounded-square border shadow-sm mb-2" style="max-width:150px;" alt="Profile Photo">
                             <input type="file" name="profile_photo" class="form-control form-control-sm mt-2" onchange="previewProfile(this)">
                         </div>
 

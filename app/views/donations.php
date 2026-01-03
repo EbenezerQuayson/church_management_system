@@ -368,9 +368,9 @@ data-source="<?= $d['income_source']; ?>"
                     <div class="mb-3">
                         <label for="donation_type" class="form-label">Type</label>
                         <select class="form-select" name="donation_type">
-                            <option value="General">General Offering</option>
-                            <option value="Service Offering">Service Offering</option>
-                            <option value="Service Tithe">Service Tithe</option>
+                            <option value="Service Offering">Service Offering (Total)</option>
+                            <option value="Service Tithe">Service Tithe (Total)</option>
+                            <option value="Meeting">Meeting Offering</option>
                             <option value="Tithe">Tithe</option>
                             <option value="Building Fund">Building Fund</option>
                             <option value="Missions">Missions</option>
@@ -465,13 +465,13 @@ data-source="<?= $d['income_source']; ?>"
                 <div class="mb-3">
                     <label class="form-label">Type</label>
                     <select class="form-select" name="donation_type" id="edit_type">
-                        <option value="General">General Offering</option>
-                        <option value="Service Offering">Service Offering</option>
-                        <option value="Service Tithe">Service Tithe</option>
-                        <option value="Tithe">Tithe</option>
-                        <option value="Building Fund">Building Fund</option>
-                        <option value="Missions">Missions</option>
-                        <option value="Other">Other</option>
+                       <option value="Service Offering">Service Offering (Total)</option>
+                            <option value="Service Tithe">Service Tithe (Total)</option>
+                            <option value="Meeting">Meeting Offering</option>
+                            <option value="Tithe">Tithe</option>
+                            <option value="Building Fund">Building Fund</option>
+                            <option value="Missions">Missions</option>
+                            <option value="Other">Other</option>
                     </select>
                 </div>
                 <div class="mb-3">
