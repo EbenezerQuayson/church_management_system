@@ -1,12 +1,48 @@
 <?php
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
-// include  __DIR__ . '/notification.php';
 $user_id = $_SESSION['user_id'];
-$unread_count = $db->fetch("SELECT COUNT(*) FROM notifications WHERE user_id = ? AND is_read = 0", [$user_id]);
+$unread_count = $db->fetch("SELECT COUNT(*) AS unread_count FROM notifications WHERE user_id = ? AND is_read = 0", [$user_id]);
 
 
 ?>
+<style>
+.notifications-dropdown {
+    width: 250px;
+    max-height: 320px;
+    overflow-y: auto;
+    overflow-x: hidden ;
+}
+.notifications-dropdown .dropdown-item {
+    background-color: #f5f6f8;     
+    margin: 6px 8px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    white-space: normal;         
+    line-height: 1.4;
+    font-size: 0.9rem;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    transition: background-color 0.2s ease;
+}
+.notifications-dropdown .dropdown-item:hover {
+    background-color: #e9ecef;
+}
+
+.notifications-dropdown .dropdown-item.unread {
+    background-color: #eef2ff;    
+    font-weight: 500;
+}
+
+.notifications-dropdown.show {
+    display: block;
+}
+
+@media (max-width: 768px) {
+    .notifications-dropdown {
+        max-height: 260px ;
+    }
+}
+</style>
 <!-- Top Navigation Bar -->
     <nav class="top-navbar">
         <div class="top-nav-left">
@@ -25,9 +61,9 @@ $unread_count = $db->fetch("SELECT COUNT(*) FROM notifications WHERE user_id = ?
          <div class="dropdown">
             <button class="top-nav-icon-btn notification-btn" data-bs-toggle="dropdown">
                 <i class="fas fa-bell"></i>
-                <span class="notification-badge"><?= $unread_count['COUNT(*)'] ?? 0 ?></span>
+                <span class="notification-badge"><?= $unread_count['unread_count'] ?? 0 ?></span>
             </button>
-                <ul class="dropdown-menu dropdown-menu-end">
+                <ul class="dropdown-menu dropdown-menu-end notifications-dropdown">
                     <?php
 $notifications = $db->fetchAll("SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC", [$user_id]);
 
@@ -35,7 +71,7 @@ if (!empty($notifications)) {
     foreach ($notifications as $notification):
     ?>
     <li>
-        <a class="dropdown-item" href="<?php echo BASE_URL . '/app/views/notification.php'?>">
+        <a class="dropdown-item unread" href="<?php echo BASE_URL . '/app/views/notification.php'?>">
             <?php echo htmlspecialchars($notification['message']); ?>
         </a>
     </li>
@@ -49,10 +85,6 @@ if (!empty($notifications)) {
     <?php
 }
 ?>
-
-                    <!-- <li><a class="dropdown-item" href="#">New member registered</a></li>
-                    <li><a class="dropdown-item" href="#">Event today at 10 AM</a></li>
-                    <li><a class="dropdown-item" href="#">Donation received</a></li> -->
                 </ul>
          </div>
             <div class="dropdown user-dropdown ms-2">
