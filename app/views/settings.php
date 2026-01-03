@@ -4,9 +4,16 @@ $activePage = 'settings';
 
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
+require_once __DIR__ . '/../models/Ministry.php';
+require_once __DIR__ . '/../models/HomepageMinistry.php';
+
 
 requireLogin();
 $pdo = Database::getInstance()->getConnection();
+$ministry = new Ministry();
+$homepageMinistry = new HomepageMinistry();
+
+$homepageMinistries = $homepageMinistry->getAll();
 
 //Fetch logged-in user details
 $userId = $_SESSION['user_id'] ?? null;
@@ -17,6 +24,8 @@ if($userId) {
     $user = $stmt->fetch(PDO::FETCH_ASSOC);
 }
 
+$db = Database::getInstance();
+$ministries = $db->fetchAll("SELECT * FROM ministries WHERE status = 'active' ORDER BY name");
 
 
 $db = Database::getInstance();
@@ -252,6 +261,91 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $settings_array[$setting['setting_key']] = $setting['setting_value'];
     }
 }
+if (isset($_POST['add_homepage_ministry'])) {
+    $ministry_id = $_POST['ministry_id'] ?? '';
+    $link_url = $_POST['link_url'] ?? '';
+    $icon_class = $_POST['icon_class'] ?? '';
+
+    // Handle image upload
+    $upload_dir = __DIR__ . '/../../assets/images/uploads/homepage/';
+    $image_path = '';
+    if (!empty($_FILES['image_path']['name']) && $_FILES['image_path']['error'] === UPLOAD_ERR_OK) {
+        if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
+        $filename = uniqid() . '_' . basename($_FILES['image_path']['name']);
+        $target = $upload_dir . $filename;
+        if (move_uploaded_file($_FILES['image_path']['tmp_name'], $target)) {
+            $image_path = 'uploads/homepage/' . $filename;
+        }
+    }
+
+    // Insert into homepage_ministries table
+    $stmt = $db->getConnection()->prepare("
+        INSERT INTO homepage_ministries (ministry_id, image_path, link_url, icon_class)
+        VALUES (:ministry_id, :image_path, :link_url, :icon_class)
+    ");
+    $stmt->execute([
+        ':ministry_id' => $ministry_id,
+        ':image_path' => $image_path,
+        ':link_url' => $link_url,
+        ':icon_class' => $icon_class
+    ]);
+
+    $message = "Homepage ministry added successfully!";
+    $message_type = "success";
+
+    $homepage_ministries = $db->fetchAll("
+    SELECT hm.id, hm.ministry_id, hm.image_path, hm.link_url, hm.icon_class, m.name
+    FROM homepage_ministries hm
+    JOIN ministries m ON m.id = hm.ministry_id
+    ORDER BY hm.id ASC
+");
+
+}
+
+
+
+if (isset($_POST['edit_homepage_ministry'])) {
+    $homepage_id = $_POST['homepage_id'] ?? '';
+    $ministry_id = $_POST['ministry_id'] ?? '';
+    $link_url = $_POST['link_url'] ?? '';
+    $icon_class = $_POST['icon_class'] ?? '';
+
+    // Handle image upload if a new file is provided
+    $upload_dir = __DIR__ . '/../../assets/images/uploads/homepage/';
+    $image_path = null;
+    if (!empty($_FILES['image_path']['name']) && $_FILES['image_path']['error'] === UPLOAD_ERR_OK) {
+        if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
+        $filename = uniqid() . '_' . basename($_FILES['image_path']['name']);
+        $target = $upload_dir . $filename;
+        if (move_uploaded_file($_FILES['image_path']['tmp_name'], $target)) {
+            $image_path = 'uploads/homepage/' . $filename;
+        }
+    }
+
+    // Build SQL
+    $sql = "UPDATE homepage_ministries SET ministry_id = :ministry_id, link_url = :link_url, icon_class = :icon_class";
+    if ($image_path !== null) {
+        $sql .= ", image_path = :image_path";
+    }
+    $sql .= " WHERE id = :homepage_id";
+
+    $stmt = $db->getConnection()->prepare($sql);
+    $stmt->bindValue(':ministry_id', $ministry_id);
+    $stmt->bindValue(':link_url', $link_url);
+    $stmt->bindValue(':icon_class', $icon_class);
+    if ($image_path !== null) $stmt->bindValue(':image_path', $image_path);
+    $stmt->bindValue(':homepage_id', $homepage_id);
+
+    if ($stmt->execute()) {
+        $message = "Homepage ministry updated successfully!";
+        $message_type = "success";
+    } else {
+        $message = "Failed to update homepage ministry.";
+        $message_type = "error";
+    }
+}
+
+
 
 }
 
@@ -563,30 +657,195 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addMinistryModal">Add Ministry</button>
 
     <div class="row">
-        <?php foreach($ministries as $ministry): ?>
-        <div class="col-md-6 col-lg-4 mb-3">
-            <div class="card">
-                <img src="<?php echo BASE_URL.'/'.$ministry['image_path']; ?>" class="card-img-top" alt="">
-                <div class="card-body">
-                    <h5><i class="<?php echo $ministry['icon_class']; ?>"></i> <?php echo htmlspecialchars($ministry['title']); ?></h5>
-                    <p class="text-muted"><?php echo htmlspecialchars($ministry['description']); ?></p>
-                    <?php if($ministry['link_url']): ?>
-                        <a href="<?php echo htmlspecialchars($ministry['link_url']); ?>" class="btn btn-sm btn-primary">Learn More</a>
-                    <?php endif; ?>
-                    <div class="mt-2">
-                        <button class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#editMinistryModal<?php echo $ministry['id']; ?>">Edit</button>
-                        <a href="delete_ministry.php?id=<?php echo $ministry['id']; ?>" class="btn btn-sm btn-danger">Delete</a>
-                    </div>
-                </div>
+       <?php foreach($homepageMinistries as $hm): ?>
+<div class="col-md-6 col-lg-4 mb-3">
+    <div class="card">
+        <img src="<?php echo BASE_URL.'/assets/images/'.$hm['image_path']; ?>" class="card-img-top" alt="">
+        <div class="card-body">
+            <h5><i class="<?php echo $hm['icon_class']; ?>"></i> <?php echo htmlspecialchars($hm['name']); ?></h5>
+            <p class="text-muted"><?php echo htmlspecialchars($hm['description']); ?></p>
+            <?php if($hm['link_url']): ?>
+                <a href="<?php echo htmlspecialchars($hm['link_url']); ?>" class="btn btn-sm btn-primary">Learn More</a>
+            <?php endif; ?>
+            <button class="btn btn-sm btn-primary" onclick='openEditModal(
+                        <?= $hm["homepage_id"] ?>,
+                        <?= $hm["ministry_id"] ?>,
+                        "<?= htmlspecialchars($hm["link_url"] ?? "", ENT_QUOTES) ?>",
+                        "<?= htmlspecialchars($hm["icon_class"] ?? "", ENT_QUOTES) ?>",
+                        "<?= htmlspecialchars($hm["image_path"] ?? "", ENT_QUOTES) ?>")'> Edit</button>
+                <a href="delete_homepage_ministry.php?id=<?php echo $hm['homepage_id']; ?>" class="btn btn-sm btn-danger">Remove</a>
             </div>
         </div>
-        <?php endforeach; ?>
+    </div>
+</div>
+<?php endforeach; ?>
+
     </div>
 </div>
 
 
 
 </div>
+
+<!-- Add modal for adding a homepage ministry -->
+<div class="modal fade" id="addMinistryModal" tabindex="-1" aria-labelledby="addMinistryModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" enctype="multipart/form-data">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="addMinistryModalLabel">Add Homepage Ministry</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          
+          <!-- Select Ministry -->
+          <div class="mb-3">
+            <label class="form-label">Ministry</label>
+            <select name="ministry_id" class="form-control" required>
+              <option value="">Select a ministry</option>
+              <?php foreach($ministries as $m): ?>
+                <option value="<?php echo $m['id']; ?>"><?php echo htmlspecialchars($m['name']); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+
+          <!-- Icon Class -->
+           <div class="mb-3">
+    <label class="form-label">Choose an Icon</label>
+    <select id="iconSelect" class="form-select" name="icon_class">
+        <option value="">-- Select an icon --</option>
+        <option value="fas fa-church">Church <i class="fas fa-church"></i></option>
+        <option value="fas fa-users">Users</option>
+        <option value="fas fa-hand-holding-heart">Ministry</option>
+        <option value="fas fa-book">Bible</option>
+        <option value="fas fa-heart">Love</option>
+        <option value="fas fa-praying-hands">Prayer</option>
+        <option value="fas fa-bible">Bible</option>
+        <option value="fas fa-hands-helping">Charity/Outreach</option>
+        <option value="fas fa-users">Community</option>
+        <option value="fas fa-music">Music / Choir</option>
+        <option value="fas fa-graduation-cap">Teaching / Education</option>
+        <option value="fas fa-heart">Youth / Care</option>
+        <option value="fas fa-child">Children’s Ministry</option>
+        <option value="fas fa-hand-holding-heart">Support / Counseling</option>
+        <option value="fas fa-bullhorn">Announcements / Evangelism</option>
+    </select>
+    <div class="mt-2">
+        <span>Preview: </span>
+        <i id="iconPreview" class=""></i>
+    </div>
+</div>
+    
+
+          <!-- Image Upload -->
+          <div class="mb-3">
+            <label class="form-label">Custom Image</label>
+            <input type="file" name="image_path" class="form-control">
+          </div>
+
+          <!-- Link URL -->
+          <div class="mb-3">
+            <label class="form-label">Link URL</label>
+            <input type="text" name="link_url" class="form-control" placeholder="https://example.com">
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" name="add_homepage_ministry" class="btn btn-success">Add Ministry</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+  <!-- <div class="mb-3">
+    <label class="form-label">Icon Class (FontAwesome)</label>
+    <input type="text" id="iconInput" name="icon_class" class="form-control" placeholder="e.g., fas fa-church">
+    <div class="mt-2">
+        <span>Preview: </span>
+        <i id="iconPreview" class=""></i>
+    </div>
+</div> -->
+
+<!-- Edit modal -->
+ <div class="modal fade" id="editMinistryModal" tabindex="-1" aria-labelledby="editMinistryModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <form method="POST" enctype="multipart/form-data">
+      <input type="hidden" name="homepage_id" id="editHomepageId">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="editMinistryModalLabel">Edit Homepage Ministry</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          
+          <!-- Select Ministry -->
+          <div class="mb-3">
+            <label class="form-label">Ministry</label>
+            <select name="ministry_id" id="editMinistrySelect" class="form-control" required>
+              <?php foreach($ministries as $m): ?>
+                <option value="<?php echo $m['id']; ?>"><?php echo htmlspecialchars($m['name']); ?></option>
+              <?php endforeach; ?>
+            </select>
+          </div>
+
+          <!-- Icon Class -->
+          <div class="mb-3">
+            <label class="form-label">Choose an Icon</label>
+            <select name="icon_class" id="editIconSelect" class="form-select">
+              <option value="">-- Select an icon --</option>
+              <option value="fas fa-church">Church</option>
+              <option value="fas fa-users">Users</option>
+              <option value="fas fa-hand-holding-heart">Ministry</option>
+            <option value="fas fa-book">Bible</option>
+            <option value="fas fa-heart">Love</option>
+            <option value="fas fa-praying-hands">Prayer</option>
+            <option value="fas fa-bible">Bible</option>
+            <option value="fas fa-hands-helping">Charity/Outreach</option>
+            <option value="fas fa-users">Community</option>
+            <option value="fas fa-music">Music / Choir</option>
+            <option value="fas fa-graduation-cap">Teaching / Education</option>
+            <option value="fas fa-heart">Youth / Care</option>
+            <option value="fas fa-child">Children’s Ministry</option>
+            <option value="fas fa-hand-holding-heart">Support / Counseling</option>
+            <option value="fas fa-bullhorn">Announcements / Evangelism</option>
+            </select>
+            <div class="mt-2">
+                <span>Preview: </span>
+                <i id="editIconPreview" class=""></i>
+            </div>
+          </div>
+
+          <!-- Image Upload -->
+          <div class="mb-3">
+            <label class="form-label">Custom Image</label>
+            <input type="file" name="image_path" class="form-control">
+            <img 
+  id="editImagePreview"
+  class="img-fluid rounded mt-2"
+  style="display:none; max-height:150px;"
+>
+            <small class="text-muted">Leave empty to keep current image.</small>
+          </div>
+
+          <!-- Link URL -->
+          <div class="mb-3">
+            <label class="form-label">Link URL</label>
+            <input type="text" name="link_url" id="editLinkUrl" class="form-control">
+          </div>
+
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" name="edit_homepage_ministry" class="btn btn-primary">Save Changes</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
+
 
 <!-- Live Preview Script -->
 <script>
@@ -600,6 +859,51 @@ function previewProfile(input) {
         reader.readAsDataURL(file);
     }
 }
+
+  const iconSelect = document.getElementById('iconSelect');
+    const iconPreview = document.getElementById('iconPreview');
+
+    iconSelect.addEventListener('change', () => {
+        iconPreview.className = iconSelect.value; // Updates the preview
+    });
+
+const editIconSelect = document.getElementById('editIconSelect');
+const editIconPreview = document.getElementById('editIconPreview');
+
+editIconSelect.addEventListener('change', function () {
+    editIconPreview.className = this.value;
+});
+
+
+
+function openEditModal(id, ministryId, linkUrl, iconClass, imagePath) {
+  document.getElementById('editHomepageId').value = id;
+  document.getElementById('editMinistrySelect').value = ministryId;
+  document.getElementById('editLinkUrl').value = linkUrl;
+ const iconSelect = document.getElementById('editIconSelect');
+
+[...iconSelect.options].forEach(opt => {
+    opt.selected = opt.value === iconClass;
+});
+
+  const iconPreview = document.getElementById('editIconPreview');
+  iconPreview.className = iconClass;
+
+  const img = document.getElementById('editImagePreview');
+  if (img && imagePath) {
+    img.src = "<?= BASE_URL ?>/assets/images/" + imagePath;
+    img.style.display = 'block';
+  }
+
+  const modalEl = document.getElementById('editMinistryModal');
+  const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+  modal.show();
+}
+
+
+
+
+
 </script>
 
 
