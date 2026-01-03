@@ -292,7 +292,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </button>
             </li>
              <li class="nav-item">
-                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#homepage-ministries" disabled>
+                <button class="nav-link" data-bs-toggle="tab" data-bs-target="#homepage-ministries" >
                     Homepage Organisations
                 </button>
             </li>
