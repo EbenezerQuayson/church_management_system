@@ -42,16 +42,23 @@ class Donation {
                 income_source = :income_source
                 WHERE id = :id";
         $stmt = $this->db->prepare($sql);
+        $member_id = $data['member_id'] ?? null;
+        if (empty($member_id)) {
+            $member_id = null;
+        }
+        $stmt->bindValue(':member_id', $member_id, PDO::PARAM_INT);
+        $stmt->bindValue(':amount', $data['amount']);
+        $stmt->bindValue(':donation_type', $data['donation_type']);
+        $stmt->bindValue(':donation_date', $data['donation_date']);
+        $stmt->bindValue(':notes', $data['notes']);
+        $stmt->bindValue(':income_source', $data['income_source']);
+        $stmt->bindValue(':id', $id, PDO::PARAM_INT);
 
-        return $stmt->execute([
-        ':member_id'     => $data['member_id'],
-        ':amount'        => $data['amount'],
-        ':donation_type' => $data['donation_type'],
-        ':donation_date' => $data['donation_date'],
-        ':notes'         => $data['notes'],
-        ':income_source' => $data['income_source'],
-        ':id'            => $id
-    ]);
+        if ($member_id === null) {
+            $stmt->bindValue(':member_id', null, PDO::PARAM_NULL);
+        }
+
+        return $stmt->execute();
     }
 
     public function delete($id){
