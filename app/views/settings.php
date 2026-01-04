@@ -7,6 +7,19 @@ require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../models/Ministry.php';
 require_once __DIR__ . '/../models/HomepageMinistry.php';
 
+function redirectSelf($anchor = '') {
+    $url = $_SERVER['PHP_SELF'];
+    
+    if ($anchor) {
+        $url .= '#' . ltrim($anchor, '#');
+    }
+
+    header("Location: " . $url);
+    exit;
+}
+
+
+
 
 requireLogin();
 $pdo = Database::getInstance()->getConnection();
@@ -214,13 +227,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     //HomepageSettings
     if (isset($_POST['update_homepage'])) {
     $updates = [
-        'homepage_hero_title' => $_POST['hero_title'] ?? '',
-        'homepage_hero_subtitle' => $_POST['hero_subtitle'] ?? '',
-        'homepage_hero_tagline' => $_POST['hero_tagline'] ?? '',
-        'homepage_hero_cta1_text' => $_POST['hero_cta1_text'] ?? '',
-        'homepage_hero_cta1_link' => $_POST['hero_cta1_link'] ?? '',
-        'homepage_hero_cta2_text' => $_POST['hero_cta2_text'] ?? '',
-        'homepage_hero_cta2_link' => $_POST['hero_cta2_link'] ?? '',
+        'church_motto' => $_POST['church_motto'] ?? '',
+        'church_tagline' => $_POST['church_tagline'] ?? '',
         'homepage_about_text' => $_POST['about_text'] ?? '',
         'homepage_social_facebook' => $_POST['social_facebook'] ?? '',
         'homepage_social_instagram' => $_POST['social_instagram'] ?? '',
@@ -230,11 +238,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     ];
 
     // Handle file uploads
-    $upload_dir = __DIR__ . '/../../assets/images/uploads/';
-    if (!empty($_FILES['hero_image']['name'])) {
-        $target = $upload_dir . basename($_FILES['hero_image']['name']);
-        move_uploaded_file($_FILES['hero_image']['tmp_name'], $target);
-        $updates['homepage_hero_image'] = 'uploads/homepage/' . basename($_FILES['hero_image']['name']);
+    $upload_dir = __DIR__ . '/../../assets/images/uploads/homepage/';
+    if (!empty($_FILES['church_logo']['name'])) {
+        $target = $upload_dir . basename($_FILES['church_logo']['name']);
+        move_uploaded_file($_FILES['church_logo']['tmp_name'], $target);
+        $updates['church_logo'] = 'uploads/homepage/' . basename($_FILES['church_logo']['name']);
     }
     if (!empty($_FILES['about_image']['name'])) {
         $target = $upload_dir . basename($_FILES['about_image']['name']);
@@ -263,87 +271,117 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 if (isset($_POST['add_homepage_ministry'])) {
     $ministry_id = $_POST['ministry_id'] ?? '';
-    $link_url = $_POST['link_url'] ?? '';
-    $icon_class = $_POST['icon_class'] ?? '';
+    $link_url    = $_POST['link_url'] ?? '';
+    $icon_class  = $_POST['icon_class'] ?? '';
 
-    // Handle image upload
     $upload_dir = __DIR__ . '/../../assets/images/uploads/homepage/';
     $image_path = '';
+
     if (!empty($_FILES['image_path']['name']) && $_FILES['image_path']['error'] === UPLOAD_ERR_OK) {
         if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
         $filename = uniqid() . '_' . basename($_FILES['image_path']['name']);
-        $target = $upload_dir . $filename;
-        if (move_uploaded_file($_FILES['image_path']['tmp_name'], $target)) {
+        if (move_uploaded_file($_FILES['image_path']['tmp_name'], $upload_dir . $filename)) {
             $image_path = 'uploads/homepage/' . $filename;
         }
     }
 
-    // Insert into homepage_ministries table
     $stmt = $db->getConnection()->prepare("
         INSERT INTO homepage_ministries (ministry_id, image_path, link_url, icon_class)
         VALUES (:ministry_id, :image_path, :link_url, :icon_class)
     ");
+
     $stmt->execute([
         ':ministry_id' => $ministry_id,
         ':image_path' => $image_path,
-        ':link_url' => $link_url,
+        ':link_url'   => $link_url,
         ':icon_class' => $icon_class
     ]);
 
-    $message = "Homepage ministry added successfully!";
-    $message_type = "success";
+    $_SESSION['flash_message'] = "Homepage ministry added successfully!";
+    $_SESSION['flash_type'] = "success";
 
-    $homepage_ministries = $db->fetchAll("
-    SELECT hm.id, hm.ministry_id, hm.image_path, hm.link_url, hm.icon_class, m.name
-    FROM homepage_ministries hm
-    JOIN ministries m ON m.id = hm.ministry_id
-    ORDER BY hm.id ASC
-");
-
+    redirectSelf('homepage-ministries');
 }
 
 
 
-if (isset($_POST['edit_homepage_ministry'])) {
-    $homepage_id = $_POST['homepage_id'] ?? '';
-    $ministry_id = $_POST['ministry_id'] ?? '';
-    $link_url = $_POST['link_url'] ?? '';
-    $icon_class = $_POST['icon_class'] ?? '';
 
-    // Handle image upload if a new file is provided
+if (isset($_POST['edit_homepage_ministry'])) {
+    $homepage_id = $_POST['homepage_id'];
+    $ministry_id = $_POST['ministry_id'];
+    $link_url    = $_POST['link_url'];
+    $icon_class  = $_POST['icon_class'];
+
     $upload_dir = __DIR__ . '/../../assets/images/uploads/homepage/';
     $image_path = null;
+
     if (!empty($_FILES['image_path']['name']) && $_FILES['image_path']['error'] === UPLOAD_ERR_OK) {
         if (!is_dir($upload_dir)) mkdir($upload_dir, 0755, true);
         $filename = uniqid() . '_' . basename($_FILES['image_path']['name']);
-        $target = $upload_dir . $filename;
-        if (move_uploaded_file($_FILES['image_path']['tmp_name'], $target)) {
+        if (move_uploaded_file($_FILES['image_path']['tmp_name'], $upload_dir . $filename)) {
             $image_path = 'uploads/homepage/' . $filename;
         }
     }
 
-    // Build SQL
-    $sql = "UPDATE homepage_ministries SET ministry_id = :ministry_id, link_url = :link_url, icon_class = :icon_class";
+    $sql = "UPDATE homepage_ministries
+            SET ministry_id = :ministry_id,
+                link_url = :link_url,
+                icon_class = :icon_class";
+
     if ($image_path !== null) {
         $sql .= ", image_path = :image_path";
     }
-    $sql .= " WHERE id = :homepage_id";
+
+    $sql .= " WHERE id = :id";
 
     $stmt = $db->getConnection()->prepare($sql);
     $stmt->bindValue(':ministry_id', $ministry_id);
     $stmt->bindValue(':link_url', $link_url);
     $stmt->bindValue(':icon_class', $icon_class);
     if ($image_path !== null) $stmt->bindValue(':image_path', $image_path);
-    $stmt->bindValue(':homepage_id', $homepage_id);
+    $stmt->bindValue(':id', $homepage_id);
+    $stmt->execute();
 
-    if ($stmt->execute()) {
-        $message = "Homepage ministry updated successfully!";
-        $message_type = "success";
-    } else {
-        $message = "Failed to update homepage ministry.";
-        $message_type = "error";
-    }
+    $_SESSION['flash_message'] = "Homepage ministry updated successfully!";
+    $_SESSION['flash_type'] = "success";
+
+    redirectSelf('homepage-ministries');
 }
+
+
+if (isset($_POST['remove_homepage_ministry'])) {
+    $homepage_id = $_POST['homepage_id'];
+
+    $stmt = $db->getConnection()->prepare(
+        "DELETE FROM homepage_ministries WHERE id = :id"
+    );
+    $stmt->execute([':id' => $homepage_id]);
+
+    $_SESSION['flash_message'] = "Homepage ministry removed successfully!";
+    $_SESSION['flash_type'] = "success";
+
+    redirectSelf('homepage-ministries');
+}
+
+
+
+
+if (isset($_POST['toggle_homepage_ministry'])) {
+    $homepage_id = $_POST['homepage_id'];
+
+    $stmt = $db->getConnection()->prepare("
+        UPDATE homepage_ministries
+        SET is_active = IF(is_active = 1, 0, 1)
+        WHERE id = :id
+    ");
+    $stmt->execute([':id' => $homepage_id]);
+
+    $_SESSION['flash_message'] = "Homepage ministry visibility updated.";
+    $_SESSION['flash_type'] = "success";
+
+    redirectSelf('homepage-ministries');
+}
+
 
 
 
@@ -365,6 +403,15 @@ if (isset($_POST['edit_homepage_ministry'])) {
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
         <?php endif; ?>
+        <?php if (!empty($_SESSION['flash_message'])): ?>
+            <div class="alert alert-<?= $_SESSION['flash_type']; ?>">
+                <?= htmlspecialchars($_SESSION['flash_message']); ?>
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+            <?php unset($_SESSION['flash_message'], $_SESSION['flash_type']); ?>
+            
+    <?php endif; ?>
+
 
         <!-- Settings Tabs -->
         <ul class="nav nav-tabs mb-4" role="tablist">
@@ -378,7 +425,7 @@ if (isset($_POST['edit_homepage_ministry'])) {
                 <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button">Profile</button>
             </li>
             <li class="nav-item" role="presentation">
-                <button class="nav-link" id="homepage-tab" data-bs-toggle="tab" data-bs-target="#homepage" type="button" disabled>Homepage</button>
+                <button class="nav-link" id="homepage-tab" data-bs-toggle="tab" data-bs-target="#homepage" type="button" >Homepage</button>
             </li>
             <li class="nav-item">
                 <button class="nav-link" data-bs-toggle="tab" data-bs-target="#homepage-programs" disabled>
@@ -525,24 +572,26 @@ if (isset($_POST['edit_homepage_ministry'])) {
 
     <div class="tab-pane fade" id="homepage" role="tabpanel">
     <form method="POST" enctype="multipart/form-data">
-        <h5 class="mb-3">Hero Section</h5>
+        <h5 class="mb-3">Homepage Settings  <small class="text-gray"><a href="<?= BASE_URL ?> /public/home.php" class="text-decoration-none">(Visit homepage)</a></small></h5>
+       
+        <br>
         <div class="mb-3">
-            <label class="form-label">Hero Title</label>
-            <input type="text" name="hero_title" class="form-control" value="<?php echo htmlspecialchars($settings_array['homepage_hero_title'] ?? ''); ?>">
+            <label class="form-label">Church Name</label>
+            <input type="text" name="hero_title" disabled class="form-control" value="<?php echo htmlspecialchars($settings_array['church_name'] ?? ''); ?>">
         </div>
         <div class="mb-3">
-            <label class="form-label">Hero Subtitle</label>
-            <input type="text" name="hero_subtitle" class="form-control" value="<?php echo htmlspecialchars($settings_array['homepage_hero_subtitle'] ?? ''); ?>">
+            <label class="form-label">Church Motto</label>
+            <input type="text" name="church_motto" class="form-control" value="<?php echo htmlspecialchars($settings_array['church_motto'] ?? ''); ?>">
         </div>
         <div class="mb-3">
-            <label class="form-label">Hero Tagline</label>
-            <input type="text" name="hero_tagline" class="form-control" value="<?php echo htmlspecialchars($settings_array['homepage_hero_tagline'] ?? ''); ?>">
+            <label class="form-label">Church Tagline</label>
+            <input type="text" name="church_tagline" class="form-control" value="<?php echo htmlspecialchars($settings_array['church_tagline'] ?? ''); ?>">
         </div>
         <div class="mb-3 text-center">
-            <label class="form-label">Hero Background Image</label>
-            <input type="file" name="hero_image" class="form-control mb-2" onchange="previewImage(this, 'heroPreview')">
-            <?php if(!empty($settings_array['homepage_hero_image'])): ?>
-                <img id="heroPreview" src="<?php echo BASE_URL . '/assets/images/' . htmlspecialchars($settings_array['homepage_hero_image']); ?>" class="img-fluid rounded mb-2" style="max-height:200px;">
+            <label class="form-label">Church Logo Image</label>
+            <input type="file" name="church_logo" class="form-control mb-2" onchange="previewImage(this, 'heroPreview')">
+            <?php if(!empty($settings_array['church_logo'])): ?>
+                <img id="heroPreview" src="<?php echo BASE_URL . '/assets/images/' . htmlspecialchars($settings_array['church_logo']); ?>" class="img-fluid rounded mb-2" style="max-height:200px;">
             <?php else: ?>
                 <img id="heroPreview" src="" class="img-fluid rounded mb-2" style="display:none; max-height:200px;">
             <?php endif; ?>
@@ -550,7 +599,7 @@ if (isset($_POST['edit_homepage_ministry'])) {
 
         <hr>
 
-        <h5 class="mb-3">Hero CTA Buttons</h5>
+        <!-- <h5 class="mb-3">Hero CTA Buttons</h5>
         <div class="row mb-3">
             <div class="col-md-6">
                 <label class="form-label">CTA 1 Text</label>
@@ -570,7 +619,7 @@ if (isset($_POST['edit_homepage_ministry'])) {
                 <label class="form-label">CTA 2 Link</label>
                 <input type="text" name="hero_cta2_link" class="form-control" value="<?php echo htmlspecialchars($settings_array['homepage_hero_cta2_link'] ?? ''); ?>">
             </div>
-        </div>
+        </div> -->
 
         <hr>
 
@@ -656,31 +705,66 @@ if (isset($_POST['edit_homepage_ministry'])) {
     <h4>Homepage Ministries</h4>
     <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addMinistryModal">Add Ministry</button>
 
-    <div class="row">
-       <?php foreach($homepageMinistries as $hm): ?>
-<div class="col-md-6 col-lg-4 mb-3">
-    <div class="card">
-        <img src="<?php echo BASE_URL.'/assets/images/'.$hm['image_path']; ?>" class="card-img-top" alt="">
-        <div class="card-body">
-            <h5><i class="<?php echo $hm['icon_class']; ?>"></i> <?php echo htmlspecialchars($hm['name']); ?></h5>
-            <p class="text-muted"><?php echo htmlspecialchars($hm['description']); ?></p>
-            <?php if($hm['link_url']): ?>
-                <a href="<?php echo htmlspecialchars($hm['link_url']); ?>" class="btn btn-sm btn-primary">Learn More</a>
-            <?php endif; ?>
-            <button class="btn btn-sm btn-primary" onclick='openEditModal(
-                        <?= $hm["homepage_id"] ?>,
-                        <?= $hm["ministry_id"] ?>,
-                        "<?= htmlspecialchars($hm["link_url"] ?? "", ENT_QUOTES) ?>",
-                        "<?= htmlspecialchars($hm["icon_class"] ?? "", ENT_QUOTES) ?>",
-                        "<?= htmlspecialchars($hm["image_path"] ?? "", ENT_QUOTES) ?>")'> Edit</button>
-                <a href="delete_homepage_ministry.php?id=<?php echo $hm['homepage_id']; ?>" class="btn btn-sm btn-danger">Remove</a>
+  <div class="d-flex gap-3 overflow-auto pb-2">
+    <?php foreach($homepageMinistries as $hm): ?>
+        <div style="min-width:280px; max-width:280px; flex-shrink:0;">
+            <div class="card h-100">
+                 <?php
+                        $defaultImage = BASE_URL . '/assets/images/church_sanctuary.jpg';
+                        $imageSrc = !empty($hm['image_path'])
+                            ? BASE_URL . '/assets/images/' . htmlspecialchars($hm['image_path'])
+                            : $defaultImage;
+                        ?>
+                            <img 
+                                src="<?= $imageSrc; ?>"
+                                class="img-fluid"
+                                alt="<?= htmlspecialchars($hm['name']); ?>"
+                                onerror="this.src='<?= $defaultImage; ?>';"
+                            >
+
+                <div class="card-body">
+                    <h5>
+                        <i class="<?= $hm['icon_class']; ?>"></i>
+                        <?= htmlspecialchars($hm['name']); ?>
+                    </h5>
+
+                    <p class="text-muted">
+                        <?= htmlspecialchars($hm['description']); ?>
+                    </p>
+
+                    <?php if($hm['link_url']): ?>
+                        <a href="<?= htmlspecialchars($hm['link_url']); ?>" class="btn btn-sm btn-primary">
+                            Learn More
+                        </a>
+                    <?php endif; ?>
+
+                    <button class="btn btn-sm btn-primary"
+                        onclick='openEditModal(
+                            <?= $hm["homepage_id"] ?>,
+                            <?= $hm["ministry_id"] ?>,
+                            "<?= htmlspecialchars($hm["link_url"] ?? "", ENT_QUOTES) ?>",
+                            "<?= htmlspecialchars($hm["icon_class"] ?? "", ENT_QUOTES) ?>",
+                            "<?= htmlspecialchars($hm["image_path"] ?? "", ENT_QUOTES) ?>")'>
+                        Edit
+                    </button>
+
+                    <button class="btn btn-sm btn-danger"
+                        onclick="openRemoveModal(<?= $hm['homepage_id']; ?>)">
+                        Remove
+                    </button>
+
+                    <form method="POST" class="d-inline">
+                        <input type="hidden" name="homepage_id" value="<?= $hm['homepage_id']; ?>">
+                        <input type="hidden" name="toggle_homepage_ministry" value="1">
+                        <button class="btn btn-sm <?= $hm['is_active'] ? 'btn-warning' : 'btn-success'; ?>">
+                            <?= $hm['is_active'] ? 'Hide' : 'Show'; ?>
+                        </button>
+                    </form>
+                </div>
             </div>
         </div>
-    </div>
+    <?php endforeach; ?>
 </div>
-<?php endforeach; ?>
-
-    </div>
 </div>
 
 
@@ -844,6 +928,41 @@ if (isset($_POST['edit_homepage_ministry'])) {
   </div>
 </div>
 
+<!-- Remove Modal -->
+ <div class="modal fade" id="removeMinistryModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <form method="POST">
+      <input type="hidden" name="homepage_id" id="removeHomepageId">
+      <input type="hidden" name="remove_homepage_ministry" value="1">
+
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title text-danger">Remove Homepage Ministry</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+
+        <div class="modal-body">
+          <p class="mb-0">
+            Are you sure you want to remove this ministry from the homepage?
+          </p>
+          <small class="text-muted">
+            This action cannot be undone.
+          </small>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">
+            Cancel
+          </button>
+          <button type="submit" class="btn btn-danger">
+            Yes, Remove
+          </button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
 
 
 
@@ -899,6 +1018,16 @@ function openEditModal(id, ministryId, linkUrl, iconClass, imagePath) {
   const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
   modal.show();
 }
+
+function openRemoveModal(id) {
+    document.getElementById('removeHomepageId').value = id;
+
+    const modal = bootstrap.Modal.getOrCreateInstance(
+        document.getElementById('removeMinistryModal')
+    );
+    modal.show();
+}
+
 
 
 

@@ -17,11 +17,33 @@ class HomepageMinistry {
     hm.image_path, 
     hm.link_url,
     hm.icon_class,       -- fetch from homepage_ministries
+    hm.is_active,
     m.name, 
     m.description
 FROM homepage_ministries hm
 JOIN ministries m ON m.id = hm.ministry_id
 ORDER BY hm.id ASC
+
+        ");
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+public function getAllForHomepage() {
+        $stmt = $this->pdo->prepare("
+          SELECT 
+    hm.id AS homepage_id, 
+    hm.ministry_id, 
+    hm.image_path, 
+    hm.link_url,
+    hm.icon_class,       -- fetch from homepage_ministries
+    hm.is_active,
+    m.name, 
+    m.description
+FROM homepage_ministries hm
+JOIN ministries m ON m.id = hm.ministry_id
+WHERE hm.is_active = 1
+ORDER BY hm.id ASC;
 
         ");
         $stmt->execute();

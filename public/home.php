@@ -2,6 +2,17 @@
 // Public Homepage - No authentication required
 session_start();
 require_once __DIR__ . '/../config/config.php';
+require_once __DIR__ . '/../app/models/Ministry.php';
+require_once __DIR__ . '/../app/models/HomepageMinistry.php';
+
+
+
+$ministry = new Ministry();
+$homepageMinistry = new HomepageMinistry();
+
+$homepageMinistries = $homepageMinistry->getAllForHomepage();
+
+
 
 
 // Get church settings from database if available
@@ -20,6 +31,16 @@ $church_instagram = '#';
 $church_tiktok = '#';
 $church_youtube = '#';
 $church_x = '#';
+$church_about_img = BASE_URL . '/assets/images/church_sanctuary.jpg';
+$church_about_text = 'The Methodist Church Ghana is a thriving community of believers dedicated to spreading God\'s word and serving others with compassion and integrity.
+Our mission is to make disciples of Jesus Christ for the transformation of the world. We believe in:
+1. Living out our faith in daily action
+2. Serving the poor and marginalized 
+3. Building strong community connections
+4.Growing spiritually through worship and study';
+$church_logo = BASE_URL . '/assets/images/methodist-logo.png';
+
+
 try {
     require_once(__DIR__ . '/../config/database.php');
     $db = Database::getInstance();
@@ -28,11 +49,32 @@ try {
     foreach ($settings as $setting) {
         if ($setting['setting_key'] === 'church_name') $church_name = $setting['setting_value'];
         if ($setting['setting_key'] === 'church_motto') $church_motto = $setting['setting_value'];
+        if ($setting['setting_key'] === 'church_tagline') $church_tagline = $setting['setting_value'];
+        if ($setting['setting_key'] === 'church_logo') {
+            if($setting['setting_value'] != null ){
+            $church_logo = BASE_URL . '/assets/images/' . $setting['setting_value'];
+            } else{
+                $church_logo = BASE_URL . '/assets/images/methodist-logo.png';
+            }
+        }
         if ($setting['setting_key'] === 'primary_color') $primary_color = $setting['setting_value'];
         if ($setting['setting_key'] === 'secondary_color') $secondary_color = $setting['setting_value'];
         if ($setting['setting_key'] === 'church_address') $church_address = $setting['setting_value'];
         if ($setting['setting_key'] === 'church_email') $church_email = $setting['setting_value'];
         if ($setting['setting_key'] === 'church_phone') $church_phone = $setting['setting_value'];
+        if ($setting['setting_key'] === 'homepage_social_facebook') $church_facebook = $setting['setting_value'];
+        if ($setting['setting_key'] === 'homepage_social_instagram') $church_instagram = $setting['setting_value'];
+        if ($setting['setting_key'] === 'homepage_social_tiktok') $church_tiktok = $setting['setting_value'];
+        if ($setting['setting_key'] === 'homepage_social_youtube') $church_youtube = $setting['setting_value'];
+        if ($setting['setting_key'] === 'homepage_social_x') $church_x = $setting['setting_value'];
+        if ($setting['setting_key'] === 'homepage_about_image') {
+            if($setting['setting_value'] != null ){
+            $church_about_img = BASE_URL . '/assets/images/' . $setting['setting_value'];
+            } else{
+                $church_about_img = BASE_URL . '/assets/images/church_sanctuary.jpg';
+            }
+        }
+        if ($setting['setting_key'] === 'homepage_about_text') $church_about_text = $setting['setting_value'];
     }
 
     $events = $db->fetchAll("SELECT * FROM events WHERE status = 'scheduled' AND event_date >= CURDATE() ORDER BY event_date ");
@@ -63,7 +105,7 @@ try {
     <nav class="navbar navbar-expand-lg navbar-light public-navbar">
         <div class="container-lg">
             <a class="navbar-brand d-flex align-items-center" href="<?php echo BASE_URL;?>/public/home.php">
-                <img src="<?php echo BASE_URL?>/assets/images/methodist-logo.png" alt="Methodist Church Logo" class="me-2" style="height: 50px;">
+                <img src="<?= $church_logo ?>" alt="Methodist Church Logo" class="me-2" style="height: 50px;">
                 <div>
                     <div class="brand-name"><?php echo htmlspecialchars($church_name); ?></div>
                     <small class="brand-motto"><?php echo htmlspecialchars($church_motto); ?></small>
@@ -90,7 +132,7 @@ try {
         <div class="hero-overlay"></div>
         <div class="container-lg h-100 d-flex align-items-center justify-content-center">
             <div class="hero-content text-center text-white">
-                <img src="<?php echo BASE_URL; ?>/assets/images/methodist-logo.png" alt="Methodist Church Logo" class="hero-logo mb-4">
+                <img src="<?= $church_logo ?>" alt="<?= $church_name ?>  Logo" class="hero-logo mb-4">
                 <h1 class="hero-title mb-3"><?php echo htmlspecialchars($church_name); ?></h1>
                 <p class="hero-subtitle mb-4"><?php echo htmlspecialchars($church_motto); ?></p>
                 <p class="hero-tagline mb-5"><?php echo htmlspecialchars($church_tagline); ?></p>
@@ -112,21 +154,22 @@ try {
             <div class="row align-items-center g-4">
                 <div class="col-lg-6">
                     <div class="about-image-wrapper">
-                        <img src="<?php echo BASE_URL; ?>/assets/images/church_sanctuary.jpg" alt="Church Sanctuary" class="img-fluid rounded-3">
+                        <img src="<?= $church_about_img ?>" alt="About Image" class="img-fluid rounded-3">
                     </div>
                 </div>
                 <div class="col-lg-6">
                     <h2 class="section-title mb-3">
                         <i class="fas fa-church me-2"></i>About Our Church
                     </h2>
-                    <p class="lead">The Methodist Church Ghana is a thriving community of believers dedicated to spreading God's word and serving others with compassion and integrity.</p>
+                    <p><?= $church_about_text ?></p>
+                    <!-- <p class="lead">The Methodist Church Ghana is a thriving community of believers dedicated to spreading God's word and serving others with compassion and integrity.</p>
                     <p>Our mission is to make disciples of Jesus Christ for the transformation of the world. We believe in:</p>
                     <ul class="about-list">
                         <li><i class="fas fa-check-circle text-success me-2"></i>Living out our faith in daily action</li>
                         <li><i class="fas fa-check-circle text-success me-2"></i>Serving the poor and marginalized</li>
                         <li><i class="fas fa-check-circle text-success me-2"></i>Building strong community connections</li>
                         <li><i class="fas fa-check-circle text-success me-2"></i>Growing spiritually through worship and study</li>
-                    </ul>
+                    </ul> -->
                 </div>
             </div>
         </div>
@@ -186,8 +229,67 @@ try {
         </div>
     </section>
 
+
+
+
     <!-- Organization Section -->
-    <section id="ministries" class="ministries-section py-5">
+  <section id="ministries" class="ministries-section py-5">
+    <div class="container-lg">
+        <div class="text-center mb-5">
+            <h2 class="section-title mb-3">
+                <i class="fas fa-hands-helping me-2"></i>Our Organizations
+            </h2>
+            <p class="section-subtitle">Find your place to serve and grow</p>
+        </div>
+       <?php if (!empty($homepageMinistries)): ?>
+            <div class="row g-4">
+                <?php foreach ($homepageMinistries as $hm): ?>
+                    <div class="col-md-6 col-lg-4">
+                        <div class="ministry-card">
+                            <div class="ministry-header">
+                            <?php
+                        $defaultImage = BASE_URL . '/assets/images/church_sanctuary.jpg';
+                        $imageSrc = !empty($hm['image_path'])
+                            ? BASE_URL . '/assets/images/' . htmlspecialchars($hm['image_path'])
+                            : $defaultImage;
+                        ?>
+                            <img 
+                                src="<?= $imageSrc; ?>"
+                                class="img-fluid"
+                                alt="<?= htmlspecialchars($hm['name']); ?>"
+                                onerror="this.src='<?= $defaultImage; ?>';"
+                            >
+                                <div class="ministry-overlay">
+                                    <i class="<?= htmlspecialchars($hm['icon_class']); ?>"></i>
+                                </div>
+                            </div>
+                            <div class="ministry-body">
+                                <h4><?= htmlspecialchars($hm['name']); ?></h4>
+                                <p class="text-muted small mb-3"><?= htmlspecialchars($hm['description']); ?></p>
+                                <?php if (!empty($hm['link_url'])): ?>
+                                    <a href="<?= htmlspecialchars($hm['link_url']); ?>" class="btn btn-sm btn-outline-primary">
+                                        Learn More
+                                    </a>
+                                <?php endif; ?>
+                            </div>
+                        </div>
+                    </div>
+                <?php endforeach; ?>
+            </div>
+        <?php else: ?>
+            <!-- Fallback UI -->
+            <div class="text-center py-5">
+                <i class="fas fa-church fa-3x text-muted mb-3"></i>
+                <h5 class="fw-semibold">No ministries are currently displayed</h5>
+                <p class="text-muted mb-0">
+                    Please check back later or contact the church office for more information.
+                </p>
+            </div>
+        <?php endif; ?>
+    </div>
+</section>
+
+    <!-- <section id="ministries" class="ministries-section py-5">
         <div class="container-lg">
             <div class="text-center mb-5">
                 <h2 class="section-title mb-3">
@@ -243,7 +345,7 @@ try {
                 </div>
             </div>
         </div>
-    </section>
+    </section> -->
 
     <!-- News & Announcements Section -->
     <section id="news" class="news-section py-5 bg-light">
@@ -270,7 +372,19 @@ try {
                             <div class="news-date"><?php echo date('M d', strtotime($event['event_date'])); ?></div>
                             <h5 class="news-title"><?php echo htmlspecialchars($event['title']); ?></h5>
                             <p class="text-muted small mb-3"><?php echo htmlspecialchars($event['description']); ?></p>
-                            <a href="#" class="btn btn-sm btn-primary">Read More</a>
+                            <button 
+    class="btn btn-sm btn-primary view-event-btn"
+    data-bs-toggle="modal"
+    data-bs-target="#eventDetailsModal"
+    data-title="<?= htmlspecialchars($event['title']) ?>"
+    data-date="<?= date('F d, Y', strtotime($event['event_date'])) ?>"
+    data-time="<?= date('g:i A', strtotime($event['event_date'])) ?>"
+    data-location="<?= htmlspecialchars($event['location'], ENT_QUOTES, 'UTF-8') ?>"
+    data-description="<?= htmlspecialchars($event['description'], ENT_QUOTES, 'UTF-8') ?>"
+>
+    Read More
+</button>
+
                         </div>
                     </div>
                     <?php endforeach; ?>
@@ -328,7 +442,7 @@ try {
                 <div class="col-md-6 col-lg-3">
                     <div class="footer-section">
                         <h5 class="footer-title">
-                            <img src="<?php echo BASE_URL ?>/assets/images/methodist-logo.png" alt="Logo" style="height: 30px;" class="me-2">
+                            <img src="<?= $church_logo ?>" alt="Logo" style="height: 30px;" class="me-2">
                             <?php echo htmlspecialchars($church_name)?>
                         </h5>
                         <p class="text-muted small"><?php echo htmlspecialchars($church_motto)?> - <?php echo htmlspecialchars($church_tagline)?></p>
@@ -381,9 +495,77 @@ try {
                 </div>
             </div>
         </div>
+
+        <!-- Event Details Modal -->
+<div class="modal fade" id="eventDetailsModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalTitle"></h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <p class="text-muted mb-2">
+                    <i class="fas fa-calendar-alt me-2"></i>
+                    <span id="eventModalDate"></span>
+                </p>
+
+                <p class="text-muted mb-2">
+    <i class="fas fa-clock me-2"></i>
+    <span id="eventModalTime"></span>
+</p>
+
+
+                <p class="text-muted mb-2">
+    <i class="fas fa-map-marker-alt me-2"></i>
+    <span id="eventModalLocation"></span>
+</p>
+
+                <hr>
+                <p id="eventModalDescription" class="text-dark"></p>
+            </div>
+
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal">
+                    Close
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
     </footer>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="<?php echo BASE_URL ?>?>/assets/js/main.js"></script>
+    <script>
+document.addEventListener('DOMContentLoaded', () => {
+    const modal = document.getElementById('eventDetailsModal');
+
+    if (!modal) return;
+
+    modal.addEventListener('show.bs.modal', event => {
+        const button = event.relatedTarget;
+
+        document.getElementById('eventModalTitle').textContent =
+            button.dataset.title;
+
+        document.getElementById('eventModalDate').textContent =
+            button.dataset.date;
+
+        document.getElementById('eventModalTime').textContent =
+    button.dataset.time || 'Time not specified';
+
+        
+         document.getElementById('eventModalLocation').textContent =
+            button.dataset.location || 'Venue to be announced';
+
+        document.getElementById('eventModalDescription').textContent =
+            button.dataset.description;
+    });
+});
+
+</script>
+    <script src="<?php echo BASE_URL ?>/assets/js/main.js"></script>
 </body>
 </html>
