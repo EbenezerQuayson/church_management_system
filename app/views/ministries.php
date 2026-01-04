@@ -5,8 +5,10 @@ $activePage = 'organizations';
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../models/Notifications.php';
+require_once __DIR__ . '/../models/Ministry.php';
 
 $notification = new Notification();
+$ministry = new Ministry();
 
 requireLogin();
 
@@ -87,92 +89,60 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // editing ministry..
     else if ($action === 'edit') {
+        $id = $_POST['id'] ?? null;
 
-        $id = $_POST['id'];
-        
-        $sql = "UPDATE ministries SET 
-                    name = :name,
-                    description = :description,
-                    meeting_day = :meeting_day,
-                    meeting_time = :meeting_time,
-                    location = :location,
-                    leader_email = :leader_email,
-                    status = :status
-                WHERE id = :id";
+        $data = [
+            'name' => trim($_POST['name'] ?? ''),
+            'description' => trim($_POST['description'] ?? ''),
+            'leader_email' => trim($_POST['leader_email'] ?? ''),
+            'meeting_day' => $_POST['meeting_day'] ?? '',
+            'meeting_time' => $_POST['meeting_time'] ?? '',
+            'location' => trim($_POST['location'] ?? ''),
+            'status' => $_POST['status'] ?? 'active'
+        ];
 
-        $stmt = $db->getConnection()->prepare($sql);
-
-        $stmt->bindParam(':name', $_POST['name']);
-        $stmt->bindParam(':description', $_POST['description']);
-        $stmt->bindParam(':meeting_day', $_POST['meeting_day']);
-        $stmt->bindParam(':meeting_time', $_POST['meeting_time']);
-        $stmt->bindParam(':location', $_POST['location']);
-        $stmt->bindParam(':leader_email', $_POST['leader_email']);
-        $stmt->bindParam(':status', $_POST['status']);
-        $stmt->bindParam(':id', $id);
-
-        if ($stmt->execute()) {
-           foreach($admins as $admin){
-           $notification->create(
-                $admin['id'],
-                'Organization Updated',
-                'An organization was updated.',
-                'ministries.php'
-            );
-           }
-              header("Location: ministries.php?msg=updated");
-                exit();
+        if ($id && $ministry->update($id, $data)) {
+            foreach ($admins as $admin) {
+                $notification->create($admin['id'], 'Organization Updated', 'An organization was updated.', 'ministries.php');
+            }
+            header("Location: ministries.php?msg=updated");
+            exit();
         } else {
-              header("Location: ministries.php?msg=update_failed");
-                exit();
+            header("Location: ministries.php?msg=update_failed");
+            exit();
         }
     }
+
 
     // Adding new ministry....
     else if ($action === 'add') {
-         $data = [
-        'name' => trim($_POST['name'] ?? ''),
-        'description' => trim($_POST['description'] ?? ''),
-        'leader_id' => $_POST['leader_id'] ?? null,
-        'leader_email' => trim($_POST['leader_email'] ?? ''),
-        'meeting_day' => $_POST['meeting_day'] ?? '',
-        'meeting_time' => $_POST['meeting_time'] ?? '',
-        'location' => trim($_POST['location'] ?? ''),
-        'status' => $_POST['status'] ?? 'active',
-    ];
+        $data = [
+            'name' => trim($_POST['name'] ?? ''),
+            'description' => trim($_POST['description'] ?? ''),
+            'leader_email' => trim($_POST['leader_email'] ?? ''),
+            'meeting_day' => $_POST['meeting_day'] ?? '',
+            'meeting_time' => $_POST['meeting_time'] ?? '',
+            'location' => trim($_POST['location'] ?? ''),
+            'status' => $_POST['status'] ?? 'active'
+        ];
 
-    if (empty($data['name'])) {
-        $message = 'Ministry name is required';
-        $message_type = 'error';
-    } else {
-        $sql = "INSERT INTO ministries (name, description, leader_id, leader_email, meeting_day, meeting_time, location, status)
-                VALUES (:name, :description, :leader_id, :leader_email, :meeting_day, :meeting_time, :location, :status)";
-        
-        $stmt = $db->getConnection()->prepare($sql);
-        $stmt->bindParam(':name', $data['name']);
-        $stmt->bindParam(':description', $data['description']);
-        $stmt->bindParam(':leader_id', $data['leader_id']);
-        $stmt->bindParam(':leader_email', $data['leader_email']);
-        $stmt->bindParam(':meeting_day', $data['meeting_day']);
-        $stmt->bindParam(':meeting_time', $data['meeting_time']);
-        $stmt->bindParam(':location', $data['location']);
-        $stmt->bindParam(':status', $data['status']);
-
-        if ($stmt->execute()) {
-           foreach($admins as $admin){
-           $notification->create(
-                $admin['id'],
-                'New Organization Added',
-                'A new organization was added.',
-                'ministries.php');}
-              header("Location: ministries.php?msg=added");
-              exit();
-            $ministries = $db->fetchAll("SELECT * FROM ministries WHERE status = 'active' ORDER BY name");
+        if (empty($data['name'])) {
+            $message = 'Ministry name is required';
+            $message_type = 'error';
         } else {
-              header("Location: ministries.php?msg=add_failed");
+            $newId = $ministry->createFull($data);
+
+            if ($newId) {
+                foreach ($admins as $admin) {
+                    $notification->create($admin['id'], 'New Organization Added', 'A new organization was added.', 'ministries.php');
+                }
+                header("Location: ministries.php?msg=added");
                 exit();
+            } else {
+                header("Location: ministries.php?msg=add_failed");
+                exit();
+            }
         }
-    }
     }
     // refresh ministries list after any change
     $ministries = $db->fetchAll("SELECT * FROM ministries WHERE status = 'active' ORDER BY name");

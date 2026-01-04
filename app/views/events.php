@@ -342,7 +342,7 @@ if(isset($_GET['msg'])){
                         </div>
                         <div class="col-md-6 mb-3">
                             <label class="form-label">Location</label>
-                            <input type="text" class="form-control" id="edit_location" name="lo cation">
+                            <input type="text" class="form-control" id="edit_location" name="location">
                         </div>
                     </div>
 

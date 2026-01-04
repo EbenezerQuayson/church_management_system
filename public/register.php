@@ -3,13 +3,14 @@
 
 require_once __DIR__ . '/../config/session.php';
 require_once __DIR__ . '/../config/database.php';
+require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../app/controllers/AuthController.php';
 
 // If already logged in, redirect to dashboard
-if (isLoggedIn()) {
-    header('Location: /app/views/dashboard.php');
-    exit;
-}
+// if (isLoggedIn()) {
+//     header('Location:'. BASE_URL . '/app/views/dashboard.php');
+//     exit;
+// }
 
 $message = '';
 $message_type = '';
