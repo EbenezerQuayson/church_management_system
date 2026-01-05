@@ -128,6 +128,7 @@ function isCollapsed($group, $current){
             </div>
         </div>
 
+
         <div class="menu-group">
             <div class="menu-group-header">
                 <i class="bi bi-box-arrow-right"></i>
@@ -135,6 +136,23 @@ function isCollapsed($group, $current){
         </a></span>
             </div>
         </div>
+
+        <!-- Sidebar Divider -->
+<hr class="sidebar-divider my-3">
+
+<!-- Homepage -->
+<div class="menu-group">
+    <div class="menu-group-header">
+<span>    
+<a class="nav-link" 
+       href="<?= BASE_URL ?>/public/home.php" 
+       target="_blank">
+        <i class="bi bi-house"></i>
+     View Homepage
+    </a>
+</span>
+    </div>
+</div>
     </div>
 </nav>
 <script>

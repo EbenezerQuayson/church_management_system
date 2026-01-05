@@ -50,7 +50,7 @@ $unread_count = $db->fetch("SELECT COUNT(*) AS unread_count FROM notifications W
                 <i class="fas fa-bars"></i>
             </button>
              <a href="dashboard.php" class="btn sidebar-toggle d-md-none">
-                <i class="fas fa-home"></i>
+                <i class="bi bi-speedometer2"></i>
 </a>
             <div class="d-none d-md-flex align-items-center">
                 <img src="<?php echo BASE_URL;?>/assets/images/methodist-logo.png" alt="Logo" style="height: 40px; margin-right: 10px;">
