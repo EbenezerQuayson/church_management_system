@@ -4,12 +4,16 @@ session_start();
 require_once __DIR__ . '/../config/config.php';
 require_once __DIR__ . '/../app/models/Ministry.php';
 require_once __DIR__ . '/../app/models/HomepageMinistry.php';
+require_once __DIR__ . '/../app/models/Program.php';
 
 
 
 $ministry = new Ministry();
 $homepageMinistry = new HomepageMinistry();
 
+$programModal = new Program();
+
+$homepagePrograms = $programModal->getHomepagePrograms();
 $homepageMinistries = $homepageMinistry->getAllForHomepage();
 
 
@@ -185,17 +189,38 @@ try {
                 <p class="section-subtitle">Join us for worship and fellowship throughout the week</p>
             </div>
             <div class="row g-4">
+                <?php if (!empty($homepagePrograms)): ?>
+                    <?php foreach($homepagePrograms as $program): ?>
                 <div class="col-md-6 col-lg-3">
                     <div class="program-card">
                         <div class="program-icon">
-                            <i class="fas fa-music"></i>
+                            <i class="<?= htmlspecialchars($program['icon_class'] ?: 'fas-fa-calendar'); ?>"></i>
                         </div>
-                        <h4>Sunday Worship</h4>
-                        <p class="text-muted mb-2">8:00 AM & 10:00 AM</p>
-                        <p class="small">Experience uplifting worship and inspiring messages in a welcoming atmosphere.</p>
+                        <h4><?= htmlspecialchars($program['title']); ?></h4>
+                        <p class="text-muted mb-2"><?= htmlspecialchars($program['title']); ?></p>
+                        <?php if (!empty($program['description'])): ?>
+                    <p class="small">
+                        <?= htmlspecialchars($program['description']); ?>
+                    </p>
+                <?php endif; ?>
                     </div>
                 </div>
-                <div class="col-md-6 col-lg-3">
+                <?php endforeach?>
+                <?php else: ?>
+
+    <div class="col-12">
+        <div class="alert alert-light text-center py-5 border rounded">
+            <i class="fas fa-info-circle fa-2x mb-3 text-muted"></i>
+            <h5 class="mb-2">Programs Coming Soon</h5>
+            <p class="text-muted mb-0">
+                Our programs will be updated shortly. Please check back later.
+            </p>
+        </div>
+    </div>
+
+<?php endif; ?>
+
+                <!-- <div class="col-md-6 col-lg-3">
                     <div class="program-card">
                         <div class="program-icon">
                             <i class="fas fa-book"></i>
@@ -224,7 +249,7 @@ try {
                         <p class="text-muted mb-2">Thursday 6:00 PM</p>
                         <p class="small">Come together to intercede for our church and community.</p>
                     </div>
-                </div>
+                </div> -->
             </div>
         </div>
     </section>

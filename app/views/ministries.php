@@ -171,6 +171,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <!-- Ministries Grid -->
+     <?php if(!empty($ministries)): ?>    
         <div class="row g-4">
             <?php foreach ($ministries as $m): ?>
                 <div class="col-md-6 col-lg-4">
@@ -203,6 +204,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             <?php endforeach; ?>
         </div>
+        <?php else: ?>
+               <!-- Fallback UI -->
+    <div class="text-center py-5">
+        <div class="mb-3 fs-1 text-muted">
+            <i class="fas fa-calendar-times"></i>
+        </div>
+        <h5 class="fw-bold mb-2">No Organisations Available</h5>
+        <p class="text-muted mb-4">
+            There are currently no active organisations to display.
+        </p>
+        <button class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#addMinistryModal">
+            <i class="fas fa-plus me-1"></i> Add First Organisation
+        </button>
+    </div>
+
+<?php endif; ?>
     </div>
 </div>
 
