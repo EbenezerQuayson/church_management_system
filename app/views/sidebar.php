@@ -55,7 +55,7 @@ function isCollapsed($group, $current){
 
     <!-- Menu Groups -->
     <div class="sidebar-menu-groups">
-        <div class="menu-group">
+    <div class="menu-group"> 
             <div class="menu-group-header"   data-bs-target="#christianManagement" aria-expanded="<?= isCollapsed('christianManagement', $activePage) ? 'true' : 'false' ?>">
                 <i class="bi bi-chevron-down"></i>
                 <span>Christian Management</span>
