@@ -8,6 +8,11 @@ require_once __DIR__ . '/../models/Notifications.php';
 require_once __DIR__ . '/../models/Program.php';
 
 requireLogin();
+$role =$_SESSION['user_role'] ?? null;
+$authorized = in_array($role, ['Admin', 'Leader']);
+
+
+
 
 $notification = new Notification();
 $programModel = new Program();
@@ -29,6 +34,20 @@ ORDER BY display_order ASC, id ASC
 $message = '';
 $message_type = '';
 
+// Session flash messages
+if (isset($_SESSION['error'])) {
+    $message = $_SESSION['error'];
+    $message_type = 'error';
+    unset($_SESSION['error']); // VERY IMPORTANT
+}
+
+if (isset($_SESSION['success'])) {
+    $message = $_SESSION['success'];
+    $message_type = 'success';
+    unset($_SESSION['success']);
+}
+
+
 /* Flash messages */
 if (isset($_GET['msg'])) {
     $map = [
@@ -45,14 +64,30 @@ if (isset($_GET['msg'])) {
     }
 }
 
+
+
+
 /* POST actions */
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $action = $_POST['action'] ?? '';
+    // To prevent Random POSTs, mistyped values and tampering
 
+$allowedActions = ['add', 'edit', 'delete'];
+
+if (!in_array($action, $allowedActions)) {
+    $_SESSION['error'] = 'Invalid action';
+    header('Location: service.php');
+    exit;
+}
     /* Delete */
     if ($action === 'delete') {
-        $id = $_POST['id'] ?? null;
+       $id = isset($_POST['id']) ? (int) $_POST['id'] : null;
+        if ($role !== 'Admin') {
+        $_SESSION['error'] = 'Only admins can delete programs';
+        header('Location: service.php');
+        exit;
+    }
 
         if ($id && $programModel->delete($id)) {
             foreach ($admins as $admin) {
@@ -72,14 +107,20 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     /* Edit */
     if ($action === 'edit') {
-        $id = $_POST['id'] ?? null;
+        $id = isset($_POST['id']) ? (int) $_POST['id'] : null;
+        if (!in_array($role, ['Admin', 'Leader'])) {
+        $_SESSION['error'] = 'You are not allowed to edit programs';
+        header('Location: service.php');
+        exit;
+    }
+
 
         $data = [
             'title'         => trim($_POST['title']),
             'icon_class'    => trim($_POST['icon_class']),
             'schedule_text' => trim($_POST['schedule_text']),
             'description'   => trim($_POST['description']),
-           'is_active'        => $_POST['status'],
+           'is_active' => ($_POST['status'] === '1') ? 1 : 0,
             'display_order' => (int) $_POST['display_order']
         ];
 
@@ -96,12 +137,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     /* Add */
     if ($action === 'add') {
+        if(!in_array($role, ['Admin', 'Leader'])){
+            $_SESSION['error'] = 'You are not allowed to create programs';
+            header('Location: service.php');
+            exit;
+        }
         $data = [
             'title'         => trim($_POST['title']),
             'icon_class'    => trim($_POST['icon_class']),
             'schedule_text' => trim($_POST['schedule_text']),
             'description'   => trim($_POST['description']),
-            'is_active'        => $_POST['status'],
+           'is_active' => ($_POST['status'] === '1') ? 1 : 0,
             'display_order' => (int) $_POST['display_order']
         ];
 
@@ -128,9 +174,11 @@ include 'header.php';
         <h2 class="fw-bold" style="color: var(--primary-color);">
             <i class="fas fa-calendar-alt me-2"></i> Programs & Services
         </h2>
+        <?php if($authorized): ?>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProgramModal">
             <i class="fas fa-plus"></i> Add Program
         </button>
+        <?php endif; ?>
     </div>
 
     <?php if ($message): ?>
@@ -163,7 +211,7 @@ include 'header.php';
                         <button class="btn btn-sm btn-outline-primary"
                                 data-bs-toggle="modal"
                                 data-bs-target="#editProgramModal<?php echo $p['id']; ?>">
-                            Edit
+                            <i class="fas fa-<?= $authorized ? 'edit' : 'eye'; ?> me-1"></i><?= $authorized ? 'Edit' : 'View' ?>
                         </button>
                     </div>
                 </div>
@@ -259,7 +307,7 @@ include 'header.php';
                                   name="description"
                                   rows="3"></textarea>
                     </div>
-
+                    <?php if($role === 'Admin'): ?>
                      <div class="mb-3">
                         <label class="form-label">Display Order</label>
                         <input type="number"
@@ -267,7 +315,7 @@ include 'header.php';
                                name="display_order"
                                value="0">
                     </div>
-
+                    <?php endif; ?>
                     
 
                 </div>
@@ -295,8 +343,10 @@ include 'header.php';
 
             <div class="modal-header" style="background-color: var(--primary-color); color: white;">
                 <h5 class="modal-title">
-                    <i class="fas fa-edit me-1"></i> Edit Program — <?php echo htmlspecialchars($p['title']); ?>
-                </h5>
+    <i class="fas fa-<?php echo $authorized ? 'edit' : 'eye'; ?> me-1"></i>
+    <?php echo $authorized ? 'Edit Program' : 'View Program'; ?>
+</h5>
+
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
 
@@ -305,6 +355,10 @@ include 'header.php';
 
                     <input type="hidden" name="action" value="edit">
                     <input type="hidden" name="id" value="<?php echo $p['id']; ?>">
+                    <?php if (!$authorized): ?>
+    <input type="hidden" name="status" value="<?php echo $p['is_active']; ?>">
+                    <?php endif; ?>
+
 
                     <div class="mb-3">
                         <label class="form-label">Program Title *</label>
@@ -312,6 +366,7 @@ include 'header.php';
                                class="form-control"
                                name="title"
                                value="<?php echo htmlspecialchars($p['title']); ?>"
+                               <?php echo !$authorized ? 'readonly' : ''; ?>
                                required>
                     </div>
 
@@ -319,7 +374,9 @@ include 'header.php';
                         <label class="form-label">Choose an Icon</label>
                         <select class="form-select iconSelectEdit"
                                 name="icon_class"
-                                data-preview="iconPreview<?php echo $p['id']; ?>">
+                                data-preview="iconPreview<?php echo $p['id']; ?>"
+                                <?php echo !$authorized ? 'disabled' : ''; ?>
+                                >
 
                             <option value="">-- Select an icon --</option>
 
@@ -358,6 +415,7 @@ include 'header.php';
                                class="form-control"
                                name="schedule_text"
                                value="<?php echo htmlspecialchars($p['schedule_text']); ?>"
+                               <?php echo !$authorized ? 'readonly' : ''; ?>
                                required>
                     </div>
 
@@ -365,21 +423,25 @@ include 'header.php';
                         <label class="form-label">Description</label>
                         <textarea class="form-control"
                                   name="description"
-                                  rows="3"><?php echo htmlspecialchars($p['description']); ?></textarea>
+                                  rows="3"
+                                  <?php echo !$authorized ? 'readonly' : ''; ?>
+                                  ><?php echo htmlspecialchars($p['description']); ?></textarea>
                     </div>
+                    <?php if ($role === 'Admin'): ?>
                     <div class="row">
                         <div class="col-md-6 mb-3">
                         <label class="form-label">Display Order</label>
                         <input type="number"
                                class="form-control"
                                name="display_order"
-                               value="<?php echo (int) $p['display_order']; ?>">
+                               value="<?php echo (int) $p['display_order']; ?>"
+                               >
                     </div>
 
 
                      <div class="col-md-6 mb-3">
                         <label class="form-label">Status</label>
-                        <select class="form-select" name="status">
+                        <select class="form-select" name="status" >
                             <option value="1" <?php echo $p['is_active'] === 1 ? 'selected' : ''; ?>>
                                 Active
                             </option>
@@ -389,6 +451,7 @@ include 'header.php';
                         </select>
                     </div>
                     </div>
+                    <?php endif; ?>
    
 
 
@@ -398,21 +461,25 @@ include 'header.php';
                 <div class="modal-footer d-flex justify-content-between">
 
     <!-- Delete button (no form here) -->
+     <?php if($role === 'Admin'): ?>
     <button type="button"
             class="btn btn-danger"
             onclick="confirmDeleteProgram(<?php echo $p['id']; ?>)">
         <i class="fas fa-trash-alt me-1"></i> Delete
     </button>
+    <?php endif; ?>
 
     <div>
         <button type="button"
                 class="btn btn-outline-secondary me-2"
                 data-bs-dismiss="modal">
-            Cancel
+            <?= $authorized ? 'Cancel' : 'Close' ?>
         </button>
+        <?php if($authorized): ?>
         <button type="submit" class="btn btn-primary">
             <i class="fas fa-save me-1"></i> Save Changes
         </button>
+        <?php endif; ?>
     </div>
 
 </div>
