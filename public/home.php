@@ -197,7 +197,7 @@ try {
                             <i class="<?= htmlspecialchars($program['icon_class'] ?: 'fas-fa-calendar'); ?>"></i>
                         </div>
                         <h4><?= htmlspecialchars($program['title']); ?></h4>
-                        <p class="text-muted mb-2"><?= htmlspecialchars($program['title']); ?></p>
+                        <p class="text-muted mb-2"><?= htmlspecialchars($program['scheduled_text']); ?></p>
                         <?php if (!empty($program['description'])): ?>
                     <p class="small">
                         <?= htmlspecialchars($program['description']); ?>
