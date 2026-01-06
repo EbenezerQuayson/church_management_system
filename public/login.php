@@ -8,9 +8,20 @@ require_once __DIR__ . '/../app/controllers/AuthController.php';
 
 // If already logged in, redirect to dashboard
 if (isLoggedIn()) {
-    header('Location: ../app/views/dashboard.php');
+
+    $role = $_SESSION['user_role'] ?? 'Member';
+
+    if ($role === 'Treasurer') {
+        header('Location: ../app/views/overview.php');
+    } elseif ($role === 'Leader') {
+        header('Location: ../app/views/members.php');
+    } else {
+        header('Location: ../app/views/dashboard.php');
+    }
+
     exit;
 }
+
 
 $db = Database::getInstance();
 $settings = $db->fetchAll("SELECT * FROM settings");
@@ -34,9 +45,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $auth = new AuthController();
     $result = $auth->login();
     
-    if ($result['success']) {
-        header('Location: ../app/views/dashboard.php');
-        exit;
+   if ($result['success']) {
+
+    $role = $_SESSION['user_role'] ?? 'Member';
+
+    switch ($role) {
+        case 'Treasurer':
+            header('Location: ../app/views/overview.php');
+            break;
+
+        case 'Leader':
+            header('Location: ../app/views/members.php');
+            break;
+
+        case 'Admin':
+            header('Location: ../app/views/dashboard.php');
+            break;
+
+        default:
+            header('Location: ../app/views/dashboard.php');
+    }
+
+    exit;
     } else {
         $message = $result['message'];
         $message_type = 'error';

@@ -8,6 +8,11 @@ $pdo = Database::getInstance()->getConnection();
 
 $userId = $_SESSION['user_id'] ?? null;
 
+$role = $_SESSION['user_role'] ?? null;
+$authorized = in_array($role, ['Admin', 'Leader']);
+
+
+
 $user = null;
 
 if($userId) {
@@ -168,26 +173,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const headers = document.querySelectorAll(".menu-group-header");
 
     headers.forEach(header => {
-        header.addEventListener("click", () => {
-            const targetSelector = header.getAttribute("data-bs-target");
-            const target = document.querySelector(targetSelector);
-            const icon = header.querySelector("i");
+    header.addEventListener("click", () => {
 
-            // Close other groups
-            document.querySelectorAll(".sidebar-menu.show").forEach(openMenu => {
-                if (openMenu !== target) {
-                    new bootstrap.Collapse(openMenu, { toggle: true });
-                    openMenu.previousElementSibling.querySelector("i").classList.remove("rotate");
-                }
-            });
+        const targetSelector = header.getAttribute("data-bs-target");
+        if (!targetSelector) return; // Prevent JS crash
 
-            // Toggle this group
-            new bootstrap.Collapse(target, { toggle: true });
+        const target = document.querySelector(targetSelector);
+        const icon = header.querySelector("i");
 
-            // Toggle chevron rotation
-            icon.classList.toggle("rotate");
+        document.querySelectorAll(".sidebar-menu.show").forEach(openMenu => {
+            if (openMenu !== target) {
+                new bootstrap.Collapse(openMenu, { toggle: true });
+                openMenu.previousElementSibling
+                    ?.querySelector("i")
+                    ?.classList.remove("rotate");
+            }
         });
+
+        new bootstrap.Collapse(target, { toggle: true });
+        icon?.classList.toggle("rotate");
     });
+});
+
 });
 
 </script>
