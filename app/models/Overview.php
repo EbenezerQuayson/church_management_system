@@ -12,9 +12,12 @@ class Overview
     /**
      * Get recent donations and expenses for overview table
      */
-    public function getRecentTransactions(int $limit = 10): array
-    {
-        $sql = "
+   public function getRecentTransactions(int $limit = 10, ?int $year = null): array
+{
+    $yearFilter = $year ? "WHERE YEAR(trans_date) = :year" : "";
+
+    $sql = "
+        SELECT * FROM (
             SELECT 
                 d.donation_date AS trans_date,
                 'Donation' AS type,
@@ -34,17 +37,22 @@ class Overview
             FROM expenses e
             LEFT JOIN expense_categories ec 
                 ON e.category_id = ec.id
+        ) t
+        $yearFilter
+        ORDER BY trans_date DESC
+        LIMIT :limit
+    ";
 
-            ORDER BY trans_date DESC
-            LIMIT :limit
-        ";
+    $stmt = $this->conn->prepare($sql);
+    $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
 
-        $stmt = $this->conn->prepare($sql);
-        $stmt->bindValue(':limit', $limit, PDO::PARAM_INT);
-        $stmt->execute();
-
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    if ($year) {
+        $stmt->bindValue(':year', $year, PDO::PARAM_INT);
     }
+
+    $stmt->execute();
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
 
     public function getMonthlyIncomeExpense(int $year): array
@@ -80,17 +88,19 @@ class Overview
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
-    public function getExpenseBreakdown(): array
+    public function getExpenseBreakdown( int $year): array
 {
     $sql = "
         SELECT ec.name AS category, SUM(e.amount) AS total
         FROM expenses e
         JOIN expense_categories ec ON e.category_id = ec.id
+        WHERE YEAR (e.expense_date) = :year
         GROUP BY ec.id
         ORDER BY total DESC
     ";
 
-    $stmt = $this->conn->query($sql);
+    $stmt = $this->conn->prepare($sql);
+    $stmt ->execute(['year' => $year]);
     return $stmt->fetchAll(PDO::FETCH_ASSOC);
 }
 
