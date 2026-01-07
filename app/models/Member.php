@@ -93,6 +93,10 @@ class Member {
 
 public function create($data)
 {
+
+    // Generate a unique member code
+    $memberCode = 'HEB-' . strtoupper(bin2hex(random_bytes(4))); // Example: HEB-A1B2C3D4
+
     // Check if email already exists
     $checkSql = "SELECT COUNT(*) FROM {$this->table} WHERE email = :email";
     $checkStmt = $this->db->prepare($checkSql);
@@ -104,6 +108,7 @@ public function create($data)
     }
 
     $sql = "INSERT INTO {$this->table} (
+        member_code,
         first_name,
         last_name,
         email,
@@ -121,6 +126,7 @@ public function create($data)
         emergency_phone,
         member_img
     ) VALUES (
+        :member_code,
         :first_name,
         :last_name,
         :email,
@@ -141,6 +147,7 @@ public function create($data)
 
     $stmt = $this->db->prepare($sql);
 
+    $stmt->bindParam(':member_code', $memberCode);
     $stmt->bindParam(':first_name', $data['first_name']);
     $stmt->bindParam(':last_name', $data['last_name']);
     $stmt->bindParam(':email', $data['email']);
@@ -160,6 +167,7 @@ public function create($data)
 
     if ($stmt->execute()) {
         return $this->db->lastInsertId();
+        return $memberCode;
     }
 
     return false;
@@ -423,6 +431,25 @@ public function exists($firstName, $lastName, $email = null, $phone = null) {
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     return $result ? $result['id'] : false;
 }
+
+public function existsByMemberCode(string $code): bool
+{
+    $sql = "SELECT COUNT(*) FROM members WHERE member_code = :code";
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute([':code' => $code]);
+    return $stmt->fetchColumn() > 0;
+}
+
+
+public function getByCode($code)
+{
+    $sql = "SELECT * FROM {$this->table} WHERE member_code = :code";
+    $stmt = $this->db->prepare($sql);
+    $stmt->bindParam(':code', $code);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 
 } 
 ?>

@@ -124,18 +124,14 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_member']) && 
         }
     }
 
+
+
    $newMemberId = $member->create($data);
 
 if ($newMemberId) {
     // Get selected ministries
     $ministryIds = $_POST['ministries'] ?? [];
-    forEach($admins as $admin){
-    $notification->create(
-        $admin['id'],
-        'New Member Added',
-        $data['first_name'] . ' ' . $data['last_name'] . ' was added.',
-        'members.php'
-    );}
+    
     // If none selected, assign default ministry (e.g., id = 1)
     if (empty($ministryIds)) {
         $ministryIds = [1]; // Replace 1 with default ministry ID
