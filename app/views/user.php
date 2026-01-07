@@ -238,15 +238,15 @@ include "sidebar.php";
                 <div class="modal-body">
                     <div class="mb-3">
                         <label>First Name</label>
-                        <input type="text" name="first_name" id="editFirstName" class="form-control" required>
+                        <input type="text" name="first_name" id="editFirstName" class="form-control" disabled readonly>
                     </div>
                     <div class="mb-3">
                         <label>Last Name</label>
-                        <input type="text" name="last_name" id="editLastName" class="form-control" required>
+                        <input type="text" name="last_name" id="editLastName" class="form-control" disabled readonly>
                     </div>
                     <div class="mb-3">
                         <label>Email</label>
-                        <input type="email" name="email" id="editEmail" class="form-control" required>
+                        <input type="email" name="email" id="editEmail" class="form-control" disabled readonly>
                     </div>
                     <div class="mb-3">
                         <label>Role</label>
