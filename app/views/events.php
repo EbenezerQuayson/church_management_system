@@ -8,12 +8,27 @@ require_once __DIR__ . '/../models/Event.php';
 require_once __DIR__ . '/../models/Notifications.php';
 
 requireLogin();
+$role = $_SESSION['user_role'] ?? null;
+$authorized = in_array($role, ['Admin', 'Leader']);
 
 $notification = new Notification();
 $event = new Event();
 $events = $event->getAll();
 $message = '';
 $message_type = '';
+
+// Session flash messages
+if (isset($_SESSION['error'])) {
+    $message = $_SESSION['error'];
+    $message_type = 'error';
+    unset($_SESSION['error']); // VERY IMPORTANT
+}
+
+if (isset($_SESSION['success'])) {
+    $message = $_SESSION['success'];
+    $message_type = 'success';
+    unset($_SESSION['success']);
+}
 
 $user_id = $_SESSION['user_id'];
 $db = Database::getInstance();
@@ -24,6 +39,11 @@ $admins = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.
 //Handle edit event
 if(isset($_POST['edit_event'])){
     $eventId = (int)$_POST['event_id'];
+    if($role !== 'Admin'){
+        $_SESSION['error'] = 'You are not allowed to edit event';
+        header('Location: events.php');
+        exit;
+    }
     $data = [
         'title' => trim($_POST['title'] ?? ''),
         'description' => trim($_POST['description'] ?? ''),
@@ -57,6 +77,11 @@ if(isset($_POST['edit_event'])){
 }
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['edit_event'])) {
+     if($role !== 'Admin'){
+        $_SESSION['error'] = 'You are not allowed to create events';
+        header('Location: events.php');
+        exit;
+    }
     $data = [
         'title' => trim($_POST['title'] ?? ''),
         'description' => trim($_POST['description'] ?? ''),
@@ -91,6 +116,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['edit_event'])) {
 // delete event
 if(isset($_GET['delete'])){
     $eventId = $_GET['delete'];
+     if($role !== 'Admin'){
+        $_SESSION['error'] = 'You are not allowed to delete events';
+        header('Location: events.php');
+        exit;
+    }
     if($event->hardDelete($eventId)){
         foreach($admins as $admin){
       $notification->create(
@@ -154,9 +184,11 @@ if(isset($_GET['msg'])){
         <!-- Page Title -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold" style="color: var(--primary-color);">Events</h2>
+            <?php if($role === 'Admin'):  ?>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEventModal">
                 <i class="fas fa-calendar-plus"></i> Create Event
             </button>
+            <?php endif; ?>
         </div>
 
         <!-- Message Display -->
@@ -237,6 +269,7 @@ if(isset($_GET['msg'])){
                         </div>
 
                         <div class="modal-footer d-flex justify-content-between">
+                            <?php if($role === 'Admin'): ?>
                             
                             <button class="btn btn-sm btn-outline-primary" id="openEditEvent">
                                 <i class="fas fa-edit"></i> Edit
@@ -244,7 +277,7 @@ if(isset($_GET['msg'])){
                             <button class="btn btn-sm btn-outline-danger" id="openDeleteEvent">
                                 <i class="fas fa-trash"></i> Delete
                             </button>
-                        
+                        <?php endif; ?>
 
                             <!-- <button class="btn btn-primary" id="printExpenseBtn">
                             <i class="fas fa-print"></i> Print Receipt

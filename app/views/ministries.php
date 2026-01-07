@@ -13,14 +13,34 @@ $ministry = new Ministry();
 requireLogin();
 
 $user_id = $_SESSION['user_id'];
+$role =$_SESSION['user_role'] ?? null;
+$roleUserName = $_SESSION['user_name'] ?? 'Unknown User';
+
+$authorized = in_array($role, ['Admin', 'Leader']);
+
+
 
 
 $db = Database::getInstance();
 $admins = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
+$leaders = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Leader'");
 
 $ministries = $db->fetchAll("SELECT * FROM ministries WHERE status = 'active' ORDER BY name");
 $message = '';
 $message_type = '';
+
+// Session flash messages
+if (isset($_SESSION['error'])) {
+    $message = $_SESSION['error'];
+    $message_type = 'error';
+    unset($_SESSION['error']); // VERY IMPORTANT
+}
+
+if (isset($_SESSION['success'])) {
+    $message = $_SESSION['success'];
+    $message_type = 'success';
+    unset($_SESSION['success']);
+}
 
 //Logic to prevent resubmission after any refresh
 if(isset($_GET['msg'])){
@@ -60,11 +80,25 @@ if(isset($_GET['msg'])){
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     $action = $_POST['action'] ?? '';
+    // To prevent Random POSTs, mistyped values and tampering
+
+    $allowedActions = ['add', 'edit', 'delete'];
+
+    if (!in_array($action, $allowedActions)) {
+        $_SESSION['error'] = 'Invalid action';
+        header('Location: service.php');
+        exit;
+    }
 
     // deleting ministry
     if ($action === 'delete') {
         $id = $_POST['id'] ?? null;
 
+        if ($role !== 'Admin') {
+        $_SESSION['error'] = 'Only admins can delete organisations';
+        header('Location: ministries.php');
+        exit;
+    }
         if ($id) {
             $stmt = $db->getConnection()->prepare("DELETE FROM ministries WHERE id = :id LIMIT 1");
             $stmt->bindParam(':id', $id);
@@ -74,10 +108,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $notification->create(
                     $admin['id'],
                     'Organization Deleted',
-                    'An organization was deleted.',
+                    'An organization was deleted  by ' . $roleUserName . ' (' . $role . ')',
                     'ministries.php'
                 );
                 }
+                
+                // foreach($leaders as $leader){
+                //     $notification->create(
+                //     $leader['id'],
+                //     'Organization Deleted',
+                //     'An organization was deleted.',
+                //     'ministries.php'
+                // ); }
                 header("Location: ministries.php?msg=deleted");
                 exit();
             } else {
@@ -90,7 +132,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // editing ministry..
     else if ($action === 'edit') {
         $id = $_POST['id'] ?? null;
-
+         if (!in_array($role, ['Admin', 'Leader'])) {
+        $_SESSION['error'] = 'You are not allowed to edit organisations';
+        header('Location: ministries.php');
+        exit;
+    }
         $data = [
             'name' => trim($_POST['name'] ?? ''),
             'description' => trim($_POST['description'] ?? ''),
@@ -103,8 +149,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($id && $ministry->update($id, $data)) {
             foreach ($admins as $admin) {
-                $notification->create($admin['id'], 'Organization Updated', 'An organization was updated.', 'ministries.php');
+                $notification->create($admin['id'], 'Organization Updated', 'An organization was updated  by ' . $roleUserName . ' (' . $role . ')', 'ministries.php');
             }
+
+              foreach($leaders as $leader){
+                    $notification->create(
+                    $leader['id'],
+                    'Organization Updated',
+                    'An organization was updated.',
+                    'ministries.php'
+                ); }
             header("Location: ministries.php?msg=updated");
             exit();
         } else {
@@ -116,6 +170,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
     // Adding new ministry....
     else if ($action === 'add') {
+        if(!in_array($role, ['Admin', 'Leader'])){
+            $_SESSION['error'] = 'You are not allowed to create organisations';
+            header('Location: ministries.php');
+            exit;
+        }
+
         $data = [
             'name' => trim($_POST['name'] ?? ''),
             'description' => trim($_POST['description'] ?? ''),
@@ -134,8 +194,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($newId) {
                 foreach ($admins as $admin) {
-                    $notification->create($admin['id'], 'New Organization Added', 'A new organization was added.', 'ministries.php');
+                    $notification->create($admin['id'], 'New Organization Added', 'A new organization was added  by ' . $roleUserName . ' (' . $role . ')', 'ministries.php');
                 }
+                 foreach($leaders as $leader){
+                    $notification->create(
+                    $leader['id'],
+                    'New Organization Added',
+                    'An organization was added.',
+                    'ministries.php'
+                ); }
                 header("Location: ministries.php?msg=added");
                 exit();
             } else {
@@ -157,9 +224,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <!-- Page Title -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold" style="color: var(--primary-color);">Organizations</h2>
+            <?php if($authorized): ?>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMinistryModal">
                 <i class="fas fa-handshake"></i> Add Organization
             </button>
+            <?php endif; ?>
         </div>
 
         <!-- Message Display -->
@@ -171,6 +240,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <!-- Ministries Grid -->
+     <?php if(!empty($ministries)): ?>    
         <div class="row g-4">
             <?php foreach ($ministries as $m): ?>
                 <div class="col-md-6 col-lg-4">
@@ -203,6 +273,24 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             <?php endforeach; ?>
         </div>
+        <?php else: ?>
+               <!-- Fallback UI -->
+    <div class="text-center py-5">
+        <div class="mb-3 fs-1 text-muted">
+            <i class="fas fa-calendar-times"></i>
+        </div>
+        <h5 class="fw-bold mb-2">No Organisations Available</h5>
+        <p class="text-muted mb-4">
+            There are currently no active organisations to display.
+        </p>
+        <button class="btn btn-primary"
+                data-bs-toggle="modal"
+                data-bs-target="#addMinistryModal">
+            <i class="fas fa-plus me-1"></i> Add First Organisation
+        </button>
+    </div>
+
+<?php endif; ?>
     </div>
 </div>
 
@@ -345,6 +433,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 </div>
          <div class="modal-footer d-flex justify-content-between">
     <!--Delete -->
+    <?php if($role === 'Admin'): ?>
     <form method="POST" onsubmit="return confirm('Are you sure you want to delete this ministry?');">
     <input type="hidden" name="action" value="delete">
     <input type="hidden" name="id" value="<?php echo $m['id']; ?>">
@@ -352,15 +441,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <i class="fas fa-trash-alt me-1"></i> Delete
     </button>
 </form>
-
+<?php endif ?>
     <!--Close + Edit -->
     <div>
         <button type="button" class="btn btn-outline-secondary me-2" data-bs-dismiss="modal">
             Close
         </button>
+        <?php if($authorized): ?>
         <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#editMinistryModal<?php echo $m['id']; ?>">
             <i class="fas fa-edit me-1"></i> Edit
         </button>
+        <?php endif; ?>
     </div>
 
 </div>

@@ -39,13 +39,15 @@ $monthlyExpenses = $expenseModel->getTotalByMonth(date('Y'), date('m'));
 $monthlyExpenses = $monthlyExpenses['total_expense'];
 
 //Overview
-$transactions = $overviewModel->getRecentTransactions(5);
-$monthlyData = $overviewModel->getMonthlyIncomeExpense(date('Y'));
-$expenseBreakdown = $overviewModel->getExpenseBreakdown();
 $currentYear = date('Y');
-$lastYear = $currentYear - 1;
-$current = $overviewModel->getYearTotals($currentYear);
-$previous = $overviewModel->getYearTotals($lastYear);
+$selectedYear = isset($_GET['year']) ? (int) $_GET['year'] : $currentYear;
+$previousYear = $selectedYear - 1;
+$current = $overviewModel->getYearTotals($selectedYear);
+$previous = $overviewModel->getYearTotals($previousYear);
+$transactions = $overviewModel->getRecentTransactions(5, $selectedYear);
+$monthlyData = $overviewModel->getMonthlyIncomeExpense($selectedYear);
+$expenseBreakdown = $overviewModel->getExpenseBreakdown($selectedYear);
+
 $currentIncome = $current['total_income'];
 $currentExpense = $current['total_expenses'];
 $previousExpense = $previous['total_expenses'];
@@ -191,9 +193,27 @@ $count = 1;
         <!-- Income vs Expenses Chart -->
         <div class="col-lg-8">
             <div class="card shadow border-0">
-                <div class="card-header bg-white">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center mb-3">
                     <h5 class="mb-0">Income vs Expenses (Last 12 Months)</h5>
+                <div class="year-selector">
+    <form method="GET" class="d-flex align-items-center gap-2">
+        
+        <select name="year" class="form-select form-select-sm year-select" style="width: 90px;"
+                onchange="this.form.submit()">
+            <?php
+            $currentYear = date('Y');
+            $selectedYear = $_GET['year'] ?? $currentYear;
+
+            for ($y = $currentYear; $y >= $currentYear - 5; $y--) {
+                $selected = ($selectedYear == $y) ? 'selected' : '';
+                echo "<option value='$y' $selected>$y</option>";
+            }
+            ?>
+        </select>
+    </form>
+</div>
                 </div>
+                
                 <div class="card-body">
                     <canvas id="incomeExpenseChart" height="120"></canvas>
                 </div>
@@ -274,18 +294,52 @@ $count = 1;
             datasets: [
                 {
                     label: "Income",
-                    data: incomeData,
+                    data: incomeData, 
+                    borderColor: "rgba(40, 167, 69, 1)",
+                    backgroundColor: "rgba(40, 167, 69, 0.15)",
+                    fill: true,
                     borderWidth: 2,
                     tension: 0.4
                 },
                 {
                     label: "Expenses",
                     data: expenseData,
+                    borderColor: "rgba(220, 53, 69, 1)",
+                    backgroundColor: "rgba(220, 53, 69, 0.15)",
+                    fill: true,
                     borderWidth: 2,
                     tension: 0.4
                 }
             ]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: "Amount (GHS)"
+                },
+                ticks: {
+                    callback: value => "¢" + value.toLocaleString()
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                position: "bottom"
+            },
+            tooltip: {
+                callbacks: {
+                    label: ctx => {
+                        return `${ctx.dataset.label}: ¢${ctx.parsed.y.toLocaleString()}`;
+                    }
+                }
+            }
         }
+    }
     });
 
     new Chart(ctx1,{

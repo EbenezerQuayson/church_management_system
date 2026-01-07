@@ -8,6 +8,24 @@ $pdo = Database::getInstance()->getConnection();
 
 $userId = $_SESSION['user_id'] ?? null;
 
+$role = $_SESSION['user_role'] ?? null;
+
+$menuPermissions = [
+    'christianManagement' => ['Admin', 'Leader', 'Treasurer'],
+    'finance'             => ['Admin', 'Treasurer'],
+    'churchManagement'    => ['Admin', 'Leader'],
+    'notifications'       => ['Admin', 'Leader', 'Treasurer'],
+    'user'                => ['Admin'],
+    'settings'            => ['Admin'],
+];
+
+function canSee($group, $role, $permissions) {
+    return isset($permissions[$group]) && in_array($role, $permissions[$group]);
+}
+
+
+
+
 $user = null;
 
 if($userId) {
@@ -28,7 +46,8 @@ function isCollapsed($group, $current){
         'christianManagement' => ['dashboard', 'members'],
         'finance' => ['income', 'expenses', 'overview'],
         'churchManagement' => ['organizations', 'events', 'attendance', 'service'],
-        'notifications' => ['notifications']
+        'notifications' => ['notifications'],
+        'user' => ['user']
     ];
 
     if(isset($groups[$group]) && in_array($current, $groups[$group])){
@@ -55,7 +74,8 @@ function isCollapsed($group, $current){
 
     <!-- Menu Groups -->
     <div class="sidebar-menu-groups">
-        <div class="menu-group">
+    <?php if(canSee('christianManagement', $role, $menuPermissions)): ?>
+    <div class="menu-group"> 
             <div class="menu-group-header"   data-bs-target="#christianManagement" aria-expanded="<?= isCollapsed('christianManagement', $activePage) ? 'true' : 'false' ?>">
                 <i class="bi bi-chevron-down"></i>
                 <span>Christian Management</span>
@@ -65,7 +85,8 @@ function isCollapsed($group, $current){
                 <li><a href="members.php" class="<?= isActive('members', $activePage) ?>"><i class="bi bi-people"></i> Members</a></li>
             </ul>
         </div>
-
+    <?php endif; ?>
+    <?php if(canSee('finance', $role, $menuPermissions)): ?>
         <div class="menu-group">
             <div class="menu-group-header"  data-bs-target="#finance" aria-expanded="<?= isCollapsed('finance', $activePage) ? 'true' : 'false' ?>">
                 <i class="bi bi-chevron-down"></i>
@@ -77,6 +98,8 @@ function isCollapsed($group, $current){
                 <li><a href="expenses.php" class="<?= isActive('expenses', $activePage) ?>"><i class="fa fa-money-bill-wave"></i> Expenses</a></li>
             </ul>
         </div>
+        <?php endif; ?>
+    <?php if(canSee('churchManagement', $role, $menuPermissions)): ?>
 
         <div class="menu-group">
             <div class="menu-group-header"  data-bs-target="#churchManagement" aria-expanded="<?= isCollapsed('churchManagement', $activePage) ? 'true' : 'false' ?>">
@@ -90,7 +113,8 @@ function isCollapsed($group, $current){
                 <li><a href="service.php" class="<?= isActive('service', $activePage) ?>"><i class="bi bi-calendar2-event"></i> Service Info</a></li>
             </ul>
         </div>
-
+    <?php endif ?>
+    <?php if(canSee('notifications', $role, $menuPermissions)): ?>
         <div class="menu-group">
             <div class="menu-group-header"  data-bs-target="#notifications">
                 <i class="bi bi-chevron-down"></i>
@@ -100,7 +124,19 @@ function isCollapsed($group, $current){
                 <li><a href="notification.php" class="<?= isActive('notifications', $activePage) ?>"><i class="bi bi-bell"></i> All Notifications</a></li>
             </ul>
         </div>
+    <?php endif; ?>
+    <?php if(canSee('user', $role, $menuPermissions)): ?>
 
+     <div class="menu-group">
+            <div class="menu-group-header"  data-bs-target="#user">
+                <i class="bi bi-chevron-down"></i>
+                <span>User Management</span>
+            </div>
+            <ul class="sidebar-menu collapse <?= isCollapsed('user', $activePage) ?>" id="user">
+                <li><a href="user.php" class="<?= isActive('user', $activePage) ?>"><i class="bi bi-person-gear"></i> User Settings</a></li>
+            </ul>
+        </div>
+    <?php endif; ?>
         <!-- <div class="menu-group">
             <div class="menu-group-header"  data-bs-target="#sms">
                 <i class="bi bi-chevron-down"></i>
@@ -120,6 +156,7 @@ function isCollapsed($group, $current){
                 <li><a href="settings-profile.php" class="<?= isActive('settings-profile', $activePage) ?>"><i class="bi bi-person-gear"></i> Users</a></li>
             </ul>
         </div> -->
+    <?php if(canSee('settings', $role, $menuPermissions)): ?>
 
         <div class="menu-group">
             <div class="menu-group-header">
@@ -127,6 +164,8 @@ function isCollapsed($group, $current){
                 <span><a href="<?php echo BASE_URL; ?>/app/views/settings.php" class="menu-link <?= isActive('settings', $activePage) ?>">Settings</a></span>
             </div>
         </div>
+    <?php endif; ?>
+
 
         <div class="menu-group">
             <div class="menu-group-header">
@@ -135,6 +174,23 @@ function isCollapsed($group, $current){
         </a></span>
             </div>
         </div>
+
+        <!-- Sidebar Divider -->
+<hr class="sidebar-divider my-3">
+
+<!-- Homepage -->
+<div class="menu-group">
+    <div class="menu-group-header">
+<span>    
+<a class="nav-link" 
+       href="<?= BASE_URL ?>/public/home.php" 
+       target="<?= in_array($role, ['Admin']) ? '_blank' : '' ?>">
+        <i class="bi bi-house"></i>
+     View Homepage
+    </a>
+</span>
+    </div>
+</div>
     </div>
 </nav>
 <script>
@@ -150,26 +206,28 @@ document.addEventListener("DOMContentLoaded", () => {
     const headers = document.querySelectorAll(".menu-group-header");
 
     headers.forEach(header => {
-        header.addEventListener("click", () => {
-            const targetSelector = header.getAttribute("data-bs-target");
-            const target = document.querySelector(targetSelector);
-            const icon = header.querySelector("i");
+    header.addEventListener("click", () => {
 
-            // Close other groups
-            document.querySelectorAll(".sidebar-menu.show").forEach(openMenu => {
-                if (openMenu !== target) {
-                    new bootstrap.Collapse(openMenu, { toggle: true });
-                    openMenu.previousElementSibling.querySelector("i").classList.remove("rotate");
-                }
-            });
+        const targetSelector = header.getAttribute("data-bs-target");
+        if (!targetSelector) return; // Prevent JS crash
 
-            // Toggle this group
-            new bootstrap.Collapse(target, { toggle: true });
+        const target = document.querySelector(targetSelector);
+        const icon = header.querySelector("i");
 
-            // Toggle chevron rotation
-            icon.classList.toggle("rotate");
+        document.querySelectorAll(".sidebar-menu.show").forEach(openMenu => {
+            if (openMenu !== target) {
+                new bootstrap.Collapse(openMenu, { toggle: true });
+                openMenu.previousElementSibling
+                    ?.querySelector("i")
+                    ?.classList.remove("rotate");
+            }
         });
+
+        new bootstrap.Collapse(target, { toggle: true });
+        icon?.classList.toggle("rotate");
     });
+});
+
 });
 
 </script>

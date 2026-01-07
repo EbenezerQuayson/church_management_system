@@ -12,6 +12,31 @@ require_once __DIR__ . '/../app/controllers/AuthController.php';
 //     exit;
 // }
 
+requireLogin();
+
+if ($_SESSION['user_role'] !== 'Admin') {
+    header('Location: dashboard.php');
+    exit;
+}
+
+
+
+
+$db = Database::getInstance();
+$settings = $db->fetchAll("SELECT * FROM settings");
+
+foreach ($settings as $setting){
+ if ($setting['setting_key'] === 'church_name') $church_name = $setting['setting_value'];
+  if ($setting['setting_key'] === 'church_logo') {
+            if($setting['setting_value'] != null ){
+            $church_logo = BASE_URL . '/assets/images/' . $setting['setting_value'];
+            } else{
+                $church_logo = BASE_URL . '/assets/images/methodist-logo.png';
+            }
+        }
+}
+
+
 $message = '';
 $message_type = '';
 
@@ -35,7 +60,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register - The Methodist Church Ghana</title>
+    <title>Register - <?= $church_name ?></title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -163,8 +188,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 <div class="card-body">
                     <!-- Logo Section -->
                     <div class="logo-section">
-                        <img src="../assets/images/methodist-logo.png" alt="Methodist Church Logo">
-                        <h1>The Methodist Church Ghana</h1>
+                     <img src="<?= $church_logo ?> "alt="<?= $church_name ?> Logo">
+                       <h1><?= $church_name ?></h1>
                         <p>Create Account</p>
                     </div>
 
@@ -205,10 +230,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                             <label for="role_id" class="form-label">User Role</label>
                             <select class="form-control" id="role_id" name="role_id" required>
                                 <option value="">Select a role</option>
-                                <option value="4" disabled >Member</option>
-                                <option value="3" disabled>Leader</option>
-                                <option value="2" disabled>Pastor</option>
                                 <option value="1">Admin</option>
+                                 <!-- <option value="4"  >Member</option> -->
+                                <option value="3" >Leader</option>
+                                <!-- <option value="2" >Pastor</option> -->
+                                <option value="6" >Treasurer</option>
+                                <!-- <option value="5" >Staff</option> -->
                             </select>
                         </div>
 

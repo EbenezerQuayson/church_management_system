@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Dec 31, 2025 at 11:44 PM
+-- Generation Time: Jan 04, 2026 at 04:18 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -37,6 +37,14 @@ CREATE TABLE `attendance` (
   `created_at` timestamp NOT NULL DEFAULT current_timestamp()
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
+--
+-- Dumping data for table `attendance`
+--
+
+INSERT INTO `attendance` (`id`, `member_id`, `event_id`, `attendance_date`, `status`, `notes`, `created_at`) VALUES
+(5, 130, NULL, '2026-01-03', 'present', '', '2026-01-03 01:09:11'),
+(7, 137, NULL, '2026-01-03', 'present', '', '2026-01-03 01:19:36');
+
 -- --------------------------------------------------------
 
 --
@@ -59,18 +67,18 @@ CREATE TABLE `donations` (
 --
 
 INSERT INTO `donations` (`id`, `member_id`, `amount`, `donation_type`, `donation_date`, `notes`, `created_at`, `income_source`) VALUES
-(3, NULL, 400.00, 'Tithe', '2025-11-08', 'Tithe', '2025-12-01 19:06:48', 'anonymous'),
+(3, 134, 400.00, 'Tithe', '2025-11-08', 'Tithe', '2025-12-01 19:06:48', 'member'),
 (4, NULL, 690.00, 'Service Offering', '2025-12-01', 'Service', '2025-12-05 03:58:04', 'service_total'),
 (7, 136, 120.00, 'Service Offering', '2025-12-01', 'Amy Plegde', '2025-12-05 03:59:55', 'member'),
-(9, NULL, 1200.00, 'General', '2025-12-07', 'service_total', '2025-12-13 12:27:39', 'service_total'),
-(16, NULL, 5000.00, 'General', '2025-03-14', 'Teasdt dfisd', '2025-12-25 16:48:18', 'service_total'),
+(9, NULL, 1200.00, 'Service Offering', '2025-12-07', 'Sunday\'s total offetory', '2025-12-13 12:27:39', 'service_total'),
+(16, NULL, 5000.00, 'Meeting', '2025-03-14', 'Teasdt dfisd', '2025-12-25 16:48:18', 'service_total'),
 (18, NULL, 1200.00, 'Other', '2025-02-05', 'dhjsjd', '2025-12-25 18:08:35', 'anonymous'),
 (21, 130, 3200.00, 'Other', '2025-07-06', 'sfhsd', '2025-12-27 23:57:25', 'member'),
 (22, NULL, 2000.00, 'Missions', '2025-06-08', 'fjdhs', '2025-12-28 00:04:32', 'anonymous'),
-(23, NULL, 1500.00, 'General', '2025-04-28', 'etywrq', '2025-12-28 00:12:09', 'member'),
+(23, NULL, 1500.00, 'Meeting', '2025-04-28', 'dfg', '2025-12-28 00:12:09', 'member'),
 (24, NULL, 690.00, 'Service Tithe', '2025-08-31', 'paid in cash', '2025-12-28 00:28:31', 'member'),
-(25, NULL, 3050.00, 'General', '2025-09-28', 'asdfghjkl', '2025-12-28 01:13:59', 'anonymous'),
-(26, 37, 1250.00, 'General', '2025-10-05', 'sdfghjk', '2025-12-28 01:15:24', 'member');
+(25, NULL, 3050.00, 'Meeting', '2025-09-28', 'asdfghjkl', '2025-12-28 01:13:59', 'member'),
+(26, 37, 1250.00, 'Service Offering', '2025-10-05', 'sdfghjk', '2025-12-28 01:15:24', 'member');
 
 -- --------------------------------------------------------
 
@@ -96,9 +104,10 @@ CREATE TABLE `events` (
 --
 
 INSERT INTO `events` (`id`, `title`, `description`, `event_date`, `location`, `capacity`, `organizer_id`, `status`, `created_at`, `updated_at`) VALUES
-(13, 'New Year Prayers & Fasting', 'Begin the new year with us in prayer and fasting. Let\'s seek God\'s guidance and blessings for 2026.', '2026-01-01 00:00:00', 'Church auditorium', 1500, 1, 'scheduled', '2025-11-29 23:21:22', '2025-12-25 01:55:46'),
-(14, 'Community Food Drive', 'Participate in our community food drive to help provide nutritious meals to families in need.', '2026-01-12 07:30:00', 'Church Community', 500, 1, 'scheduled', '2025-11-29 23:22:44', '2025-12-25 01:55:37'),
-(15, '31st Watch Night', 'Join us for our all night service as we crossover into the next year in victory', '2025-12-31 21:30:00', 'Church Premise', 1200, 1, 'ongoing', '2025-11-29 23:28:36', '2025-12-29 02:18:10');
+(13, 'New Year Prayers & Fasting', 'Begin the new year with us in prayer and fasting. Let\'s seek God\'s guidance and blessings for 2026.', '2026-01-01 00:00:00', 'Church Premises', 1500, 1, 'scheduled', '2025-11-29 23:21:22', '2026-01-04 02:13:42'),
+(14, 'Community Food Drive', 'Participate in our community food drive to help provide nutritious meals to families in need.', '2026-01-12 07:30:00', 'Church Premise', 500, 1, 'scheduled', '2025-11-29 23:22:44', '2026-01-04 02:13:10'),
+(15, '31st Watch Night', 'Join us for our all night service as we crossover into the next year in victory', '2025-12-31 21:30:00', 'Church Premises', 1200, 1, 'completed', '2025-11-29 23:28:36', '2026-01-04 02:13:56'),
+(16, 'National Fasting and Prayers', 'Fasting and prayers for the new year 2026', '2026-01-11 06:30:00', 'Church Premises', 40, 1, 'scheduled', '2026-01-04 00:37:10', '2026-01-04 02:13:30');
 
 -- --------------------------------------------------------
 
@@ -159,33 +168,24 @@ INSERT INTO `expense_categories` (`id`, `name`, `description`, `created_at`) VAL
 
 CREATE TABLE `homepage_ministries` (
   `id` int(11) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `description` text NOT NULL,
-  `icon_class` varchar(100) DEFAULT NULL,
+  `ministry_id` int(11) NOT NULL,
   `image_path` varchar(255) DEFAULT NULL,
   `link_url` varchar(255) DEFAULT NULL,
-  `sort_order` int(11) DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
-
--- --------------------------------------------------------
-
---
--- Table structure for table `homepage_programs`
---
-
-CREATE TABLE `homepage_programs` (
-  `id` int(11) NOT NULL,
-  `title` varchar(255) NOT NULL,
-  `description` text NOT NULL,
-  `day_time` varchar(100) DEFAULT NULL,
+  `position` int(11) DEFAULT 0,
   `icon_class` varchar(100) DEFAULT NULL,
-  `image_path` varchar(255) DEFAULT NULL,
-  `sort_order` int(11) DEFAULT 0,
-  `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
-  `updated_at` timestamp NOT NULL DEFAULT current_timestamp() ON UPDATE current_timestamp()
+  `is_active` tinyint(1) DEFAULT 1
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Dumping data for table `homepage_ministries`
+--
+
+INSERT INTO `homepage_ministries` (`id`, `ministry_id`, `image_path`, `link_url`, `position`, `icon_class`, `is_active`) VALUES
+(1, 12, 'uploads/homepage/69589f60d24f2_Screenshot 2026-01-03 044652.png', '', 0, 'fas fa-child', 0),
+(3, 1, 'uploads/homepage/69593ab35ed52_church_sanctuary.jpg', '', 0, 'fas fa-church', 1),
+(4, 2, 'uploads/homepage/69593b7f31942_church_sanctuary.jpg', '', 0, 'fas fa-music', 0),
+(5, 3, 'uploads/homepage/69593ba6ea0ea_church_sanctuary.jpg', '', 0, 'fas fa-hand-holding-heart', 1),
+(6, 14, '', '', 0, 'fas fa-hands-helping', 1);
 
 -- --------------------------------------------------------
 
@@ -231,8 +231,8 @@ INSERT INTO `members` (`id`, `user_id`, `first_name`, `last_name`, `email`, `pho
 (73, NULL, 'Joseph', 'Agyeman', 'joseph.agyeman@gmail.com', '0278893451', '1995-06-25', 'Male', '2021-11-05', 'active', 'Behind Suame Magazine', 'Kumasi', 'Suame', NULL, NULL, 'Ashanti', 'Linda Agyeman', '0246678123', NULL, '2025-12-29 00:08:30', '2025-12-29 00:08:30'),
 (74, NULL, 'Priscilla', 'Boateng', 'priscilla.boateng@gmail.com', '0557812394', '2000-12-19', 'Female', '2022-07-21', 'active', 'Community 11 Junction', 'Tema', 'Community 11', NULL, NULL, 'Greater Accra', 'Esther Boateng', '0556678211', NULL, '2025-12-29 00:08:30', '2025-12-29 00:08:30'),
 (75, NULL, 'Michael', 'Asare', 'michael.asare@gmail.com', '0249982314', '1992-02-14', 'Male', '2020-05-30', 'active', 'Effiduase Main Road', 'Koforidua', 'Effiduase', NULL, NULL, 'Eastern', 'Peter Asare', '0243345678', NULL, '2025-12-29 00:08:30', '2025-12-29 00:08:30'),
-(128, NULL, 'Emmanuel', 'Tetteh', 'emmanuel.tetteh@gmail.com', '547812234', '1997-10-01', 'Male', '2025-12-31', 'active', 'Near Asokwa Police Station', 'Accra', 'Nungua', '', '', 'Greater Accra', 'Comfort Tetteh', '247811223', NULL, '2025-12-29 00:36:44', '2025-12-31 03:28:11'),
-(129, NULL, 'Deborah', 'Sackey', 'deborah.sackey@gmail.com', '241123987', '2002-01-27', 'Female', '2024-01-07', 'active', 'Behind Suame Magazine', 'Cape Coast', 'Abura', NULL, NULL, 'Central', 'Isaac Sackey', '245566778', NULL, '2025-12-29 00:36:44', '2025-12-29 00:36:44'),
+(128, NULL, 'Emmanuel', 'Tetteh', 'emmanuel.tetteh@gmail.com', '547812234', '1997-10-01', 'Male', '2026-01-03', 'active', 'Near Asokwa Police Station', 'Accra', 'Nungua', '', '', 'Greater Accra', 'Comfort Tetteh', '247811223', NULL, '2025-12-29 00:36:44', '2026-01-03 01:01:44'),
+(129, NULL, 'Deborah', 'Sackey', 'deborah.sackey@gmail.com', '241123987', '2002-01-27', 'Female', '2026-01-03', 'active', 'Behind Suame Magazine', 'Cape Coast', 'Abura', '', '', 'Central', 'Isaac Sackey', '245566778', NULL, '2025-12-29 00:36:44', '2026-01-03 01:01:49'),
 (130, NULL, 'Stephen', 'Adu', 'stephen.adu@gmail.com', '276654321', '1994-03-09', 'Male', '2019-10-12', 'active', 'Community 11 Junction', 'Sunyani', 'Newtown', NULL, NULL, 'Bono', 'Martha Adu', '209988776', NULL, '2025-12-29 00:36:44', '2025-12-29 00:36:44'),
 (131, NULL, 'Grace', 'Nyarko', 'grace.nyarko@gmail.com', '503456789', '1996-05-17', 'Female', '2020-06-22', 'active', 'Effiduase Main Road', 'Obuasi', 'Sanso', NULL, NULL, 'Ashanti', 'Daniel Nyarko', '501122334', NULL, '2025-12-29 00:36:44', '2025-12-29 00:36:44'),
 (132, NULL, 'Joshua', 'Osei', 'joshua.osei@gmail.com', '245567123', '2003-07-11', 'Male', '2024-02-15', 'active', 'Madina Zongo Junction', 'Akosombo', 'Zongo', NULL, NULL, 'Eastern', 'Mercy Osei', '246677889', NULL, '2025-12-29 00:36:44', '2025-12-29 00:36:44'),
@@ -255,7 +255,8 @@ INSERT INTO `members` (`id`, `user_id`, `first_name`, `last_name`, `email`, `pho
 (149, NULL, 'Vivian', 'Asiedu', 'vivian.asiedu@gmail.com', '501122334', '1998-12-22', 'Female', '2022-05-18', 'active', 'Behind Suame Magazine', 'Suhum', 'Estate', NULL, NULL, 'Eastern', 'Daniel Asiedu', '509988775', NULL, '2025-12-29 00:36:44', '2025-12-29 00:36:44'),
 (150, NULL, 'Philip', 'Kwarteng', 'philip.kwarteng@gmail.com', '247788990', '1987-04-11', 'Male', '2015-02-06', 'active', 'Community 11 Junction', 'Bekwai', 'Central', NULL, NULL, 'Ashanti', 'Martha Kwarteng', '243344557', NULL, '2025-12-29 00:36:44', '2025-12-29 00:36:44'),
 (151, NULL, 'Sharon', 'Mensima', 'sharon.mensima@gmail.com', '553344667', '2002-08-26', 'Female', '2023-10-12', 'active', 'Effiduase Main Road', 'Accra', 'Kasoa', NULL, NULL, 'Greater Accra', 'Peter Mensima', '557788992', NULL, '2025-12-29 00:36:44', '2025-12-29 00:36:44'),
-(152, NULL, 'Daniel', 'Mensah', 'daniel.mensah@gmail.com', '0245123890', '1998-04-12', 'Male', '2022-01-16', 'active', 'Madina Zongo Junction', 'Accra', 'Madina', NULL, NULL, 'Greater Accra', 'Grace Mensah', '0247894561', NULL, '2025-12-31 03:31:55', '2025-12-31 03:31:55');
+(152, NULL, 'Daniel', 'Mensah', 'daniel.mensah@gmail.com', '0245123890', '1998-04-12', 'Male', '2026-01-03', 'active', 'Madina Zongo Junction', 'Accra', 'Madina', '', '', 'Greater Accra', 'Grace Mensah', '0247894561', NULL, '2025-12-31 03:31:55', '2026-01-03 01:01:34'),
+(153, NULL, 'Danilo', 'Maestro', 'danilo.maestro@gmail.com', '245163890', '1998-04-12', 'Male', '2022-01-16', 'active', 'Madina Zongo Junction', 'Accra', 'Madina', NULL, NULL, 'Greater Accra', 'Grace Mensah', '0247894561', NULL, '2026-01-03 02:57:14', '2026-01-03 02:57:14');
 
 -- --------------------------------------------------------
 
@@ -284,7 +285,7 @@ CREATE TABLE `ministries` (
 INSERT INTO `ministries` (`id`, `name`, `description`, `leader_id`, `leader_email`, `meeting_day`, `meeting_time`, `location`, `status`, `created_at`, `updated_at`) VALUES
 (1, 'Church Commitee', 'Default ministry for all church members', NULL, 'joe@gmail.com', 'sunday', '07:00:00', 'Church Premises', 'active', '2025-11-27 15:29:56', '2025-12-28 01:24:56'),
 (2, 'Music Ministry', 'Our blessed musicians lead worship and create meaningful spiritual experiences.', NULL, 'joseph@gmail.com', 'saturday', '18:00:00', 'Church Premise', 'active', '2025-11-30 10:07:36', '2025-12-05 03:14:31'),
-(3, 'Community Outreach', 'We serve our community through charity work and social justice initiatives.', NULL, 'james@cole.com', 'saturday', '07:00:00', 'Church Community', 'active', '2025-11-30 10:09:25', '2025-12-05 02:56:54'),
+(3, 'Community Outreach', 'We serve our community through charity work and social justice initiatives.', NULL, 'james@cole.com', 'saturday', '07:00:00', 'Church Community', 'active', '2025-11-30 10:09:25', '2026-01-03 02:56:42'),
 (6, 'Ushering Department', 'sdhjfkdfjskskdjkdsdsd', NULL, 'joe@doe.com', 'sunday', '21:12:00', 'Church Premise', 'active', '2025-12-23 18:09:45', '2025-12-23 18:09:45'),
 (8, 'V2D', NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-12-24 19:42:56', '2025-12-24 19:42:56'),
 (11, 'Youth', NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-12-28 23:46:01', '2025-12-28 23:46:01'),
@@ -294,7 +295,8 @@ INSERT INTO `ministries` (`id`, `name`, `description`, `leader_id`, `leader_emai
 (15, 'Protocol', NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-12-28 23:46:01', '2025-12-28 23:46:01'),
 (16, 'Security', NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-12-28 23:46:01', '2025-12-28 23:46:01'),
 (17, 'Elders', NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-12-28 23:46:01', '2025-12-28 23:46:01'),
-(18, 'Media', NULL, NULL, NULL, NULL, NULL, NULL, 'active', '2025-12-31 03:31:55', '2025-12-31 03:31:55');
+(18, 'Media', 'asdfghjkl', NULL, '', 'saturday', '00:00:00', 'Church auditorium', 'active', '2025-12-31 03:31:55', '2026-01-03 02:55:45'),
+(19, 'Women\'s ministry', '', NULL, '', '', '00:00:00', '', 'active', '2026-01-03 03:43:10', '2026-01-03 03:43:10');
 
 -- --------------------------------------------------------
 
@@ -340,7 +342,6 @@ INSERT INTO `ministry_members` (`id`, `ministry_id`, `member_id`, `role`, `joine
 (148, 13, 73, 'Member', '2021-11-05', '2025-12-29 00:24:41'),
 (149, 14, 74, 'Member', '2022-07-21', '2025-12-29 00:24:41'),
 (150, 15, 75, 'Member', '2020-05-30', '2025-12-29 00:24:41'),
-(206, 12, 129, 'Member', '2024-01-07', '2025-12-29 00:36:44'),
 (207, 16, 130, 'Member', '2019-10-12', '2025-12-29 00:36:44'),
 (208, 13, 131, 'Member', '2020-06-22', '2025-12-29 00:36:44'),
 (209, 11, 132, 'Member', '2024-02-15', '2025-12-29 00:36:44'),
@@ -367,13 +368,16 @@ INSERT INTO `ministry_members` (`id`, `ministry_id`, `member_id`, `role`, `joine
 (246, 13, 73, 'Member', '2021-11-05', '2025-12-30 12:26:00'),
 (247, 14, 74, 'Member', '2022-07-21', '2025-12-30 12:26:00'),
 (248, 15, 75, 'Member', '2020-05-30', '2025-12-30 12:26:00'),
-(252, 11, 128, 'Member', '2025-12-31', '2025-12-31 03:28:11'),
-(253, 18, 152, 'Member', '2022-01-16', '2025-12-31 03:31:55'),
-(254, 11, 152, 'Member', '2022-01-16', '2025-12-31 03:31:55'),
 (255, 12, 72, 'Member', '2023-03-10', '2025-12-31 03:31:55'),
 (256, 13, 73, 'Member', '2021-11-05', '2025-12-31 03:31:55'),
 (257, 14, 74, 'Member', '2022-07-21', '2025-12-31 03:31:55'),
-(258, 15, 75, 'Member', '2020-05-30', '2025-12-31 03:31:55');
+(258, 15, 75, 'Member', '2020-05-30', '2025-12-31 03:31:55'),
+(259, 11, 152, 'Member', '2026-01-03', '2026-01-03 01:01:34'),
+(260, 18, 152, 'Member', '2026-01-03', '2026-01-03 01:01:34'),
+(261, 11, 128, 'Member', '2026-01-03', '2026-01-03 01:01:44'),
+(262, 12, 129, 'Member', '2026-01-03', '2026-01-03 01:01:49'),
+(263, 18, 153, 'Member', '2022-01-16', '2026-01-03 02:57:14'),
+(264, 11, 153, 'Member', '2022-01-16', '2026-01-03 02:57:14');
 
 -- --------------------------------------------------------
 
@@ -685,33 +689,130 @@ INSERT INTO `notifications` (`id`, `user_id`, `title`, `message`, `category`, `l
 (285, 1, 'Member Deleted', 'A member was deleted.', 'general', NULL, 1, '2025-12-30 23:03:22', '2025-12-31 01:09:30', NULL),
 (286, 2, 'Member Deleted', 'A member was deleted.', 'general', NULL, 0, '2025-12-30 23:03:22', '2025-12-30 23:03:22', NULL),
 (287, 3, 'Member Deleted', 'A member was deleted.', 'general', NULL, 0, '2025-12-30 23:03:22', '2025-12-30 23:03:22', NULL),
-(288, 1, 'Member Updated', 'Emmanuella Tetteh was updated.', 'general', NULL, 0, '2025-12-31 03:28:01', '2025-12-31 03:28:01', NULL),
+(288, 1, 'Member Updated', 'Emmanuella Tetteh was updated.', 'general', NULL, 1, '2025-12-31 03:28:01', '2026-01-03 00:57:23', NULL),
 (289, 2, 'Member Updated', 'Emmanuella Tetteh was updated.', 'general', NULL, 0, '2025-12-31 03:28:01', '2025-12-31 03:28:01', NULL),
 (290, 3, 'Member Updated', 'Emmanuella Tetteh was updated.', 'general', NULL, 0, '2025-12-31 03:28:01', '2025-12-31 03:28:01', NULL),
-(291, 1, 'Member Updated', 'Emmanuel Tetteh was updated.', 'general', NULL, 0, '2025-12-31 03:28:11', '2025-12-31 03:28:11', NULL),
+(291, 1, 'Member Updated', 'Emmanuel Tetteh was updated.', 'general', NULL, 1, '2025-12-31 03:28:11', '2026-01-03 00:57:23', NULL),
 (292, 2, 'Member Updated', 'Emmanuel Tetteh was updated.', 'general', NULL, 0, '2025-12-31 03:28:11', '2025-12-31 03:28:11', NULL),
 (293, 3, 'Member Updated', 'Emmanuel Tetteh was updated.', 'general', NULL, 0, '2025-12-31 03:28:11', '2025-12-31 03:28:11', NULL),
-(294, 1, 'Members Imported', '0 members were successfully imported.', 'general', NULL, 0, '2025-12-31 03:31:30', '2025-12-31 03:31:30', NULL),
+(294, 1, 'Members Imported', '0 members were successfully imported.', 'general', NULL, 1, '2025-12-31 03:31:30', '2026-01-03 00:57:23', NULL),
 (295, 2, 'Members Imported', '0 members were successfully imported.', 'general', NULL, 0, '2025-12-31 03:31:30', '2025-12-31 03:31:30', NULL),
 (296, 3, 'Members Imported', '0 members were successfully imported.', 'general', NULL, 0, '2025-12-31 03:31:30', '2025-12-31 03:31:30', NULL),
-(297, 1, 'Members Imported', '5 members were successfully imported.', 'general', NULL, 0, '2025-12-31 03:31:55', '2025-12-31 03:31:55', NULL),
+(297, 1, 'Members Imported', '5 members were successfully imported.', 'general', NULL, 1, '2025-12-31 03:31:55', '2026-01-03 00:57:23', NULL),
 (298, 2, 'Members Imported', '5 members were successfully imported.', 'general', NULL, 0, '2025-12-31 03:31:55', '2025-12-31 03:31:55', NULL),
 (299, 3, 'Members Imported', '5 members were successfully imported.', 'general', NULL, 0, '2025-12-31 03:31:55', '2025-12-31 03:31:55', NULL),
-(300, 1, 'Members Exported', 'Members data was exported.', 'general', NULL, 0, '2025-12-31 03:34:09', '2025-12-31 03:34:09', NULL),
+(300, 1, 'Members Exported', 'Members data was exported.', 'general', NULL, 1, '2025-12-31 03:34:09', '2026-01-03 00:57:23', NULL),
 (301, 2, 'Members Exported', 'Members data was exported.', 'general', NULL, 0, '2025-12-31 03:34:09', '2025-12-31 03:34:09', NULL),
 (302, 3, 'Members Exported', 'Members data was exported.', 'general', NULL, 0, '2025-12-31 03:34:09', '2025-12-31 03:34:09', NULL),
-(303, 1, 'Members Exported', 'Members data was exported.', 'general', NULL, 0, '2025-12-31 03:35:43', '2025-12-31 03:35:43', NULL),
+(303, 1, 'Members Exported', 'Members data was exported.', 'general', NULL, 1, '2025-12-31 03:35:43', '2026-01-03 00:57:23', NULL),
 (304, 2, 'Members Exported', 'Members data was exported.', 'general', NULL, 0, '2025-12-31 03:35:43', '2025-12-31 03:35:43', NULL),
 (305, 3, 'Members Exported', 'Members data was exported.', 'general', NULL, 0, '2025-12-31 03:35:43', '2025-12-31 03:35:43', NULL),
-(306, 1, 'Members Imported', '0 members were successfully imported.', 'general', NULL, 0, '2025-12-31 03:39:11', '2025-12-31 03:39:11', NULL),
+(306, 1, 'Members Imported', '0 members were successfully imported.', 'general', NULL, 1, '2025-12-31 03:39:11', '2026-01-03 00:57:23', NULL),
 (307, 2, 'Members Imported', '0 members were successfully imported.', 'general', NULL, 0, '2025-12-31 03:39:11', '2025-12-31 03:39:11', NULL),
 (308, 3, 'Members Imported', '0 members were successfully imported.', 'general', NULL, 0, '2025-12-31 03:39:11', '2025-12-31 03:39:11', NULL),
-(309, 1, 'Members Exported', 'Members data was exported.', 'general', NULL, 0, '2025-12-31 03:39:32', '2025-12-31 03:39:32', NULL),
+(309, 1, 'Members Exported', 'Members data was exported.', 'general', NULL, 1, '2025-12-31 03:39:32', '2026-01-03 00:57:23', NULL),
 (310, 2, 'Members Exported', 'Members data was exported.', 'general', NULL, 0, '2025-12-31 03:39:32', '2025-12-31 03:39:32', NULL),
 (311, 3, 'Members Exported', 'Members data was exported.', 'general', NULL, 0, '2025-12-31 03:39:32', '2025-12-31 03:39:32', NULL),
-(312, 1, 'Members Exported', 'Members data was exported.', 'general', NULL, 0, '2025-12-31 03:49:20', '2025-12-31 03:49:20', NULL),
+(312, 1, 'Members Exported', 'Members data was exported.', 'general', NULL, 1, '2025-12-31 03:49:20', '2026-01-03 00:57:23', NULL),
 (313, 2, 'Members Exported', 'Members data was exported.', 'general', NULL, 0, '2025-12-31 03:49:20', '2025-12-31 03:49:20', NULL),
-(314, 3, 'Members Exported', 'Members data was exported.', 'general', NULL, 0, '2025-12-31 03:49:20', '2025-12-31 03:49:20', NULL);
+(314, 3, 'Members Exported', 'Members data was exported.', 'general', NULL, 0, '2025-12-31 03:49:20', '2025-12-31 03:49:20', NULL),
+(315, 1, 'Member Updated', 'Daniel Mensah was updated.', 'general', NULL, 1, '2026-01-03 01:01:34', '2026-01-03 01:03:13', NULL),
+(316, 2, 'Member Updated', 'Daniel Mensah was updated.', 'general', NULL, 0, '2026-01-03 01:01:34', '2026-01-03 01:01:34', NULL),
+(317, 3, 'Member Updated', 'Daniel Mensah was updated.', 'general', NULL, 0, '2026-01-03 01:01:34', '2026-01-03 01:01:34', NULL),
+(318, 1, 'Member Updated', 'Emmanuel Tetteh was updated.', 'general', NULL, 1, '2026-01-03 01:01:44', '2026-01-03 01:03:13', NULL),
+(319, 2, 'Member Updated', 'Emmanuel Tetteh was updated.', 'general', NULL, 0, '2026-01-03 01:01:44', '2026-01-03 01:01:44', NULL),
+(320, 3, 'Member Updated', 'Emmanuel Tetteh was updated.', 'general', NULL, 0, '2026-01-03 01:01:44', '2026-01-03 01:01:44', NULL),
+(321, 1, 'Member Updated', 'Deborah Sackey was updated.', 'general', NULL, 1, '2026-01-03 01:01:49', '2026-01-03 01:03:13', NULL),
+(322, 2, 'Member Updated', 'Deborah Sackey was updated.', 'general', NULL, 0, '2026-01-03 01:01:49', '2026-01-03 01:01:49', NULL),
+(323, 3, 'Member Updated', 'Deborah Sackey was updated.', 'general', NULL, 0, '2026-01-03 01:01:49', '2026-01-03 01:01:49', NULL),
+(324, 1, 'Income Updated', 'An income of ¢1,200.00 was updated.', 'general', NULL, 1, '2026-01-03 02:04:31', '2026-01-03 02:56:49', NULL),
+(325, 2, 'Income Updated', 'An income of ¢1,200.00 was updated.', 'general', NULL, 0, '2026-01-03 02:04:31', '2026-01-03 02:04:31', NULL),
+(326, 3, 'Income Updated', 'An income of ¢1,200.00 was updated.', 'general', NULL, 0, '2026-01-03 02:04:31', '2026-01-03 02:04:31', NULL),
+(327, 1, 'Income Updated', 'An income of ¢1,200.00 was updated.', 'general', NULL, 1, '2026-01-03 02:05:13', '2026-01-03 02:56:49', NULL),
+(328, 2, 'Income Updated', 'An income of ¢1,200.00 was updated.', 'general', NULL, 0, '2026-01-03 02:05:13', '2026-01-03 02:05:13', NULL),
+(329, 3, 'Income Updated', 'An income of ¢1,200.00 was updated.', 'general', NULL, 0, '2026-01-03 02:05:13', '2026-01-03 02:05:13', NULL),
+(330, 1, 'Income Updated', 'An income of ¢1,250.00 was updated.', 'general', NULL, 1, '2026-01-03 02:05:22', '2026-01-03 02:56:49', NULL),
+(331, 2, 'Income Updated', 'An income of ¢1,250.00 was updated.', 'general', NULL, 0, '2026-01-03 02:05:22', '2026-01-03 02:05:22', NULL),
+(332, 3, 'Income Updated', 'An income of ¢1,250.00 was updated.', 'general', NULL, 0, '2026-01-03 02:05:22', '2026-01-03 02:05:22', NULL),
+(333, 1, 'Income Updated', 'An income of ¢1,500.00 was updated.', 'general', NULL, 1, '2026-01-03 02:09:18', '2026-01-03 02:56:49', NULL),
+(334, 2, 'Income Updated', 'An income of ¢1,500.00 was updated.', 'general', NULL, 0, '2026-01-03 02:09:18', '2026-01-03 02:09:18', NULL),
+(335, 3, 'Income Updated', 'An income of ¢1,500.00 was updated.', 'general', NULL, 0, '2026-01-03 02:09:18', '2026-01-03 02:09:18', NULL),
+(336, 1, 'Income Updated', 'An income of ¢5,000.00 was updated.', 'general', NULL, 1, '2026-01-03 02:09:33', '2026-01-03 02:56:49', NULL),
+(337, 2, 'Income Updated', 'An income of ¢5,000.00 was updated.', 'general', NULL, 0, '2026-01-03 02:09:33', '2026-01-03 02:09:33', NULL),
+(338, 3, 'Income Updated', 'An income of ¢5,000.00 was updated.', 'general', NULL, 0, '2026-01-03 02:09:33', '2026-01-03 02:09:33', NULL),
+(339, 1, 'Income Updated', 'An income of ¢5,000.00 was updated.', 'general', NULL, 1, '2026-01-03 02:09:45', '2026-01-03 02:56:49', NULL),
+(340, 2, 'Income Updated', 'An income of ¢5,000.00 was updated.', 'general', NULL, 0, '2026-01-03 02:09:45', '2026-01-03 02:09:45', NULL),
+(341, 3, 'Income Updated', 'An income of ¢5,000.00 was updated.', 'general', NULL, 0, '2026-01-03 02:09:45', '2026-01-03 02:09:45', NULL),
+(342, 1, 'Income Updated', 'An income of ¢1,500.00 was updated.', 'general', NULL, 1, '2026-01-03 02:21:43', '2026-01-03 02:56:49', NULL),
+(343, 2, 'Income Updated', 'An income of ¢1,500.00 was updated.', 'general', NULL, 0, '2026-01-03 02:21:43', '2026-01-03 02:21:43', NULL),
+(344, 3, 'Income Updated', 'An income of ¢1,500.00 was updated.', 'general', NULL, 0, '2026-01-03 02:21:43', '2026-01-03 02:21:43', NULL),
+(345, 1, 'Income Updated', 'An income of ¢3,050.00 was updated.', 'general', NULL, 1, '2026-01-03 02:21:57', '2026-01-03 02:56:49', NULL),
+(346, 2, 'Income Updated', 'An income of ¢3,050.00 was updated.', 'general', NULL, 0, '2026-01-03 02:21:57', '2026-01-03 02:21:57', NULL),
+(347, 3, 'Income Updated', 'An income of ¢3,050.00 was updated.', 'general', NULL, 0, '2026-01-03 02:21:57', '2026-01-03 02:21:57', NULL),
+(348, 1, 'Income Updated', 'An income of ¢400.00 was updated.', 'general', NULL, 1, '2026-01-03 02:22:23', '2026-01-03 02:56:49', NULL),
+(349, 2, 'Income Updated', 'An income of ¢400.00 was updated.', 'general', NULL, 0, '2026-01-03 02:22:23', '2026-01-03 02:22:23', NULL),
+(350, 3, 'Income Updated', 'An income of ¢400.00 was updated.', 'general', NULL, 0, '2026-01-03 02:22:23', '2026-01-03 02:22:23', NULL),
+(351, 1, 'Organization Updated', 'An organization was updated.', 'general', NULL, 1, '2026-01-03 02:54:19', '2026-01-03 02:56:49', NULL),
+(352, 2, 'Organization Updated', 'An organization was updated.', 'general', NULL, 0, '2026-01-03 02:54:19', '2026-01-03 02:54:19', NULL),
+(353, 3, 'Organization Updated', 'An organization was updated.', 'general', NULL, 0, '2026-01-03 02:54:19', '2026-01-03 02:54:19', NULL),
+(354, 1, 'Organization Updated', 'An organization was updated.', 'general', NULL, 1, '2026-01-03 02:55:25', '2026-01-03 02:56:49', NULL),
+(355, 2, 'Organization Updated', 'An organization was updated.', 'general', NULL, 0, '2026-01-03 02:55:25', '2026-01-03 02:55:25', NULL),
+(356, 3, 'Organization Updated', 'An organization was updated.', 'general', NULL, 0, '2026-01-03 02:55:25', '2026-01-03 02:55:25', NULL),
+(357, 1, 'Organization Updated', 'An organization was updated.', 'general', NULL, 1, '2026-01-03 02:55:45', '2026-01-03 02:56:49', NULL),
+(358, 2, 'Organization Updated', 'An organization was updated.', 'general', NULL, 0, '2026-01-03 02:55:45', '2026-01-03 02:55:45', NULL),
+(359, 3, 'Organization Updated', 'An organization was updated.', 'general', NULL, 0, '2026-01-03 02:55:45', '2026-01-03 02:55:45', NULL),
+(360, 1, 'Organization Updated', 'An organization was updated.', 'general', NULL, 1, '2026-01-03 02:56:42', '2026-01-03 02:56:49', NULL),
+(361, 2, 'Organization Updated', 'An organization was updated.', 'general', NULL, 0, '2026-01-03 02:56:42', '2026-01-03 02:56:42', NULL),
+(362, 3, 'Organization Updated', 'An organization was updated.', 'general', NULL, 0, '2026-01-03 02:56:42', '2026-01-03 02:56:42', NULL),
+(363, 1, 'Members Imported', '1 members were successfully imported.', 'general', NULL, 1, '2026-01-03 02:57:15', '2026-01-03 02:57:42', NULL),
+(364, 2, 'Members Imported', '1 members were successfully imported.', 'general', NULL, 0, '2026-01-03 02:57:15', '2026-01-03 02:57:15', NULL),
+(365, 3, 'Members Imported', '1 members were successfully imported.', 'general', NULL, 0, '2026-01-03 02:57:15', '2026-01-03 02:57:15', NULL),
+(366, 1, 'New Organization Added', 'A new organization was added.', 'general', NULL, 1, '2026-01-03 03:43:10', '2026-01-03 14:32:59', NULL),
+(367, 2, 'New Organization Added', 'A new organization was added.', 'general', NULL, 0, '2026-01-03 03:43:10', '2026-01-03 03:43:10', NULL),
+(368, 3, 'New Organization Added', 'A new organization was added.', 'general', NULL, 0, '2026-01-03 03:43:10', '2026-01-03 03:43:10', NULL),
+(369, 1, 'Event Updated', 'The event \"31st Watch Night\" was updated.', 'general', NULL, 0, '2026-01-04 00:33:16', '2026-01-04 00:33:16', NULL),
+(370, 2, 'Event Updated', 'The event \"31st Watch Night\" was updated.', 'general', NULL, 0, '2026-01-04 00:33:16', '2026-01-04 00:33:16', NULL),
+(371, 3, 'Event Updated', 'The event \"31st Watch Night\" was updated.', 'general', NULL, 0, '2026-01-04 00:33:16', '2026-01-04 00:33:16', NULL),
+(372, 1, 'Event Updated', 'The event \"New Year Prayers & Fasting\" was updated.', 'general', NULL, 0, '2026-01-04 00:33:25', '2026-01-04 00:33:25', NULL),
+(373, 2, 'Event Updated', 'The event \"New Year Prayers & Fasting\" was updated.', 'general', NULL, 0, '2026-01-04 00:33:25', '2026-01-04 00:33:25', NULL),
+(374, 3, 'Event Updated', 'The event \"New Year Prayers & Fasting\" was updated.', 'general', NULL, 0, '2026-01-04 00:33:25', '2026-01-04 00:33:25', NULL);
+INSERT INTO `notifications` (`id`, `user_id`, `title`, `message`, `category`, `link`, `is_read`, `created_at`, `updated_at`, `deleted_at`) VALUES
+(375, 1, 'Event Updated', 'The event \"Community Food Drive\" was updated.', 'general', NULL, 0, '2026-01-04 00:33:35', '2026-01-04 00:33:35', NULL),
+(376, 2, 'Event Updated', 'The event \"Community Food Drive\" was updated.', 'general', NULL, 0, '2026-01-04 00:33:35', '2026-01-04 00:33:35', NULL),
+(377, 3, 'Event Updated', 'The event \"Community Food Drive\" was updated.', 'general', NULL, 0, '2026-01-04 00:33:35', '2026-01-04 00:33:35', NULL),
+(378, 1, 'Event Updated', 'The event \"New Year Prayers & Fasting\" was updated.', 'general', NULL, 0, '2026-01-04 00:34:11', '2026-01-04 00:34:11', NULL),
+(379, 2, 'Event Updated', 'The event \"New Year Prayers & Fasting\" was updated.', 'general', NULL, 0, '2026-01-04 00:34:11', '2026-01-04 00:34:11', NULL),
+(380, 3, 'Event Updated', 'The event \"New Year Prayers & Fasting\" was updated.', 'general', NULL, 0, '2026-01-04 00:34:11', '2026-01-04 00:34:11', NULL),
+(381, 1, 'Event Updated', 'The event \"New Year Prayers & Fasting\" was updated.', 'general', NULL, 0, '2026-01-04 00:34:24', '2026-01-04 00:34:24', NULL),
+(382, 2, 'Event Updated', 'The event \"New Year Prayers & Fasting\" was updated.', 'general', NULL, 0, '2026-01-04 00:34:24', '2026-01-04 00:34:24', NULL),
+(383, 3, 'Event Updated', 'The event \"New Year Prayers & Fasting\" was updated.', 'general', NULL, 0, '2026-01-04 00:34:24', '2026-01-04 00:34:24', NULL),
+(384, 1, 'Event Updated', 'The event \"Community Food Drive\" was updated.', 'general', NULL, 0, '2026-01-04 00:35:36', '2026-01-04 00:35:36', NULL),
+(385, 2, 'Event Updated', 'The event \"Community Food Drive\" was updated.', 'general', NULL, 0, '2026-01-04 00:35:36', '2026-01-04 00:35:36', NULL),
+(386, 3, 'Event Updated', 'The event \"Community Food Drive\" was updated.', 'general', NULL, 0, '2026-01-04 00:35:36', '2026-01-04 00:35:36', NULL),
+(387, 1, 'New Event Created', 'The event \"National Fasting and Prayers\" was created.', 'general', NULL, 0, '2026-01-04 00:37:10', '2026-01-04 00:37:10', NULL),
+(388, 2, 'New Event Created', 'The event \"National Fasting and Prayers\" was created.', 'general', NULL, 0, '2026-01-04 00:37:10', '2026-01-04 00:37:10', NULL),
+(389, 3, 'New Event Created', 'The event \"National Fasting and Prayers\" was created.', 'general', NULL, 0, '2026-01-04 00:37:10', '2026-01-04 00:37:10', NULL),
+(390, 1, 'Event Updated', 'The event \"Community Food Drive\" was updated.', 'general', NULL, 0, '2026-01-04 02:08:47', '2026-01-04 02:08:47', NULL),
+(391, 2, 'Event Updated', 'The event \"Community Food Drive\" was updated.', 'general', NULL, 0, '2026-01-04 02:08:47', '2026-01-04 02:08:47', NULL),
+(392, 3, 'Event Updated', 'The event \"Community Food Drive\" was updated.', 'general', NULL, 0, '2026-01-04 02:08:47', '2026-01-04 02:08:47', NULL),
+(393, 1, 'Event Updated', 'The event \"National Fasting and Prayers\" was updated.', 'general', NULL, 0, '2026-01-04 02:10:06', '2026-01-04 02:10:06', NULL),
+(394, 2, 'Event Updated', 'The event \"National Fasting and Prayers\" was updated.', 'general', NULL, 0, '2026-01-04 02:10:06', '2026-01-04 02:10:06', NULL),
+(395, 3, 'Event Updated', 'The event \"National Fasting and Prayers\" was updated.', 'general', NULL, 0, '2026-01-04 02:10:06', '2026-01-04 02:10:06', NULL),
+(396, 1, 'Event Updated', 'The event \"Community Food Drive\" was updated.', 'general', NULL, 0, '2026-01-04 02:13:10', '2026-01-04 02:13:10', NULL),
+(397, 2, 'Event Updated', 'The event \"Community Food Drive\" was updated.', 'general', NULL, 0, '2026-01-04 02:13:10', '2026-01-04 02:13:10', NULL),
+(398, 3, 'Event Updated', 'The event \"Community Food Drive\" was updated.', 'general', NULL, 0, '2026-01-04 02:13:10', '2026-01-04 02:13:10', NULL),
+(399, 1, 'Event Updated', 'The event \"National Fasting and Prayers\" was updated.', 'general', NULL, 0, '2026-01-04 02:13:18', '2026-01-04 02:13:18', NULL),
+(400, 2, 'Event Updated', 'The event \"National Fasting and Prayers\" was updated.', 'general', NULL, 0, '2026-01-04 02:13:18', '2026-01-04 02:13:18', NULL),
+(401, 3, 'Event Updated', 'The event \"National Fasting and Prayers\" was updated.', 'general', NULL, 0, '2026-01-04 02:13:18', '2026-01-04 02:13:18', NULL),
+(402, 1, 'Event Updated', 'The event \"National Fasting and Prayers\" was updated.', 'general', NULL, 0, '2026-01-04 02:13:30', '2026-01-04 02:13:30', NULL),
+(403, 2, 'Event Updated', 'The event \"National Fasting and Prayers\" was updated.', 'general', NULL, 0, '2026-01-04 02:13:30', '2026-01-04 02:13:30', NULL),
+(404, 3, 'Event Updated', 'The event \"National Fasting and Prayers\" was updated.', 'general', NULL, 0, '2026-01-04 02:13:30', '2026-01-04 02:13:30', NULL),
+(405, 1, 'Event Updated', 'The event \"New Year Prayers & Fasting\" was updated.', 'general', NULL, 0, '2026-01-04 02:13:42', '2026-01-04 02:13:42', NULL),
+(406, 2, 'Event Updated', 'The event \"New Year Prayers & Fasting\" was updated.', 'general', NULL, 0, '2026-01-04 02:13:42', '2026-01-04 02:13:42', NULL),
+(407, 3, 'Event Updated', 'The event \"New Year Prayers & Fasting\" was updated.', 'general', NULL, 0, '2026-01-04 02:13:42', '2026-01-04 02:13:42', NULL),
+(408, 1, 'Event Updated', 'The event \"31st Watch Night\" was updated.', 'general', NULL, 0, '2026-01-04 02:13:56', '2026-01-04 02:13:56', NULL),
+(409, 2, 'Event Updated', 'The event \"31st Watch Night\" was updated.', 'general', NULL, 0, '2026-01-04 02:13:56', '2026-01-04 02:13:56', NULL),
+(410, 3, 'Event Updated', 'The event \"31st Watch Night\" was updated.', 'general', NULL, 0, '2026-01-04 02:13:56', '2026-01-04 02:13:56', NULL);
 
 -- --------------------------------------------------------
 
@@ -764,21 +865,17 @@ INSERT INTO `settings` (`id`, `setting_key`, `setting_value`, `description`, `cr
 (5, 'primary_color', '#002feb', 'Primary brand color (Methodist Blue)', '2025-11-26 23:13:02', '2025-12-31 01:14:09'),
 (6, 'secondary_color', '#cc0000', 'Secondary brand color (Red)', '2025-11-26 23:13:02', '2025-12-31 00:28:34'),
 (7, 'accent_color', '#f4c43f', 'Accent color (Gold/Yellow)', '2025-11-26 23:13:02', '2025-12-31 00:28:34'),
-(98, 'homepage_hero_title', 'Rising Saint', NULL, '2025-12-31 02:26:14', '2025-12-31 02:26:14'),
-(99, 'homepage_hero_subtitle', 'Ghana Diocese', NULL, '2025-12-31 02:26:14', '2025-12-31 02:26:14'),
-(100, 'homepage_hero_tagline', 'dsdjfjsd', NULL, '2025-12-31 02:26:14', '2025-12-31 02:26:14'),
-(101, 'homepage_hero_cta1_text', '', NULL, '2025-12-31 02:26:14', '2025-12-31 02:26:14'),
-(102, 'homepage_hero_cta1_link', '', NULL, '2025-12-31 02:26:14', '2025-12-31 02:26:14'),
-(103, 'homepage_hero_cta2_text', '', NULL, '2025-12-31 02:26:14', '2025-12-31 02:26:14'),
-(104, 'homepage_hero_cta2_link', '', NULL, '2025-12-31 02:26:14', '2025-12-31 02:26:14'),
-(105, 'homepage_about_text', 'Not Much Here', NULL, '2025-12-31 02:26:14', '2025-12-31 02:26:14'),
+(99, 'church_motto', 'Thy Kingdom Come', NULL, '2025-12-31 02:26:14', '2026-01-04 01:30:50'),
+(100, 'church_tagline', 'Growing in faith, serving our community, and living Christ\'s love. Amen? Amen!', NULL, '2025-12-31 02:26:14', '2026-01-04 01:30:50'),
+(102, 'church_logo', 'uploads/homepage/methodist-logo.png', NULL, '2025-12-31 02:26:14', '2026-01-04 01:38:51'),
+(105, 'homepage_about_text', 'The Methodist Church Ghana is a thriving community of believers dedicated to spreading God\'s word and serving others with compassion and integrity.\r\nOur mission is to make disciples of Jesus Christ for the transformation of the world. We believe in:\r\n1. Living out our faith in daily action\r\n2. Serving the poor and marginalized \r\n3. Building strong community connections\r\n4.Growing spiritually through worship and study', NULL, '2025-12-31 02:26:14', '2026-01-03 23:25:28'),
 (106, 'homepage_social_facebook', '', NULL, '2025-12-31 02:26:14', '2025-12-31 02:26:14'),
 (107, 'homepage_social_instagram', '', NULL, '2025-12-31 02:26:14', '2025-12-31 02:26:14'),
 (108, 'homepage_social_tiktok', '', NULL, '2025-12-31 02:26:14', '2025-12-31 02:26:14'),
 (109, 'homepage_social_youtube', '', NULL, '2025-12-31 02:26:14', '2025-12-31 02:26:14'),
 (110, 'homepage_social_x', '', NULL, '2025-12-31 02:26:14', '2025-12-31 02:26:14'),
 (111, 'homepage_hero_image', 'uploads/homepage/Screenshot 2025-09-27 010521.png', NULL, '2025-12-31 02:26:14', '2025-12-31 02:48:08'),
-(112, 'homepage_about_image', 'uploads/homepage/Screenshot 2025-09-28 214017.png', NULL, '2025-12-31 02:26:14', '2025-12-31 02:48:32');
+(112, 'homepage_about_image', '', NULL, '2025-12-31 02:26:14', '2026-01-04 00:19:35');
 
 -- --------------------------------------------------------
 
@@ -852,13 +949,8 @@ ALTER TABLE `expense_categories`
 -- Indexes for table `homepage_ministries`
 --
 ALTER TABLE `homepage_ministries`
-  ADD PRIMARY KEY (`id`);
-
---
--- Indexes for table `homepage_programs`
---
-ALTER TABLE `homepage_programs`
-  ADD PRIMARY KEY (`id`);
+  ADD PRIMARY KEY (`id`),
+  ADD KEY `ministry_id` (`ministry_id`);
 
 --
 -- Indexes for table `members`
@@ -922,7 +1014,7 @@ ALTER TABLE `users`
 -- AUTO_INCREMENT for table `attendance`
 --
 ALTER TABLE `attendance`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=9;
 
 --
 -- AUTO_INCREMENT for table `donations`
@@ -934,7 +1026,7 @@ ALTER TABLE `donations`
 -- AUTO_INCREMENT for table `events`
 --
 ALTER TABLE `events`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=16;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=17;
 
 --
 -- AUTO_INCREMENT for table `expenses`
@@ -952,37 +1044,31 @@ ALTER TABLE `expense_categories`
 -- AUTO_INCREMENT for table `homepage_ministries`
 --
 ALTER TABLE `homepage_ministries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
-
---
--- AUTO_INCREMENT for table `homepage_programs`
---
-ALTER TABLE `homepage_programs`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=7;
 
 --
 -- AUTO_INCREMENT for table `members`
 --
 ALTER TABLE `members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=153;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=154;
 
 --
 -- AUTO_INCREMENT for table `ministries`
 --
 ALTER TABLE `ministries`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `ministry_members`
 --
 ALTER TABLE `ministry_members`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=259;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=265;
 
 --
 -- AUTO_INCREMENT for table `notifications`
 --
 ALTER TABLE `notifications`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=315;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=411;
 
 --
 -- AUTO_INCREMENT for table `roles`
@@ -994,7 +1080,7 @@ ALTER TABLE `roles`
 -- AUTO_INCREMENT for table `settings`
 --
 ALTER TABLE `settings`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=113;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=182;
 
 --
 -- AUTO_INCREMENT for table `users`
@@ -1030,6 +1116,12 @@ ALTER TABLE `events`
 --
 ALTER TABLE `expenses`
   ADD CONSTRAINT `fk_expense_category` FOREIGN KEY (`category_id`) REFERENCES `expense_categories` (`id`) ON DELETE CASCADE;
+
+--
+-- Constraints for table `homepage_ministries`
+--
+ALTER TABLE `homepage_ministries`
+  ADD CONSTRAINT `homepage_ministries_ibfk_1` FOREIGN KEY (`ministry_id`) REFERENCES `ministries` (`id`) ON DELETE CASCADE;
 
 --
 -- Constraints for table `members`

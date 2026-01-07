@@ -8,6 +8,8 @@ require_once __DIR__ . '/../models/Attendance.php';
 require_once __DIR__ . '/../models/Member.php';
 
 requireLogin();
+$role =$_SESSION['user_role'] ?? null;
+$authorized = in_array($role, ['Admin', 'Leader']);
 
 $user_id = $_SESSION['user_id'];
 
@@ -19,6 +21,19 @@ $today_attendance = $attendance->getByDate($attendance_date);
 //Message Handling
 $message = '';
 $message_type = '';
+// Session flash messages
+if (isset($_SESSION['error'])) {
+    $message = $_SESSION['error'];
+    $message_type = 'error';
+    unset($_SESSION['error']); // VERY IMPORTANT
+}
+
+if (isset($_SESSION['success'])) {
+    $message = $_SESSION['success'];
+    $message_type = 'success';
+    unset($_SESSION['success']);
+}
+
 if(isset($_GET['success'])) {
     $message = 'Operation completed successfully!';
     $message_type = 'success';
@@ -40,6 +55,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     if (isset($_POST['delete_attendance']) && !empty($_POST['attendance_id'])) {
 
         $attendance_id = (int) $_POST['attendance_id'];
+        if ($role !== 'Admin') {
+        $_SESSION['error'] = 'Only admins can delete attendance';
+        header('Location: attendance.php');
+        exit;
+    }
 
         if ($attendance->deleteAttendance($attendance_id)) {
             header('Location: attendance.php?date=' . $attendance_date . '&deleted=1');
@@ -56,6 +76,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $attendance_id = (int) $_POST['attendance_id'];
         $status = $_POST['status'] ?? 'present';
         $notes  = trim($_POST['notes'] ?? '');
+        if (!$authorized) {
+        $_SESSION['error'] = 'Youare not allowed to edit attendance';
+        header('Location: attendance.php');
+        exit;
+    }
 
         if ($attendance->updateAttendance($attendance_id, $status, $notes, $attendance_date)) {
             header('Location: attendance.php?date=' . $attendance_date . '&updated=1');
@@ -75,6 +100,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'status'          => $_POST['status'] ?? 'present',
             'notes'           => trim($_POST['notes'] ?? ''),
         ];
+        if (!$authorized) {
+        $_SESSION['error'] = 'You are not allowed to mark attendance';
+        header('Location: attendance.php');
+        exit;
+    }
 
         if ($attendance->recordAttendance($data)) {
             header('Location: attendance.php?date=' . $attendance_date . '&success=1');
@@ -111,6 +141,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         <?php endif; ?>
 
         <!-- Attendance Summary -->
+         <?php if($authorized): ?>
         <div class="row mb-4">
             <div class="col-md-3">
                 <div class="card stat-card stat-card-green">
@@ -145,8 +176,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </div>
             </div>
         </div>
+        <?php endif; ?>
 
         <!-- Quick Add Attendance -->
+         <?php if($authorized): ?>
         <div class="card mb-4">
             <div class="card-header" style="background-color: var(--primary-color); color: white;">
                 <h5 class="mb-0">Quick Mark Attendance</h5>
@@ -182,6 +215,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 </form>
             </div>
         </div>
+        <?php endif; ?>
 
         <!-- Attendance List -->
         <div class="card">
@@ -196,7 +230,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <th class="col-essential">Member Name</th>
                                 <th class="col-essential">Status</th>
                                 <th class="col-hide-mobile">Time Recorded</th>
+                                <?php if($authorized): ?>
                                 <th class="col-essential text-end">Actions</th>
+                                <?php endif; ?>
                             </tr>
                         </thead>
                         <tbody>
@@ -214,6 +250,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             <span class="badge bg-<?php echo $status_color; ?>"><?php echo ucfirst($a['status']); ?></span>
                                         </td>
                                         <td class="col-hide-mobile"><?php echo date('g:i A', strtotime($a['created_at'])); ?></td>
+                                            <?php if($authorized): ?>
                                         <td class="col-essential text-end">
                                             <button 
                                             class="btn btn-sm btn-outline-primary"
@@ -225,7 +262,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                             >
                                                 <i class="fas fa-edit"></i>
                                             </button>
-
+                                            <?php if($role === 'Admin'):?>
                                             <button name = "delete_attendance"
                                                     class="btn btn-sm btn-outline-danger openDeleteAttendance"
                                                     data-id="<?php echo $a['id']; ?>"
@@ -235,8 +272,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                                 >
                                                     <i class="fas fa-trash"></i>
                                                 </button>
+                                            <?php endif; ?>
 
                                         </td>
+                                            <?php endif; ?>
+
                                     </tr>
                                 <?php endforeach; ?>
                             <?php else: ?>

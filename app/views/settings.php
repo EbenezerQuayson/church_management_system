@@ -28,6 +28,10 @@ $homepageMinistry = new HomepageMinistry();
 
 $homepageMinistries = $homepageMinistry->getAll();
 
+$role = $_SESSION['user_role'] ?? null;
+
+
+
 //Fetch logged-in user details
 $userId = $_SESSION['user_id'] ?? null;
 $user = null;
@@ -415,15 +419,18 @@ if (isset($_POST['toggle_homepage_ministry'])) {
 
         <!-- Settings Tabs -->
         <ul class="nav nav-tabs mb-4" role="tablist">
+            <?php if($role == 'Admin'): ?>
             <li class="nav-item" role="presentation">
                 <button class="nav-link active" id="general-tab" data-bs-toggle="tab" data-bs-target="#general" type="button">General</button>
             </li>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="branding-tab" data-bs-toggle="tab" data-bs-target="#branding" type="button">Branding</button>
             </li>
+            <?php endif; ?>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="profile-tab" data-bs-toggle="tab" data-bs-target="#profile" type="button">Profile</button>
             </li>
+            <?php if($role == 'Admin'): ?>
             <li class="nav-item" role="presentation">
                 <button class="nav-link" id="homepage-tab" data-bs-toggle="tab" data-bs-target="#homepage" type="button" >Homepage</button>
             </li>
@@ -437,11 +444,12 @@ if (isset($_POST['toggle_homepage_ministry'])) {
                     Homepage Organisations
                 </button>
             </li>
-
+            <?php endif;?>
 
         </ul>
 
 <div class="tab-content">
+            <?php if($role == 'Admin'): ?>
 
     <!-- --- General Settings --- -->
     <div class="tab-pane fade show active" id="general" role="tabpanel">
@@ -474,6 +482,7 @@ if (isset($_POST['toggle_homepage_ministry'])) {
             </div>
         </div>
     </div>
+            
 
     <!-- --- Branding Settings --- -->
     <div class="tab-pane fade" id="branding" role="tabpanel">
@@ -511,6 +520,8 @@ if (isset($_POST['toggle_homepage_ministry'])) {
             </div>
         </div>
     </div>
+
+    <?php endif; ?>
 
     <!-- --- Profile Settings --- -->
     <div class="tab-pane fade" id="profile" role="tabpanel">
@@ -569,6 +580,7 @@ if (isset($_POST['toggle_homepage_ministry'])) {
             </div>
         </div>
     </div>
+            <?php if($role == 'Admin'): ?>
 
     <div class="tab-pane fade" id="homepage" role="tabpanel">
     <form method="POST" enctype="multipart/form-data">
@@ -766,6 +778,7 @@ if (isset($_POST['toggle_homepage_ministry'])) {
     <?php endforeach; ?>
 </div>
 </div>
+<?php endif; ?>
 
 
 
