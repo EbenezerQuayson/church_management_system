@@ -11,7 +11,7 @@ $userId = $_SESSION['user_id'] ?? null;
 $role = $_SESSION['user_role'] ?? null;
 
 $menuPermissions = [
-    'christianManagement' => ['Admin', 'Leader'],
+    'christianManagement' => ['Admin', 'Leader', 'Treasurer'],
     'finance'             => ['Admin', 'Treasurer'],
     'churchManagement'    => ['Admin', 'Leader'],
     'notifications'       => ['Admin', 'Leader', 'Treasurer'],
@@ -72,7 +72,7 @@ function isCollapsed($group, $current){
 
     <!-- Menu Groups -->
     <div class="sidebar-menu-groups">
-    <?php if(canSee('christianhManagement', $role, $menuPermissions)): ?>
+    <?php if(canSee('christianManagement', $role, $menuPermissions)): ?>
     <div class="menu-group"> 
             <div class="menu-group-header"   data-bs-target="#christianManagement" aria-expanded="<?= isCollapsed('christianManagement', $activePage) ? 'true' : 'false' ?>">
                 <i class="bi bi-chevron-down"></i>

@@ -14,7 +14,7 @@ require_once __DIR__ . '/../models/Donation.php';
 requireLogin();
 
 $user_id = $_SESSION['user_id'];
-
+$role = $_SESSION['user_role'] ?? null;
 
 $db = Database::getInstance();
 $pdo = Database::getInstance()->getConnection();
@@ -156,6 +156,7 @@ $jsMinistryCounts = json_encode($ministryCounts);
          <div class="row mb-2 g-3 justify-content-center">
 
     <!-- Income Card -->
+    <?php if(in_array($role, ['Admin', 'Treasurer'])): ?>
     <div class="col-md-6 col-lg-5">
         <a href="donations.php" class="text-decoration-none">
         <div class="card stat-card stat-card-lime">
@@ -188,9 +189,57 @@ $jsMinistryCounts = json_encode($ministryCounts);
         </div>
     </a>
 </div>
+<?php endif; ?>
+<?php if($role == 'Leader'): ?>
+ <!-- Members -->
+                <div class="col-6 col-md-3 col-lg">
+                    <a href="members.php" class="text-decoration-none">
+                    <div class="card stat-card stat-card-blue h-100">
+                        <div class="card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-users"></i>
+                            </div>
+                            <p class="stat-value"><?php echo $members_count; ?></p>
+                            <p class="stat-label">Members</p>
+                        </div>
+                    </div>
+                </a>
+                </div>
 
+                <!-- Events -->
+                <div class="col-6 col-md-3 col-lg">
+                    <a href="events.php" class="text-decoration-none">
+                    <div class="card stat-card stat-card-blue h-100">
+                        <div class="card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-calendar"></i>
+                            </div>
+                            <p class="stat-value"><?php echo $events_scheduled_count; ?></p>
+                            <p class="stat-label">Upcoming Events</p>
+                        </div>
+                    </div>
+                    </a>
+                </div>
 
+                <!-- Ministries -->
+                <div class="col-6 col-md-3 col-lg">
+                    <a href="ministries.php" class="text-decoration-none">
+
+                    <div class="card stat-card stat-card-blue h-100">
+                        <div class="card-body">
+                            <div class="stat-icon">
+                                <i class="fas fa-handshake"></i>
+                            </div>
+                            <p class="stat-value"><?php echo $ministries_count['count']; ?></p>
+                            <p class="stat-label">Organizations</p>
+                        </div>
+                    </div>
+                    </a>
+                </div>
+
+<?php endif; ?>
 </div>
+<?php  if(in_array($role, ['Admin', 'Treasurer'])):?>
 <div class="card mb-4">
     <div class="card-header  text-black d-flex justify-content-between align-items-center"
          data-bs-toggle="collapse"
@@ -283,6 +332,7 @@ $jsMinistryCounts = json_encode($ministryCounts);
         </div>
     </div>
 </div>
+<?php endif; ?>
 
 
         <!-- Quick Links -->
@@ -292,16 +342,21 @@ $jsMinistryCounts = json_encode($ministryCounts);
                     <div class="card-body ">
                         <h5 class="card-title mb-3 ">Quick Actions</h5>
                         <div class="d-flex gap-2 flex-wrap">
+                            <?php if($role == 'Admin'): ?>
                             <a href="<?php echo BASE_URL; ?>/app/views/members.php" class="btn btn-outline-primary">
                                 <i class="fas fa-user-plus"></i> Add Member
                             </a>
+                            <?php endif; ?>
+                            <?php if(in_array($role, ['Admin', 'Leader'])): ?>
                             <a href="<?php echo BASE_URL; ?>/app/views/events.php" class="btn btn-outline-primary">
                                 <i class="fas fa-calendar-plus"></i> Create Event
                             </a>
 
                               <a href="<?php echo BASE_URL; ?>/app/views/events.php" class="btn btn-outline-primary">
                                 <i class="bi bi-building"></i> Add Organization
-                            </a>
+                            </a> <?php endif; ?>
+                            
+                            <?php if(in_array($role, ['Admin', 'Treasurer'])): ?>
 
                             <a href="<?php echo BASE_URL; ?>/app/views/donations.php" class="btn btn-outline-primary">
                                 <i class="fas fa-hand-holding-usd"></i> Record Income
@@ -309,10 +364,12 @@ $jsMinistryCounts = json_encode($ministryCounts);
                                <a href="<?php echo BASE_URL; ?>/app/views/expenses.php" class="btn btn-outline-primary">
                                 <i class="fas fa-cash-register"></i> Record Expense
                             </a>
-
+                            <?php endif; ?>
+                            <?php if(in_array($role, ['Admin', 'Leader'])): ?>
                             <a href="<?php echo BASE_URL; ?>/app/views/attendance.php" class="btn btn-outline-primary">
                                 <i class="fas fa-check-circle"></i> Mark Attendance
                             </a>
+                            <?php endif; ?>
                         </div>
                     </div>
                 </div>
@@ -322,8 +379,9 @@ $jsMinistryCounts = json_encode($ministryCounts);
         <!-- Charts Row -->
          
           <div class="row g-4">
-        <div class="col-lg-8">
+        <?php if(in_array($role, ['Admin', 'Treasurer'])): ?>
             
+        <div class="col-lg-8">
             <div class="chart-container">
                 <div class="d-flex justify-content-between align-items-center mb-3">
     <h5 class="mb-0"><i class="bi bi-bar-chart"></i> Church Finance Chart</h5>
@@ -352,6 +410,9 @@ $jsMinistryCounts = json_encode($ministryCounts);
                 <canvas id="donationsChart"></canvas>
             </div>
         </div>
+        <?php endif; ?>
+
+        <?php if(in_array($role, ['Admin', 'Leader'])): ?>
         <div class="col-lg-4">
             <div class="chart-container">
                 <h5 class="mb-3"><i class="bi bi-pie-chart"></i> Church Population Chart</h5>
@@ -360,8 +421,9 @@ $jsMinistryCounts = json_encode($ministryCounts);
                 </canvas>
             </div>
         </div>
+        <?php endif; ?>
     </div>
-
+<?php if(in_array($role, ['Admin', 'Leader'])): ?>
         <!-- Recent Activities -->
         <div class="row g-4 mt-2">
             <div class="col-lg-6">
@@ -416,6 +478,7 @@ $jsMinistryCounts = json_encode($ministryCounts);
                 </div>
             </div>
         </div>
+        <?php endif; ?>
     </div>
 </div>
 

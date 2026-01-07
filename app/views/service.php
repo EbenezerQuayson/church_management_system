@@ -9,6 +9,7 @@ require_once __DIR__ . '/../models/Program.php';
 
 requireLogin();
 $role =$_SESSION['user_role'] ?? null;
+$roleUserName =$_SESSION['user_name'] ?? 'User';
 $authorized = in_array($role, ['Admin', 'Leader']);
 
 
@@ -26,7 +27,12 @@ $admins = $db->fetchAll("
     JOIN roles r ON u.role_id = r.id 
     WHERE r.name = 'Admin'
 ");
-
+$leaders = $db->fetchAll("
+    SELECT u.id 
+    FROM users u 
+    JOIN roles r ON u.role_id = r.id 
+    WHERE r.name = 'Leader'
+");
 $programs = $db->fetchAll("SELECT * FROM programs
 ORDER BY display_order ASC, id ASC
 ");
@@ -126,7 +132,11 @@ if (!in_array($action, $allowedActions)) {
 
         if ($id && $programModel->update($id, $data)) {
             foreach ($admins as $admin) {
-                $notification->create($admin['id'], 'Program Updated', 'A program was updated.', 'service.php');
+                $notification->create($admin['id'], 'Program Updated', 'A program was updated by ' . $roleUserName . ' (' . $role . ')', 'service.php');
+            }
+
+            foreach ($leaders as $leader) {
+                $notification->create($leader['id'], 'Program Updated', 'A program was updated.', 'service.php');
             }
             header("Location: service.php?msg=updated");
             exit;
@@ -153,7 +163,11 @@ if (!in_array($action, $allowedActions)) {
 
         if ($programModel->create($data)) {
             foreach ($admins as $admin) {
-                $notification->create($admin['id'], 'New Program Added', 'A new program was added.', 'service.php');
+                $notification->create($admin['id'], 'New Program Added', 'A new program was added by ' . $roleUserName . ' (' . $role . ')', 'service.php');
+            }
+
+            foreach ($leaders as $leader) {
+                $notification->create($leader['id'], 'New Program Added', 'A new program was added.', 'service.php');
             }
             header("Location: service.php?msg=added");
             exit;

@@ -14,6 +14,7 @@ requireLogin();
 
 $user_id = $_SESSION['user_id'];
 $role =$_SESSION['user_role'] ?? null;
+$roleUserName = $_SESSION['user_name'] ?? 'Unknown User';
 
 $authorized = in_array($role, ['Admin', 'Leader']);
 
@@ -22,6 +23,7 @@ $authorized = in_array($role, ['Admin', 'Leader']);
 
 $db = Database::getInstance();
 $admins = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
+$leaders = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Leader'");
 
 $ministries = $db->fetchAll("SELECT * FROM ministries WHERE status = 'active' ORDER BY name");
 $message = '';
@@ -106,10 +108,18 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                 $notification->create(
                     $admin['id'],
                     'Organization Deleted',
-                    'An organization was deleted.',
+                    'An organization was deleted  by ' . $roleUserName . ' (' . $role . ')',
                     'ministries.php'
                 );
                 }
+                
+                // foreach($leaders as $leader){
+                //     $notification->create(
+                //     $leader['id'],
+                //     'Organization Deleted',
+                //     'An organization was deleted.',
+                //     'ministries.php'
+                // ); }
                 header("Location: ministries.php?msg=deleted");
                 exit();
             } else {
@@ -139,8 +149,16 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         if ($id && $ministry->update($id, $data)) {
             foreach ($admins as $admin) {
-                $notification->create($admin['id'], 'Organization Updated', 'An organization was updated.', 'ministries.php');
+                $notification->create($admin['id'], 'Organization Updated', 'An organization was updated  by ' . $roleUserName . ' (' . $role . ')', 'ministries.php');
             }
+
+              foreach($leaders as $leader){
+                    $notification->create(
+                    $leader['id'],
+                    'Organization Updated',
+                    'An organization was updated.',
+                    'ministries.php'
+                ); }
             header("Location: ministries.php?msg=updated");
             exit();
         } else {
@@ -176,8 +194,15 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($newId) {
                 foreach ($admins as $admin) {
-                    $notification->create($admin['id'], 'New Organization Added', 'A new organization was added.', 'ministries.php');
+                    $notification->create($admin['id'], 'New Organization Added', 'A new organization was added  by ' . $roleUserName . ' (' . $role . ')', 'ministries.php');
                 }
+                 foreach($leaders as $leader){
+                    $notification->create(
+                    $leader['id'],
+                    'New Organization Added',
+                    'An organization was added.',
+                    'ministries.php'
+                ); }
                 header("Location: ministries.php?msg=added");
                 exit();
             } else {
