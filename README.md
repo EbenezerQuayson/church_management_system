@@ -1,4 +1,4 @@
-# Methodist Church Management System - PHP Version
+# Church Management System - PHP Version
 
 A comprehensive church management system built with PHP and MySQL, featuring authentication, member management, event tracking, donations, attendance, and ministry organization.
 
@@ -129,4 +129,4 @@ For issues or feature requests, please contact the development team.
 
 ## License
 
-© The Methodist Church Ghana - All Rights Reserved
+© Ebenezer Quayson - All Rights Reserved
