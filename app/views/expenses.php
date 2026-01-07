@@ -11,6 +11,10 @@ require_once __DIR__ . '/../models/ExpenseCategory.php';
 
 requireLogin();
 
+$actorName = $_SESSION['user_name'] ?? 'Unkown User';
+
+$actorRole = $_SESSION['user_role'] ?? 'User';
+
 $user_id = $_SESSION['user_id'];
 
 $pdo = Database::getInstance()->getConnection();
@@ -28,6 +32,8 @@ $total_amount = $expenseModel->getTotalAmount();
 //Notification Admins
 $db = Database::getInstance();
 $admins = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
+$treasurers = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Treasurer'");
+
 
 
 
@@ -87,6 +93,15 @@ if (isset($_POST['update_expense'])) {
         $notification->create(
         $admin['id'],
         'Expense Updated',
+        'An expense of ¢' . number_format($amount, 2) . ' was updated by ' . $actorName . ' (' . $actorRole . ')',
+        'expenses.php'
+    );
+    }
+
+      foreach($treasurers as $treasurer){
+        $notification->create(
+        $treasurer['id'],
+        'Expense Updated',
         'An expense of ¢' . number_format($amount, 2) . ' was updated.',
         'expenses.php'
     );
@@ -105,6 +120,14 @@ if (isset($_POST['delete_expense'])) {
     foreach($admins as $admin){
         $notification->create(
         $admin['id'],
+        'Expense Deleted',
+        'An expense record was deleted by ' . $actorName . ' (' . $actorRole . ')' ,
+        'expenses.php'
+    ); }
+
+     foreach($treasurers as $treasurer){
+        $notification->create(
+        $treasurer['id'],
         'Expense Deleted',
         'An expense record was deleted.',
         'expenses.php'
@@ -158,7 +181,15 @@ if (isset($_POST['create_expense'])) {
         $notification->create(
         $admin['id'],
         'Expense Added',
-        'A new expense of ¢' . number_format($amount, 2) . ' was added.',
+        'A new expense of ¢' . number_format($amount, 2) . ' was added by ' . $actorName . ' (' . $actorRole . ')',
+        'expenses.php'
+    ); }
+
+    foreach($treasurers as $treasurer){
+        $notification->create(
+        $treasurer['id'],
+        'Expense Added',
+        'A new expense of ¢' . number_format($amount, 2) . ' was added. ',
         'expenses.php'
     ); }
     header("Location: expenses.php?success=1");
@@ -282,7 +313,7 @@ if (isset($_POST['create_expense'])) {
                                 <td class="col-essential"><?= htmlspecialchars($row['category_name'] ?? 'Uncategorized') ?></td>
                                 <td class="col-essential"><strong>¢<?= number_format($row['amount'], 2) ?></strong></td>
                                 <td class="col-hide-mobile"><?= date('M d, Y', strtotime($row['expense_date'])) ?></td>
-                                <td class="col-hide-mobile"><?= nl2br(htmlspecialchars($row['description'] ?? '')) ?></td>
+                                <td class="col-hide-mobile"><?= $row['description'] ? nl2br(htmlspecialchars($row['description'] ?? ''))  : '-'  ?></td>
                                 <!-- <td class="col-hide-mobile"> -->
                                     <!-- <?php if (!empty($row['receipt_path'])): ?> -->
                                         <!-- <a href="<?= BASE_URL .'/'. htmlspecialchars($row['receipt_path']) ?>" target="_blank">View</a> -->

@@ -9,7 +9,19 @@ $pdo = Database::getInstance()->getConnection();
 $userId = $_SESSION['user_id'] ?? null;
 
 $role = $_SESSION['user_role'] ?? null;
-$authorized = in_array($role, ['Admin', 'Leader']);
+
+$menuPermissions = [
+    'christianManagement' => ['Admin', 'Leader'],
+    'finance'             => ['Admin', 'Treasurer'],
+    'churchManagement'    => ['Admin', 'Leader'],
+    'notifications'       => ['Admin', 'Leader', 'Treasurer'],
+    'settings'            => ['Admin'],
+];
+
+function canSee($group, $role, $permissions) {
+    return isset($permissions[$group]) && in_array($role, $permissions[$group]);
+}
+
 
 
 
@@ -60,6 +72,7 @@ function isCollapsed($group, $current){
 
     <!-- Menu Groups -->
     <div class="sidebar-menu-groups">
+    <?php if(canSee('christianhManagement', $role, $menuPermissions)): ?>
     <div class="menu-group"> 
             <div class="menu-group-header"   data-bs-target="#christianManagement" aria-expanded="<?= isCollapsed('christianManagement', $activePage) ? 'true' : 'false' ?>">
                 <i class="bi bi-chevron-down"></i>
@@ -70,7 +83,8 @@ function isCollapsed($group, $current){
                 <li><a href="members.php" class="<?= isActive('members', $activePage) ?>"><i class="bi bi-people"></i> Members</a></li>
             </ul>
         </div>
-
+    <?php endif; ?>
+    <?php if(canSee('finance', $role, $menuPermissions)): ?>
         <div class="menu-group">
             <div class="menu-group-header"  data-bs-target="#finance" aria-expanded="<?= isCollapsed('finance', $activePage) ? 'true' : 'false' ?>">
                 <i class="bi bi-chevron-down"></i>
@@ -82,6 +96,8 @@ function isCollapsed($group, $current){
                 <li><a href="expenses.php" class="<?= isActive('expenses', $activePage) ?>"><i class="fa fa-money-bill-wave"></i> Expenses</a></li>
             </ul>
         </div>
+        <?php endif; ?>
+    <?php if(canSee('churchManagement', $role, $menuPermissions)): ?>
 
         <div class="menu-group">
             <div class="menu-group-header"  data-bs-target="#churchManagement" aria-expanded="<?= isCollapsed('churchManagement', $activePage) ? 'true' : 'false' ?>">
@@ -95,7 +111,8 @@ function isCollapsed($group, $current){
                 <li><a href="service.php" class="<?= isActive('service', $activePage) ?>"><i class="bi bi-calendar2-event"></i> Service Info</a></li>
             </ul>
         </div>
-
+    <?php endif ?>
+    <?php if(canSee('notifications', $role, $menuPermissions)): ?>
         <div class="menu-group">
             <div class="menu-group-header"  data-bs-target="#notifications">
                 <i class="bi bi-chevron-down"></i>
@@ -105,7 +122,7 @@ function isCollapsed($group, $current){
                 <li><a href="notification.php" class="<?= isActive('notifications', $activePage) ?>"><i class="bi bi-bell"></i> All Notifications</a></li>
             </ul>
         </div>
-
+    <?php endif; ?>
         <!-- <div class="menu-group">
             <div class="menu-group-header"  data-bs-target="#sms">
                 <i class="bi bi-chevron-down"></i>
@@ -125,6 +142,7 @@ function isCollapsed($group, $current){
                 <li><a href="settings-profile.php" class="<?= isActive('settings-profile', $activePage) ?>"><i class="bi bi-person-gear"></i> Users</a></li>
             </ul>
         </div> -->
+    <?php if(canSee('settings', $role, $menuPermissions)): ?>
 
         <div class="menu-group">
             <div class="menu-group-header">
@@ -132,6 +150,7 @@ function isCollapsed($group, $current){
                 <span><a href="<?php echo BASE_URL; ?>/app/views/settings.php" class="menu-link <?= isActive('settings', $activePage) ?>">Settings</a></span>
             </div>
         </div>
+    <?php endif; ?>
 
 
         <div class="menu-group">
@@ -151,7 +170,7 @@ function isCollapsed($group, $current){
 <span>    
 <a class="nav-link" 
        href="<?= BASE_URL ?>/public/home.php" 
-       target="_blank">
+       target="<?= in_array($role, ['Admin']) ? '_blank' : '' ?>">
         <i class="bi bi-house"></i>
      View Homepage
     </a>

@@ -3,6 +3,25 @@ require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
 $user_id = $_SESSION['user_id'];
 $unread_count = $db->fetch("SELECT COUNT(*) AS unread_count FROM notifications WHERE user_id = ? AND is_read = 0", [$user_id]);
+$role = $_SESSION['user_role'] ?? 'Member';
+
+switch ($role) {
+    case 'Treasurer':
+        $homeLink = 'overview.php'; // or donations.php
+        $homeIcon = 'bi-cash-coin';
+        break;
+
+    case 'Leader':
+        $homeLink = 'ministries.php';
+        $homeIcon = 'bi-people';
+        break;
+
+    case 'Admin':
+    default:
+        $homeLink = 'dashboard.php';
+        $homeIcon = 'bi-speedometer2';
+        break;
+}
 
 
 ?>
@@ -49,9 +68,10 @@ $unread_count = $db->fetch("SELECT COUNT(*) AS unread_count FROM notifications W
             <button class="btn sidebar-toggle d-md-none" id="sidebarToggle">
                 <i class="fas fa-bars"></i>
             </button>
-             <a href="dashboard.php" class="btn sidebar-toggle d-md-none">
-                <i class="bi bi-speedometer2"></i>
+           <a href="<?= $homeLink ?>" class="btn sidebar-toggle d-md-none">
+    <i class="bi <?= $homeIcon ?>"></i>
 </a>
+
             <div class="d-none d-md-flex align-items-center">
                 <img src="<?php echo BASE_URL;?>/assets/images/methodist-logo.png" alt="Logo" style="height: 40px; margin-right: 10px;">
                 <span class="fw-bold text-dark"><?php echo htmlspecialchars($church_name); ?></span>
@@ -59,10 +79,12 @@ $unread_count = $db->fetch("SELECT COUNT(*) AS unread_count FROM notifications W
         </div>
         <div class="top-nav-right">
          <div class="dropdown">
+            <?php if(in_array($role, ['Admin', 'Treasurer', 'Leader'])): ?>
             <button class="top-nav-icon-btn notification-btn" data-bs-toggle="dropdown">
                 <i class="fas fa-bell"></i>
                 <span class="notification-badge"><?= $unread_count['unread_count'] ?? 0 ?></span>
             </button>
+            <?php endif; ?>
                 <ul class="dropdown-menu dropdown-menu-end notifications-dropdown">
                     <?php
 $notifications = $db->fetchAll("SELECT * FROM notifications WHERE user_id = ? AND is_read = 0 ORDER BY created_at DESC", [$user_id]);
@@ -96,9 +118,11 @@ if (!empty($notifications)) {
                     <li><a class="dropdown-item" href="<?php echo BASE_URL;?>/app/views/settings.php#profile">
                         <i class="fas fa-user"></i> Profile
                     </a></li>
+                    <?php if($role == 'Admin'):?>
                     <li><a class="dropdown-item" href="<?php echo BASE_URL;?>/app/views/settings.php">
                         <i class="fas fa-cog"></i> Settings
                     </a></li>
+                    <?php endif; ?>
                     <li><hr class="dropdown-divider"></li>
                     <li><a class="dropdown-item text-danger" href="<?php echo BASE_URL;?>/app/controllers/logout.php">
                         <i class="fas fa-sign-out-alt"></i> Logout

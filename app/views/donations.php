@@ -2,6 +2,9 @@
 // Donations Page
 $activePage = 'income';
 
+
+
+
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../models/Donation.php';
@@ -10,6 +13,11 @@ require_once __DIR__ . '/../models/Notifications.php';
 
 
 requireLogin();
+
+$actorName = $_SESSION['user_name'] ?? 'Unkown User';
+
+$actorRole = $_SESSION['user_role'] ?? 'User';
+
 
 //Models
 $donation = new Donation();
@@ -23,6 +31,7 @@ $total_amount = $donation->getTotalAmount();
 $user_id = $_SESSION['user_id'];
 $db = Database::getInstance();
 $admins = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
+$treasurers = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Treasurer'");
 
 
 
@@ -105,9 +114,18 @@ $income_source = 'anonymous' ;
             $message_type = 'error';
         } else {
             if ($donation->create($commonData)) {
+                //Notifications for admins
                 foreach($admins as $admin){
                      $notification->create(
                     $admin['id'],
+                    'New Income Recorded',
+                    'An income of ¢' . number_format($commonData['amount'], 2) . ' was recorded by  ' . $actorName . ' (' . $actorRole . ')',
+                    'overview.php');
+                }
+
+                   foreach($treasurers as $treasurer){
+                     $notification->create(
+                    $treasurer['id'],
                     'New Income Recorded',
                     'An income of ¢' . number_format($commonData['amount'], 2) . ' was recorded.',
                     'donations.php');
@@ -137,9 +155,20 @@ $income_source = 'anonymous' ;
             $message_type = 'error';
         } else {
             if ($donation->update($id, $commonData)) {
-                    foreach($admins as $admin){
-                        $notification->create(
+                  foreach ($admins as $admin) {
+                    $notification->create(
                         $admin['id'],
+                        'Income Updated',
+                        'An income of ¢' . number_format($commonData['amount'], 2) .
+                        ' was updated by ' . $actorName . ' (' . $actorRole . ')',
+                        'overview.php'
+                    );
+                }
+
+
+                    foreach($treasurers as $treasurer){
+                        $notification->create(
+                        $treasurer['id'],
                         'Income Updated',
                         'An income of ¢' . number_format($commonData['amount'], 2) . ' was updated.',
                         'donations.php');
@@ -168,9 +197,17 @@ $income_source = 'anonymous' ;
                 $notification->create(
                 $admin['id'],
                 'Income Deleted',
+                'An income record was deleted by ' . $actorName . ' (' . $actorRole . ')',
+                'donations.php');
+            }
+             foreach($treasurers as $treasurer){
+                $notification->create(
+                $treasurer['id'],
+                'Income Deleted',
                 'An income record was deleted.',
                 'donations.php');
             }
+
              header("Location: donations.php?msg=deleted");
              exit();
             $donations = $donation->getAll();

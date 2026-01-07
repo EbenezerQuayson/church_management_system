@@ -14,7 +14,7 @@ if (isLoggedIn()) {
     if ($role === 'Treasurer') {
         header('Location: ../app/views/overview.php');
     } elseif ($role === 'Leader') {
-        header('Location: ../app/views/members.php');
+        header('Location: ../app/views/ministries.php');
     } else {
         header('Location: ../app/views/dashboard.php');
     }
@@ -55,7 +55,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             break;
 
         case 'Leader':
-            header('Location: ../app/views/members.php');
+            header('Location: ../app/views/ministries.php');
             break;
 
         case 'Admin':
