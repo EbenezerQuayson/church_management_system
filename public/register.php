@@ -12,6 +12,14 @@ require_once __DIR__ . '/../app/controllers/AuthController.php';
 //     exit;
 // }
 
+requireLogin();
+
+if ($_SESSION['user_role'] !== 'Admin') {
+    header('Location: dashboard.php');
+    exit;
+}
+
+
 
 
 $db = Database::getInstance();
@@ -225,9 +233,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                                 <option value="1">Admin</option>
                                  <!-- <option value="4"  >Member</option> -->
                                 <option value="3" >Leader</option>
-                                <option value="2" >Pastor</option>
+                                <!-- <option value="2" >Pastor</option> -->
                                 <option value="6" >Treasurer</option>
-                                <option value="5" >Staff</option>
+                                <!-- <option value="5" >Staff</option> -->
                             </select>
                         </div>
 

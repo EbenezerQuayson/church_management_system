@@ -16,6 +16,7 @@ $notification = new Notification();
 
 $members_count = $member->getTotalCount();
 $user_id = $_SESSION['user_id'];
+$role = $_SESSION['user_role'] ?? 'User';
 $member_notification = Database::getInstance();
 $admins = $member_notification->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
 
@@ -304,10 +305,11 @@ if(isset($_GET['msg'])){
         <!-- Page Title -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold" style="color: var(--primary-color);">Members <small>(<?php echo $members_count; ?>)</small>  </h2>
+            <?php if($role == 'Admin'): ?>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMemberModal">
                 <i class="fas fa-user-plus"></i> Add Member
             </button>
-            
+            <?php endif; ?>
 
         </div>
         
@@ -341,6 +343,7 @@ if(isset($_GET['msg'])){
          </form>
 <br>
         <!-- Members Table -->
+         <?php if($role == 'Admin'): ?>
 <div class="row mb-4 g-4">
             <div class="col-12">
                 <div class="card">
@@ -365,7 +368,7 @@ if(isset($_GET['msg'])){
                 </div>
             </div>
         </div>
-
+<?php endif; ?>
 
         <div class="card">
             <div class="card-body">
@@ -702,6 +705,7 @@ if(isset($_GET['msg'])){
                 </div>
             </div>
             <!-- Footer -->
+             <?php if($role == 'Admin'): ?>
             <div class="modal-footer justify-content-between">
                 <button class="btn btn-outline-primary" id="openEditMember">
                     <i class="fas fa-edit"></i> Edit
@@ -710,6 +714,7 @@ if(isset($_GET['msg'])){
                     <i class="fas fa-trash"></i> Delete
                 </button>
             </div>
+            <?php endif; ?>
         </div>
     </div>
 </div>

@@ -258,7 +258,7 @@ $jsMinistryCounts = json_encode($ministryCounts);
 
                 <!-- Members -->
                 <div class="col-6 col-md-3 col-lg">
-                    <a href="members.php" class="text-decoration-none">
+                    <a href="<?= in_array($role, ['Admin', 'Leader', 'Treasurer']) ? 'members.php': '#' ?>" class="text-decoration-none">
                     <div class="card stat-card stat-card-blue h-100">
                         <div class="card-body">
                             <div class="stat-icon">
@@ -273,7 +273,7 @@ $jsMinistryCounts = json_encode($ministryCounts);
 
                 <!-- Events -->
                 <div class="col-6 col-md-3 col-lg">
-                    <a href="events.php" class="text-decoration-none">
+                    <a href="<?= in_array($role, ['Admin', 'Leader']) ? 'events.php': '#' ?>" class="text-decoration-none">
                     <div class="card stat-card stat-card-blue h-100">
                         <div class="card-body">
                             <div class="stat-icon">
@@ -288,7 +288,7 @@ $jsMinistryCounts = json_encode($ministryCounts);
 
                 <!-- Ministries -->
                 <div class="col-6 col-md-3 col-lg">
-                    <a href="ministries.php" class="text-decoration-none">
+                    <a href="<?= in_array($role, ['Admin', 'Leader']) ? 'ministries.php': '#' ?>" class="text-decoration-none">
 
                     <div class="card stat-card stat-card-blue h-100">
                         <div class="card-body">

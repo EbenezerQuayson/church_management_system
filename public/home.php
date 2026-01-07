@@ -144,7 +144,7 @@ try {
                     <a href="#programs" class="btn btn-light btn-lg me-3 mb-2">
                         <i class="fas fa-arrow-down me-2"></i>Learn More
                     </a>
-                    <a href="<?php echo BASE_URL;?>/public/register.php" class="btn btn-warning btn-lg mb-2">
+                    <a href="#" class="btn btn-warning btn-lg mb-2 disabled">
                         <i class="fas fa-user-plus me-2"></i>Join Us
                     </a>
                 </div>
@@ -197,7 +197,7 @@ try {
                             <i class="<?= htmlspecialchars($program['icon_class'] ?: 'fas-fa-calendar'); ?>"></i>
                         </div>
                         <h4><?= htmlspecialchars($program['title']); ?></h4>
-                        <p class="text-muted mb-2"><?= htmlspecialchars($program['scheduled_text']); ?></p>
+                        <p class="text-muted mb-2"><?= htmlspecialchars($program['schedule_text']); ?></p>
                         <?php if (!empty($program['description'])): ?>
                     <p class="small">
                         <?= htmlspecialchars($program['description']); ?>
@@ -448,7 +448,7 @@ try {
                     <h2 class="text-white mb-3">Ready to Join Our Community?</h2>
                     <p class="text-white-50 mb-4">Whether you're looking for spiritual growth, community service, or a welcoming family, there's a place for you here.</p>
                     <div class="cta-buttons">
-                        <a href="<?php echo BASE_URL ?>/public/register.php" class="btn btn-light btn-lg me-3 mb-2">
+                        <a href="#" class="btn btn-light btn-lg me-3 mb-2 disabled" >
                             <i class="fas fa-user-plus me-2"></i>Register
                         </a>
                         <a href="<?php echo BASE_URL ?>/public/login.php" class="btn btn-outline-light btn-lg mb-2">

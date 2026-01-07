@@ -15,6 +15,7 @@ $menuPermissions = [
     'finance'             => ['Admin', 'Treasurer'],
     'churchManagement'    => ['Admin', 'Leader'],
     'notifications'       => ['Admin', 'Leader', 'Treasurer'],
+    'user'                => ['Admin'],
     'settings'            => ['Admin'],
 ];
 
@@ -45,7 +46,8 @@ function isCollapsed($group, $current){
         'christianManagement' => ['dashboard', 'members'],
         'finance' => ['income', 'expenses', 'overview'],
         'churchManagement' => ['organizations', 'events', 'attendance', 'service'],
-        'notifications' => ['notifications']
+        'notifications' => ['notifications'],
+        'user' => ['user']
     ];
 
     if(isset($groups[$group]) && in_array($current, $groups[$group])){
@@ -120,6 +122,18 @@ function isCollapsed($group, $current){
             </div>
             <ul class="sidebar-menu collapse <?= isCollapsed('notifications', $activePage) ?>" id="notifications">
                 <li><a href="notification.php" class="<?= isActive('notifications', $activePage) ?>"><i class="bi bi-bell"></i> All Notifications</a></li>
+            </ul>
+        </div>
+    <?php endif; ?>
+    <?php if(canSee('user', $role, $menuPermissions)): ?>
+
+     <div class="menu-group">
+            <div class="menu-group-header"  data-bs-target="#user">
+                <i class="bi bi-chevron-down"></i>
+                <span>User Management</span>
+            </div>
+            <ul class="sidebar-menu collapse <?= isCollapsed('user', $activePage) ?>" id="user">
+                <li><a href="user.php" class="<?= isActive('user', $activePage) ?>"><i class="bi bi-person-gear"></i> User Settings</a></li>
             </ul>
         </div>
     <?php endif; ?>

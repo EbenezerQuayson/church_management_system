@@ -238,9 +238,9 @@ if (isset($_GET['expired'])) {
                     </form>
 
                     <!-- Forgot Password and Registration Links -->
-                    <div class="forgot-password">
+                    <!-- <div class="forgot-password">
                         <a href="forgot-password.php">Forgot your password?</a> | <a href="register.php">Create Account</a>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>
