@@ -11,8 +11,8 @@ require_once __DIR__ . '/../../models/Notifications.php';
 
 $notification = new Notification();
 
-$db = Database::getInstance();
-$admins = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
+$dbGetInstance = Database::getInstance();
+$admins = $dbGetInstance->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
 
 
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
@@ -157,7 +157,9 @@ try {
         $notification->create(
             $admin['id'],
             'Members Imported',
-            "$importedCount members were successfully imported.",
+            $importedCount > 0
+    ? "$importedCount members were successfully imported."
+    : "Member import completed, but no valid records were found.",
             'members.php'
         );
     }

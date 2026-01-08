@@ -263,11 +263,18 @@ if(isset($_GET['msg'])){
             $message = 'Failed to export members.';
             $message_type = 'error';
             break;
-        case 'imported':
-            $count = $_GET['count'] ?? 0;
-            $message = "Successfully imported $count members!";
-            $message_type = 'success';
-            break;
+       case 'imported':
+    $count = (int)($_GET['count'] ?? 0);
+
+    if ($count > 0) {
+        $message = "Successfully imported $count member" . ($count > 1 ? 's' : '') . "!";
+        $message_type = 'success';
+    } else {
+        $message = "Import completed, but no new members were added.";
+        $message_type = 'warning';
+    }
+    break;
+
         case 'import_failed':
             $message = 'Failed to import members. Please check the file format and data.';
             $message_type = 'error';

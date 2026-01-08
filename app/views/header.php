@@ -41,9 +41,23 @@ foreach ($settings as $setting) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+      <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($church_name); ?> - Management System</title>
+
+    <title><?= htmlspecialchars($church_name) ?> - Management System</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/assets/images/favicon.png">
+
+    <!-- SEO -->
+    <meta name="description" content="Church Management System for <?= htmlspecialchars($church_name) ?>. Manage members, donations, expenses, and church activities efficiently.">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="<?= htmlspecialchars($church_name) ?> - Management System">
+    <meta property="og:description" content="A modern church management system for members, finances, and administration.">
+    <meta property="og:image" content="<?= BASE_URL ?>/assets/images/og-image.png">
+    <meta property="og:url" content="<?= BASE_URL ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.0/font/bootstrap-icons.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
