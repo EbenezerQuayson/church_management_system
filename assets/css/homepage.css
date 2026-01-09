@@ -461,3 +461,9 @@
     gap: 1rem !important;
   }
 }
+
+.empty-state {
+    background-color: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #e9ecef;
+}

@@ -222,15 +222,16 @@ try {
                 <?php endforeach?>
                 <?php else: ?>
 
-    <div class="col-12">
-        <div class="alert alert-light text-center py-5 border rounded">
-            <i class="fas fa-info-circle fa-2x mb-3 text-muted"></i>
-            <h5 class="mb-2">Programs Coming Soon</h5>
-            <p class="text-muted mb-0">
-                Our programs will be updated shortly. Please check back later.
-            </p>
-        </div>
+<div class="col-12">
+    <div class="empty-state text-center py-5 px-3">
+        <i class="fas fa-calendar-alt fa-3x text-secondary mb-3"></i>
+        <h5 class="fw-semibold mb-2">Programs Coming Soon</h5>
+        <p class="text-muted mb-0">
+            Our programs will be updated shortly. Please check back later.
+        </p>
     </div>
+</div>
+
 
 <?php endif; ?>
 
@@ -428,11 +429,14 @@ try {
                     </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <div class="col-12">
-                        <div class="alert alert-info text-center" role="alert">
-                            <i class="fas fa-info-circle me-2"></i>No upcoming events at this time. Please check back soon!
-                        </div>
-                    </div>
+<div class="col-12">
+    <div class="empty-state text-center py-5">
+        <i class="fas fa-calendar-alt fa-3x text-secondary mb-3"></i>
+        <h6 class="fw-semibold">No Upcoming Events</h6>
+        <p class="text-muted mb-0">Please check back soon.</p>
+    </div>
+</div>
+
                 <?php endif; ?>
                 <!-- <div class="col-md-6 col-lg-4">
                     <div class="news-card">
@@ -524,7 +528,7 @@ try {
             <hr class="footer-divider">
             <div class="row">
                 <div class="col-md-6">
-                    <b><p class="text-muted small mb-0">&copy; 2025 The Methodist Church Ghana. All rights reserved.</p></b>
+                    <b><p class="text-muted small mb-0">&copy; <?= date('Y') ?> The Methodist Church Ghana. All rights reserved.</p></b>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <p class="text-muted small mb-0">
