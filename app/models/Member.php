@@ -70,6 +70,7 @@ class Member {
 
     // Insert new selections
     if (!empty($ministries) && is_array($ministries)) {
+                $ministries = array_values(array_unique($ministries));
         $insertSql = "INSERT INTO ministry_members (member_id, ministry_id, role, joined_date, created_at)
                       VALUES (:member_id, :ministry_id, :role, :joined_date, NOW())";
         $insertStmt = $this->db->prepare($insertSql);
@@ -275,7 +276,7 @@ public function create($data)
 
 
     public function getMemberMinistries($memberId) {
-    $sql = "SELECT m.name 
+    $sql = "SELECT DISTINCT m.name 
             FROM ministries m
             JOIN ministry_members mm ON mm.ministry_id = m.id
             WHERE mm.member_id = :member_id";
@@ -303,6 +304,7 @@ public function updateMinistries($memberId, $ministries = []) {
 
     // Add new memberships
     if (!empty($ministries)) {
+                $ministries = array_values(array_unique($ministries));
         $insertSql = "INSERT INTO ministry_members (member_id, ministry_id, role, joined_date, created_at)
                       VALUES (:member_id, :ministry_id, :role, :joined_date, NOW())";
         $stmt = $this->db->prepare($insertSql);

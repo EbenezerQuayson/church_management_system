@@ -132,7 +132,7 @@ try {
         if (!$memberId) continue;
 
         /* ===== MINISTRIES ===== */
-        $ministries = explode(',', $rowData['ministries'] ?? '');
+        $ministries = array_values(array_unique(explode(',', $rowData['ministries'] ?? '')));
 
         foreach ($ministries as $ministryName) {
             $ministryName = trim($ministryName);

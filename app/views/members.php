@@ -130,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_member']) && 
 
 if ($newMemberId) {
     // Get selected ministries
-    $ministryIds = $_POST['ministries'] ?? [];
+    $ministryIds = array_values(array_unique($_POST['ministries'] ?? []));
     
     // If none selected, assign default ministry (e.g., id = 1)
     if (empty($ministryIds)) {
