@@ -89,9 +89,23 @@ try {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title><?php echo htmlspecialchars($church_name); ?> - Welcome</title>
+
+    <title><?= htmlspecialchars($church_name) ?> Welcome</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/assets/images/favicon.png">
+
+    <!-- SEO -->
+    <meta name="description" content="Church Management System for <?= htmlspecialchars($church_name) ?>. Manage members, donations, expenses, and church activities efficiently.">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="<?= htmlspecialchars($church_name) ?> - Management System">
+    <meta property="og:description" content="A modern church management system for members, finances, and administration.">
+    <meta property="og:image" content="<?= BASE_URL ?>/assets/images/og-image.png">
+    <meta property="og:url" content="<?= BASE_URL ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="<?php echo BASE_URL;?>/assets/css/style.css">
@@ -208,15 +222,16 @@ try {
                 <?php endforeach?>
                 <?php else: ?>
 
-    <div class="col-12">
-        <div class="alert alert-light text-center py-5 border rounded">
-            <i class="fas fa-info-circle fa-2x mb-3 text-muted"></i>
-            <h5 class="mb-2">Programs Coming Soon</h5>
-            <p class="text-muted mb-0">
-                Our programs will be updated shortly. Please check back later.
-            </p>
-        </div>
+<div class="col-12">
+    <div class="empty-state text-center py-5 px-3">
+        <i class="fas fa-calendar-alt fa-3x text-secondary mb-3"></i>
+        <h5 class="fw-semibold mb-2">Programs Coming Soon</h5>
+        <p class="text-muted mb-0">
+            Our programs will be updated shortly. Please check back later.
+        </p>
     </div>
+</div>
+
 
 <?php endif; ?>
 
@@ -414,11 +429,14 @@ try {
                     </div>
                     <?php endforeach; ?>
                 <?php else: ?>
-                    <div class="col-12">
-                        <div class="alert alert-info text-center" role="alert">
-                            <i class="fas fa-info-circle me-2"></i>No upcoming events at this time. Please check back soon!
-                        </div>
-                    </div>
+<div class="col-12">
+    <div class="empty-state text-center py-5">
+        <i class="fas fa-calendar-alt fa-3x text-secondary mb-3"></i>
+        <h6 class="fw-semibold">No Upcoming Events</h6>
+        <p class="text-muted mb-0">Please check back soon.</p>
+    </div>
+</div>
+
                 <?php endif; ?>
                 <!-- <div class="col-md-6 col-lg-4">
                     <div class="news-card">
@@ -510,7 +528,7 @@ try {
             <hr class="footer-divider">
             <div class="row">
                 <div class="col-md-6">
-                    <b><p class="text-muted small mb-0">&copy; 2025 The Methodist Church Ghana. All rights reserved.</p></b>
+                    <b><p class="text-muted small mb-0">&copy; <?= date('Y') ?> The Methodist Church Ghana. All rights reserved.</p></b>
                 </div>
                 <div class="col-md-6 text-md-end">
                     <p class="text-muted small mb-0">
