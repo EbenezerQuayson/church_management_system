@@ -6,14 +6,13 @@ $donation = new Donation();
 $records = $donation->getAll();
 
 header("Content-Type: text/csv");
-header("Content-Disposition: attachment; filename=summary.csv");
+header("Content-Disposition: attachment; filename=income_summary_".date('Y-m-d').".csv");
 
 $output = fopen("php://output", "w");
-fputcsv($output, ["Date", "Amount", "Type", "Description"]);
+fputcsv($output, ["Date", "Amount", "Type", "Notes"]);
 
 foreach ($records as $r) {
     fputcsv($output, [$r['donation_date'], $r['amount'], $r['donation_type'], $r['notes']]);
 }
-
 
 ?>

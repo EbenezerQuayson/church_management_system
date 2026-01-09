@@ -14,9 +14,11 @@ $ministries = $ministryModel->getAllActive();
 $member = new Member();
 $notification = new Notification();
 
-
+$members_count = $member->getTotalCount();
 $user_id = $_SESSION['user_id'];
-
+$role = $_SESSION['user_role'] ?? 'User';
+$member_notification = Database::getInstance();
+$admins = $member_notification->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
 
 requireLogin();
 
@@ -39,8 +41,34 @@ if($search !== ''){
 $message = '';
 $message_type = '';
 
+
+// HANDLE DELETE MEMBER (POST)
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['delete_member'])) {
+
+    $id = (int) $_POST['delete_id'];
+
+    if ($member->permanentDelete($id)) {
+        foreach ($admins as $admin) {
+            $notification->create(
+                $admin['id'],
+                'Member Deleted',
+                'A member was deleted.',
+                'members.php'
+            );
+        }
+        header("Location: members.php?msg=deleted");
+        exit();
+    } else {
+        header("Location: members.php?msg=delete_failed");
+        exit();
+    }
+}
+
+
+
+
 // Handle form submission
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_member'])) {
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_member']) && !isset($_POST['delete_member'])) {
 
     // Ministries come separately (array)
     $ministries = $_POST['ministries'] ?? [];
@@ -96,20 +124,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_member'])) {
         }
     }
 
+
+
    $newMemberId = $member->create($data);
 
 if ($newMemberId) {
     // Get selected ministries
     $ministryIds = $_POST['ministries'] ?? [];
-    $notification->create(
-        $_SESSION['user_id'],
-        'New Member Added',
-        $data['first_name'] . ' ' . $data['last_name'] . ' was added.',
-        'members.php'
-    );
+    
     // If none selected, assign default ministry (e.g., id = 1)
     if (empty($ministryIds)) {
-        $ministryIds = [1]; // Replace 1 with your default ministry ID
+        $ministryIds = [1]; // Replace 1 with default ministry ID
     }
 
     $insertSql = "INSERT INTO ministry_members (member_id, ministry_id, role, joined_date, created_at)
@@ -126,14 +151,16 @@ if ($newMemberId) {
     }
 
     //Notification
-    $notification->create(
-        $_SESSION['user_id'],
+    foreach($admins as $admin){
+        $notification->create(
+        $admin['id'],
         'New Member Added',
         $data['first_name'] . ' ' . $data['last_name'] . ' was added.',
         'members.php'
-    );
+    ); }
 
     header("Location: members.php?msg=added");
+    exit();
 } else {
     header("Location: members.php?msg=add_failed");
 }
@@ -181,13 +208,13 @@ if (isset($_POST['update_member'])) {
         // Update ministries
         $selectedMinistries = $_POST['ministries'] ?? [];
         $member->updateMinistries($editId, $selectedMinistries);
-
+        foreach($admins as $admin){
         $notification->create(
-            $_SESSION['user_id'],
+            $admin['id'],
             'Member Updated',
             $data['first_name'] . ' ' . $data['last_name'] . ' was updated.',
             'members.php'
-        );
+        );}
 
         header("Location: members.php?msg=updated");
         exit();
@@ -198,31 +225,6 @@ if (isset($_POST['update_member'])) {
 }
 
 
-
-//Handle Delete Member
-if(isset($_GET['delete'])) {
-    $id = $_GET['delete'];
-    // Implement delete functionality in Member model
-    if ($member->permanentDelete($id)) {
-        $notification->create(
-            $_SESSION['user_id'],
-            'Member Deleted',
-            'A member was deleted.',
-            'members.php'
-        );
-        header("Location: members.php?msg=deleted");
-        exit();
-        // $message = 'Member deleted successfully!';
-        // $message_type = 'success';
-    } else {
-        header("Location: members.php?msg=delete_failed");
-        exit();
-        // $message = 'Failed to delete member';
-        // $message_type = 'error';
-
-    }
-    // $members = $member->getAll();
-}
 
 //Logic to prevent resubmission after any refresh
 
@@ -261,11 +263,18 @@ if(isset($_GET['msg'])){
             $message = 'Failed to export members.';
             $message_type = 'error';
             break;
-        case 'imported':
-            $count = $_GET['count'] ?? 0;
-            $message = "Successfully imported $count members!";
-            $message_type = 'success';
-            break;
+       case 'imported':
+    $count = (int)($_GET['count'] ?? 0);
+
+    if ($count > 0) {
+        $message = "Successfully imported $count member" . ($count > 1 ? 's' : '') . "!";
+        $message_type = 'success';
+    } else {
+        $message = "Import completed, but no new members were added.";
+        $message_type = 'warning';
+    }
+    break;
+
         case 'import_failed':
             $message = 'Failed to import members. Please check the file format and data.';
             $message_type = 'error';
@@ -298,13 +307,15 @@ if(isset($_GET['msg'])){
     <div class="container-fluid">
         <!-- Page Title -->
         <div class="d-flex justify-content-between align-items-center mb-4">
-            <h2 class="fw-bold" style="color: var(--primary-color);">Members</h2>
+            <h2 class="fw-bold" style="color: var(--primary-color);">Members <small>(<?php echo $members_count; ?>)</small>  </h2>
+            <?php if($role == 'Admin'): ?>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addMemberModal">
                 <i class="fas fa-user-plus"></i> Add Member
             </button>
-            
+            <?php endif; ?>
 
         </div>
+        
         
 
         <!-- Message Display -->
@@ -335,6 +346,7 @@ if(isset($_GET['msg'])){
          </form>
 <br>
         <!-- Members Table -->
+         <?php if($role == 'Admin'): ?>
 <div class="row mb-4 g-4">
             <div class="col-12">
                 <div class="card">
@@ -359,22 +371,22 @@ if(isset($_GET['msg'])){
                 </div>
             </div>
         </div>
-
+<?php endif; ?>
 
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover table-mobile-friendly">
                         <thead style="background-color: var(--primary-color); color: white;">
                             <tr>
-                                <th>Name</th>
-                                <th>Gender</th>
-                                <th>Phone</th>
-                                <th>Email</th>
+                                <th class="col-essential">Name</th>
+                                <th class="col-hide-mobile" >Gender</th>
+                                <th class="col-hide-mobile" >Phone</th>
+                                <th class="col-hide-mobile">Email</th>
                                 <?php if ($viewMode === 'flat'): ?>
-                                <th>Ministry</th>
+                                <th class="col-hide-mobile">Ministry</th>
                                 <?php endif; ?>
-                                <th>Actions</th>
+                                <th class="col-essential text-end">Actions</th>
                             </tr>
                         </thead>
 
@@ -473,20 +485,7 @@ if(isset($_GET['msg'])){
 <?php endif; ?>
 
                     
-<?php 
-$includedMembers = [];
-foreach ($members as $m): 
-    if (!in_array($m['id'], $includedMembers)) {
-        include 'members/edit_member_modal.php';
-        $includedMembers[] = $m['id'];
-    }
-endforeach; 
-?>
-                </div>
-            </div>
-        </div>
-    </div>
-</div>
+
 
 <!-- Add Member Modal -->
 <div class="modal fade" id="addMemberModal" tabindex="-1">
@@ -605,6 +604,9 @@ endforeach;
     </div>
 </div>
 
+<?php include 'members/edit_member_modal.php'; ?>
+
+
 <!-- Import Members Modal -->
 <div class="modal fade" id="importMembersModal" tabindex="-1">
     <div class="modal-dialog">
@@ -630,15 +632,125 @@ endforeach;
     </div>
 </div>
 
+<!-- Member Details Modal -->
+<div class="modal fade" id="memberDetails" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered modal-lg">
+        <div class="modal-content">
+            <!-- Header -->
+            <div class="modal-header member-header">
+                <div class="d-flex align-items-center gap-3">
+                    <img id="detail_image"
+                         src=""
+                         class="member-avatar"
+                         alt="Member photo">
+                    <div>
+                        <h5 class="mb-0" id="detail_name"></h5>
+                        <small id="detail_ministry" class="text-light opacity-75"></small>
+                    </div>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <!-- Body -->
+            <div class="modal-body">
+                <!-- Contact -->
+                <div class="detail-section">
+                    <h6 class="section-title">Contact Information</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <span class="label">Email</span>
+                            <p id="detail_email"></p>
+                        </div>
+                        <div class="col-md-6">
+                            <span class="label">Phone</span>
+                            <p id="detail_phone"></p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Personal -->
+                <div class="detail-section">
+                    <h6 class="section-title">Personal Details</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <span class="label">Gender</span>
+                            <p id="detail_gender"></p>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="label">Date of Birth</span>
+                            <p id="detail_date_of_birth"></p>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="label">Join Date</span>
+                            <p id="detail_join_date"></p>
+                        </div>
+                    </div>
+                </div>
+                <!-- Location -->
+                <div class="detail-section">
+                    <h6 class="section-title">Location</h6>
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <span class="label">City</span>
+                            <p id="detail_city"></p>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="label">Region</span>
+                            <p id="detail_region"></p>
+                        </div>
+                        <div class="col-md-4">
+                            <span class="label">GPS</span>
+                            <p id="detail_gps"></p>
+                        </div>
+                        <div class="col-12">
+                            <span class="label">Address</span>
+                            <p id="detail_address"></p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <!-- Footer -->
+             <?php if($role == 'Admin'): ?>
+            <div class="modal-footer justify-content-between">
+                <button class="btn btn-outline-primary" id="openEditMember">
+                    <i class="fas fa-edit"></i> Edit
+                </button>
+                <button class="btn btn-outline-danger" id="openDeleteMember">
+                    <i class="fas fa-trash"></i> Delete
+                </button>
+            </div>
+            <?php endif; ?>
+        </div>
+    </div>
+</div>
 
-
-
+<!-- Delete Modal -->
+<div class="modal fade" id="deleteMemberModal" tabindex="-1">
+    <div class="modal-dialog">
+        <form method="POST" class="modal-content" id="deleteMemberForm">
+            <input type="hidden" name="delete_member" value="1">
+            <input type="hidden" name="delete_id" id="delete_member_id">
+            <div class="modal-header bg-danger text-white">
+                <h5 class="modal-title"><i class="fas fa-trash"></i> Delete Member</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to delete this member?</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" data-bs-dismiss="modal" type="button">Cancel</button>
+                <button class="btn btn-danger" type="submit">Delete</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <?php include 'footer.php'; ?>
 <script>
 const searchInput = document.getElementById('memberSearch');
 
 const tableBody = document.getElementById('membersTable');
+const BASE_URL = "<?= BASE_URL ?>";
+
+
 
 searchInput.addEventListener('keyup', function () {
     const query = this.value.trim();
@@ -679,12 +791,145 @@ searchInput.addEventListener('keyup', function () {
     }, 300);
 });
 
+document.addEventListener('click', function (e) {
+    const cell = e.target.closest('.member-clickable');
+    if (!cell) return;
 
+    // Prevent accidental clicks on links or buttons inside
+    if (e.target.closest('button, a, input')) return;
 
-function confirmDelete(id) {
-    if (confirm('Are you sure you want to delete this member?')) {
-        window.location.href = '?delete=' + id;
-        console.log('Delete member:', id);
+    const row = cell.closest('tr');
+    const viewBtn = row.querySelector('.viewMemberBtn');
+
+    if (viewBtn) {
+        viewBtn.click();
     }
+});
+
+let currentMemberData = {};
+// Member Details
+document.getElementById('membersTable').addEventListener('click', function(e) {
+    const btn = e.target.closest('.viewMemberBtn');
+    if (!btn) return;
+
+    currentMemberData = btn.dataset;
+
+    const img = currentMemberData.memberImg
+        ? currentMemberData.memberImg
+        : '/church_management_system/assets/images/avatar-placeholder.png';
+    document.getElementById('detail_image').src = img;
+
+    document.getElementById('detail_name').innerText = currentMemberData.firstName + ' ' + currentMemberData.lastName;
+    document.getElementById('detail_gender').innerText = currentMemberData.gender;
+    document.getElementById('detail_phone').innerText = currentMemberData.phone || '-';
+    document.getElementById('detail_email').innerText = currentMemberData.email || '-';
+    const ministries = JSON.parse(currentMemberData.ministry || '[]');
+    document.getElementById('detail_ministry').innerText = ministries.length ? ministries.join(', ') : 'N/A';
+    document.getElementById('detail_address').innerText = currentMemberData.address || '-';
+    document.getElementById('detail_date_of_birth').innerText = currentMemberData.dateOfBirth
+        ? new Date(currentMemberData.dateOfBirth).toLocaleDateString()
+        : '-';
+    document.getElementById('detail_join_date').innerText = currentMemberData.joinDate
+        ? new Date(currentMemberData.joinDate).toLocaleDateString()
+        : '-';
+    document.getElementById('detail_city').innerText = currentMemberData.city || '-';
+    document.getElementById('detail_region').innerText = currentMemberData.region || '-';
+    // document.getElementById('detail_landmark').innerText = currentMemberData.landmark || '-';
+    document.getElementById('detail_gps').innerText = currentMemberData.gps || '-';
+
+    // Show modal
+    new bootstrap.Modal(document.getElementById('memberDetails')).show();
+
+        // Edit Button
+        const editBtn = document.getElementById('openEditMember');
+        editBtn.onclick = () => {
+    document.getElementById('edit_member_id').value = currentMemberData.memberId;
+    document.getElementById('edit_first_name').value = currentMemberData.firstName || '';
+    document.getElementById('edit_last_name').value = currentMemberData.lastName || '';
+    document.getElementById('edit_phone').value = currentMemberData.phone || '';
+    document.getElementById('edit_email').value = currentMemberData.email || '';
+    document.getElementById('edit_gender').value = currentMemberData.gender || '';
+    document.getElementById('edit_date_of_birth').value = currentMemberData.dateOfBirth || '';
+
+    document.getElementById('edit_address').value = currentMemberData.address || '';
+    document.getElementById('edit_city').value = currentMemberData.city || '';
+    document.getElementById('edit_region').value = currentMemberData.region || '';
+    document.getElementById('edit_area').value = currentMemberData.area || '';
+    document.getElementById('edit_landmark').value = currentMemberData.landmark || '';
+    document.getElementById('edit_gps').value = currentMemberData.gps || '';
+   
+     // Populate member image preview/link
+        const currentImgDiv = document.getElementById('currentMemberImg');
+        const imgPath = currentMemberData.memberImg;
+        currentImgDiv.innerHTML = imgPath 
+            ? `<small class="text-muted">Current: 
+        <a href="${imgPath}" target="_blank">View</a>
+       </small>`
+    : '';
+
+    document.getElementById('edit_emergency_contact_name').value =
+        currentMemberData.emergencyContactName || '';
+    document.getElementById('edit_emergency_phone').value =
+        currentMemberData.emergencyPhone || '';
+
+    // Ministries (multi-select)
+    const ministrySelect = document.getElementById('edit_ministries');
+    const memberMinistries = JSON.parse(currentMemberData.ministry || '[]');
+
+    [...ministrySelect.options].forEach(opt => {
+        opt.selected = memberMinistries.includes(opt.text);
+    });
+
+    new bootstrap.Modal(document.getElementById('editMemberModal')).show();
+};
+
+
+        // Delete Button
+       const deleteBtn = document.getElementById('openDeleteMember');
+
+deleteBtn.onclick = function () {
+    document.getElementById('delete_member_id').value = currentMemberData.memberId;
+
+    const deleteModal = new bootstrap.Modal(
+        document.getElementById('deleteMemberModal')
+    );
+
+    deleteModal.show();
+};
+
+    });
+    
+
+document.addEventListener('show.bs.modal', function (event) {
+    const openModals = document.querySelectorAll('.modal.show');
+
+    openModals.forEach(modal => {
+        if (modal !== event.target) {
+            const instance = bootstrap.Modal.getInstance(modal);
+            if (instance) {
+                instance.hide();
+            }
+        }
+    });
+});
+
+// Function to remove all modal backdrops
+function removeBackdrops() {
+    const backdrops = document.querySelectorAll('.modal-backdrop');
+    backdrops.forEach(b => b.remove());
 }
+
+// Listen for any modal being hidden (works when close/cancel buttons are clicked)
+document.addEventListener('hidden.bs.modal', function (event) {
+    removeBackdrops();
+});
+
+// Also catch cancel buttons explicitly (if needed)
+document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(btn => {
+    btn.addEventListener('click', () => {
+        // Give Bootstrap a tiny delay to finish hiding animation
+        setTimeout(removeBackdrops, 200);
+    });
+});
+
 </script>

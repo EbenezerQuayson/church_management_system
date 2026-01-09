@@ -39,13 +39,15 @@ $monthlyExpenses = $expenseModel->getTotalByMonth(date('Y'), date('m'));
 $monthlyExpenses = $monthlyExpenses['total_expense'];
 
 //Overview
-$transactions = $overviewModel->getRecentTransactions(5);
-$monthlyData = $overviewModel->getMonthlyIncomeExpense(date('Y'));
-$expenseBreakdown = $overviewModel->getExpenseBreakdown();
 $currentYear = date('Y');
-$lastYear = $currentYear - 1;
-$current = $overviewModel->getYearTotals($currentYear);
-$previous = $overviewModel->getYearTotals($lastYear);
+$selectedYear = isset($_GET['year']) ? (int) $_GET['year'] : $currentYear;
+$previousYear = $selectedYear - 1;
+$current = $overviewModel->getYearTotals($selectedYear);
+$previous = $overviewModel->getYearTotals($previousYear);
+$transactions = $overviewModel->getRecentTransactions(5, $selectedYear);
+$monthlyData = $overviewModel->getMonthlyIncomeExpense($selectedYear);
+$expenseBreakdown = $overviewModel->getExpenseBreakdown($selectedYear);
+
 $currentIncome = $current['total_income'];
 $currentExpense = $current['total_expenses'];
 $previousExpense = $previous['total_expenses'];
@@ -86,7 +88,7 @@ foreach ($monthlyData as $data) {
 $expenseLabels = array_column($expenseBreakdown, 'category');
 $expenseTotals = array_column($expenseBreakdown, 'total');
 
-
+$count = 1;
 
 ?>
 <!--  -->
@@ -191,9 +193,27 @@ $expenseTotals = array_column($expenseBreakdown, 'total');
         <!-- Income vs Expenses Chart -->
         <div class="col-lg-8">
             <div class="card shadow border-0">
-                <div class="card-header bg-white">
+                <div class="card-header bg-white d-flex justify-content-between align-items-center mb-3">
                     <h5 class="mb-0">Income vs Expenses (Last 12 Months)</h5>
+                <div class="year-selector">
+    <form method="GET" class="d-flex align-items-center gap-2">
+        
+        <select name="year" class="form-select form-select-sm year-select" style="width: 90px;"
+                onchange="this.form.submit()">
+            <?php
+            $currentYear = date('Y');
+            $selectedYear = $_GET['year'] ?? $currentYear;
+
+            for ($y = $currentYear; $y >= $currentYear - 5; $y--) {
+                $selected = ($selectedYear == $y) ? 'selected' : '';
+                echo "<option value='$y' $selected>$y</option>";
+            }
+            ?>
+        </select>
+    </form>
+</div>
                 </div>
+                
                 <div class="card-body">
                     <canvas id="incomeExpenseChart" height="120"></canvas>
                 </div>
@@ -215,71 +235,46 @@ $expenseTotals = array_column($expenseBreakdown, 'total');
     </div>
 
     <!-- Recent Transactions -->
-    <div class="card shadow border-0 mb-4">
-        <div class="card-header bg-white">
-            <h5 class="mb-0">Recent Transactions</h5>
-        </div>
-
-        <div class="card-body p-0">
-            <table class="table mb-0 table-striped">
+    <div class="chart-container">
+        <h5>Recent Transactions</h5>
+        <div class="table-responsive">
+            <table class="table  table-hover mb-0 table-mobile-friendly">
                 <thead>
-                    <tr>
-                        <th>Date</th>
-                        <th>Type</th>
-                        <th>Category</th>
-                        <th>Amount (GHS)</th>
-                        <th>Description</th>
+                    <tr style="background-color: var(--primary-color); color: #fff;">
+                        <th class="col-essential">#</th>
+                        <th class="col-hide-mobile">Date</th>
+                        <th class="col-essential">Type</th>
+                        <th class="col-hide-mobile">Category</th>
+                        <th class="col-essential">Amount (GHS)</th>
+                        <th class="col-hide-mobile">Description</th>
                     </tr>
                 </thead>
                 <tbody>
 <?php foreach ($transactions as $row): ?>
     <tr>
-        <td><?= htmlspecialchars($row['trans_date']) ?></td>
+                    <td class="col-essential"><?= $count++ ?></td>
 
-        <td>
+        <td class="col-hide-mobile"><?= htmlspecialchars($row['trans_date']) ?></td>
+
+        <td class="col-essential">
             <span class="badge <?= $row['type'] === 'Donation' ? 'bg-success' : 'bg-danger' ?>">
                 <?= $row['type'] ?>
             </span>
         </td>
 
-        <td><?= htmlspecialchars($row['category'] ?? '—') ?></td>
+        <td class="col-hide-mobile"><?= htmlspecialchars($row['category'] ?? '—') ?></td>
 
-        <td><?= number_format($row['amount'], 2) ?></td>
+        <td class="col-essential"><?= number_format($row['amount'], 2) ?></td>
 
-        <td><?= htmlspecialchars($row['description'] ?? '') ?></td>
+        <td class="col-hide-mobile"><?= htmlspecialchars($row['description'] ?? '') ?></td>
     </tr>
 <?php endforeach; ?>
 </tbody>
 
-
-                <!-- <tbody>
-                    <tr>
-                        <td>2025-02-01</td>
-                        <td><span class="badge bg-success">Donation</span></td>
-                        <td>Tithe</td>
-                        <td>300</td>
-                        <td>Sunday Service</td>
-                    </tr>
-
-                    <tr>
-                        <td>2025-02-03</td>
-                        <td><span class="badge bg-danger">Expense</span></td>
-                        <td>Maintenance</td>
-                        <td>120</td>
-                        <td>Generator Fuel</td>
-                    </tr>
-
-                    <tr>
-                        <td>2025-02-05</td>
-                        <td><span class="badge bg-success">Donation</span></td>
-                        <td>Offering</td>
-                        <td>150</td>
-                        <td>Youth Meeting</td>
-                    </tr>
-                </tbody> -->
             </table>
         </div>
     </div>
+    
 
 </div>
 </div>
@@ -299,18 +294,52 @@ $expenseTotals = array_column($expenseBreakdown, 'total');
             datasets: [
                 {
                     label: "Income",
-                    data: incomeData,
+                    data: incomeData, 
+                    borderColor: "rgba(40, 167, 69, 1)",
+                    backgroundColor: "rgba(40, 167, 69, 0.15)",
+                    fill: true,
                     borderWidth: 2,
                     tension: 0.4
                 },
                 {
                     label: "Expenses",
                     data: expenseData,
+                    borderColor: "rgba(220, 53, 69, 1)",
+                    backgroundColor: "rgba(220, 53, 69, 0.15)",
+                    fill: true,
                     borderWidth: 2,
                     tension: 0.4
                 }
             ]
+        },
+        options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        scales: {
+            y: {
+                beginAtZero: true,
+                title: {
+                    display: true,
+                    text: "Amount (GHS)"
+                },
+                ticks: {
+                    callback: value => "¢" + value.toLocaleString()
+                }
+            }
+        },
+        plugins: {
+            legend: {
+                position: "bottom"
+            },
+            tooltip: {
+                callbacks: {
+                    label: ctx => {
+                        return `${ctx.dataset.label}: ¢${ctx.parsed.y.toLocaleString()}`;
+                    }
+                }
+            }
         }
+    }
     });
 
     new Chart(ctx1,{

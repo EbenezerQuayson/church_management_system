@@ -1,6 +1,4 @@
 <?php
-// Attendance Model
-
 class Attendance {
     private $db;
     private $table = 'attendance';
@@ -58,6 +56,13 @@ class Attendance {
         ':id' => $id,
         ':date' => $date
     ]);
+}
+
+public function deleteAttendance($id){
+    $sql = "DELETE FROM {$this->table} WHERE id = :id";
+    $stmt = $this->db->prepare($sql);
+    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+    return $stmt->execute();
 }
 
 

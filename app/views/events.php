@@ -5,9 +5,11 @@ $activePage = 'events';
 require_once __DIR__ . '/../../config/session.php';
 require_once __DIR__ . '/../../config/database.php';
 require_once __DIR__ . '/../models/Event.php';
-require_once __DIR__ . '/../models/NOtifications.php';
+require_once __DIR__ . '/../models/Notifications.php';
 
 requireLogin();
+$role = $_SESSION['user_role'] ?? null;
+$authorized = in_array($role, ['Admin', 'Leader']);
 
 $notification = new Notification();
 $event = new Event();
@@ -15,13 +17,33 @@ $events = $event->getAll();
 $message = '';
 $message_type = '';
 
+// Session flash messages
+if (isset($_SESSION['error'])) {
+    $message = $_SESSION['error'];
+    $message_type = 'error';
+    unset($_SESSION['error']); // VERY IMPORTANT
+}
+
+if (isset($_SESSION['success'])) {
+    $message = $_SESSION['success'];
+    $message_type = 'success';
+    unset($_SESSION['success']);
+}
+
 $user_id = $_SESSION['user_id'];
+$db = Database::getInstance();
+$admins = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.id WHERE r.name = 'Admin'");
 
 
 
 //Handle edit event
 if(isset($_POST['edit_event'])){
     $eventId = (int)$_POST['event_id'];
+    if($role !== 'Admin'){
+        $_SESSION['error'] = 'You are not allowed to edit event';
+        header('Location: events.php');
+        exit;
+    }
     $data = [
         'title' => trim($_POST['title'] ?? ''),
         'description' => trim($_POST['description'] ?? ''),
@@ -37,17 +59,17 @@ if(isset($_POST['edit_event'])){
         $message_type = 'error';
     } else {
         if ($event->edit($eventId, $data)) {
-            $notification->create(
-                $_SESSION['user_id'],
-                'Event Updated',
-                'The event "' . $data['title'] . '" was updated.',
-                'events.php'
-            );
+            foreach($admins as $admin){
+             $notification->create(
+                  $admin['id'],
+                  'Event Updated',
+                  'The event "' . $data['title'] . '" was updated.',
+                  'events.php'
+              );
+             }
             header("Location: events.php?msg=updated");
             exit();
         } else {
-            // $message = 'Failed to update event';
-            // $message_type = 'error';
             header("Location: events.php?msg=update_failed");
             exit();
         }
@@ -55,6 +77,11 @@ if(isset($_POST['edit_event'])){
 }
 // Handle form submission
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['edit_event'])) {
+     if($role !== 'Admin'){
+        $_SESSION['error'] = 'You are not allowed to create events';
+        header('Location: events.php');
+        exit;
+    }
     $data = [
         'title' => trim($_POST['title'] ?? ''),
         'description' => trim($_POST['description'] ?? ''),
@@ -70,17 +97,17 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['edit_event'])) {
         $message_type = 'error';
     } else {
         if ($event->create($data)) {
+            foreach($admins as $admin){
                $notification->create(
-                    $_SESSION['user_id'],
+                    $admin['id'],
                     'New Event Created',
                     'The event "' . $data['title'] . '" was created.',
                     'events.php'
                 );
+            }
                 header("Location: events.php?msg=created");
                 exit();
         } else {
-                    // $message = 'Failed to create event';
-                    // $message_type = 'error';
                     header("Location: events.php?msg=create_failed");
                     exit();
         }
@@ -89,18 +116,22 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['edit_event'])) {
 // delete event
 if(isset($_GET['delete'])){
     $eventId = $_GET['delete'];
+     if($role !== 'Admin'){
+        $_SESSION['error'] = 'You are not allowed to delete events';
+        header('Location: events.php');
+        exit;
+    }
     if($event->hardDelete($eventId)){
+        foreach($admins as $admin){
       $notification->create(
-            $_SESSION['user_id'],
+            $admin['id'],
             'Event Deleted',
             'An event record was deleted.',
             'events.php'
-        );
+        );}
         header("Location: events.php?msg=deleted");
         exit();
     } else {
-        // $message = 'Failed to delete event';
-        // $message_type = 'error';
         header("Location: events.php?msg=delete_failed");
         exit();
     }
@@ -153,9 +184,11 @@ if(isset($_GET['msg'])){
         <!-- Page Title -->
         <div class="d-flex justify-content-between align-items-center mb-4">
             <h2 class="fw-bold" style="color: var(--primary-color);">Events</h2>
+            <?php if($role === 'Admin'):  ?>
             <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addEventModal">
                 <i class="fas fa-calendar-plus"></i> Create Event
             </button>
+            <?php endif; ?>
         </div>
 
         <!-- Message Display -->
@@ -170,40 +203,38 @@ if(isset($_GET['msg'])){
         <div class="card">
             <div class="card-body">
                 <div class="table-responsive">
-                    <table class="table table-hover">
+                    <table class="table table-hover table-mobile-friendly">
                         <thead style="background-color: var(--primary-color); color: white;">
                             <tr>
-                                <th>Title</th>
-                                <th>Date</th>
-                                <th>Location</th>
-                                <th>Capacity</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <th class="col-essential">Title</th>
+                                <th class="col-hide-mobile">Date</th>
+                                <th class="col-hide-mobile">Location</th>
+                                <th class="col-hide-mobile">Capacity</th>
+                                <th class="col-hide-mobile">Status</th>
+                                <th class="col-essential text-end">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             <?php foreach ($events as $e): ?>
                                 <tr>
-                                    <td><?php echo htmlspecialchars($e['title']); ?></td>
-                                    <td><?php echo date('M d, Y - g:i A', strtotime($e['event_date'])); ?></td>
-                                    <td><?php echo htmlspecialchars($e['location'] ?? 'TBD'); ?></td>
-                                    <td><?php echo $e['capacity'] ?? '-'; ?></td>
-                                    <td><span class="badge bg-info"><?php echo ucfirst($e['status']); ?></span></td>
-                                    <td>
-                                        <button 
-    class="btn btn-sm btn-outline-primary editBtn"
-    data-id="<?php echo $e['id']; ?>"
-    data-title="<?php echo htmlspecialchars($e['title']); ?>"
-    data-description="<?php echo htmlspecialchars($e['description']); ?>"
-    data-date="<?php echo $e['event_date']; ?>"
-    data-location="<?php echo htmlspecialchars($e['location']); ?>"
-    data-capacity="<?php echo $e['capacity']; ?>"
-    data-status="<?php echo $e['status']; ?>"
->
-    <i class="fas fa-edit"></i>
-</button>
- <button class="btn btn-sm btn-outline-danger" onclick=confirmDelete(<?php echo $e['id']; ?>)><i class="fas fa-trash"></i>
-                                        </button>
+                                    <td class="col-essential"><?php echo htmlspecialchars($e['title']); ?></td>
+                                    <td class="col-hide-mobile"><?php echo date('M d, Y - g:i A', strtotime($e['event_date'])); ?></td>
+                                    <td class="col-hide-mobile"><?php echo htmlspecialchars($e['location'] ?? 'TBD'); ?></td>
+                                    <td class="col-hide-mobile"><?php echo $e['capacity'] ?? '-'; ?></td>
+                                    <td class="col-hide-mobile"><span class="badge bg-info"><?php echo ucfirst($e['status']); ?></span></td>
+                                    <td class="col-essential text-end">
+                                        <button class="btn btn-sm btn-outline-primary viewEventBtn" data-expense-id="<?= $e['id']; ?>"
+                                   data-title="<?php echo htmlspecialchars($e['title']); ?>"
+                                    data-description="<?php echo htmlspecialchars($e['description']); ?>"
+                                    data-date="<?php echo $e['event_date']; ?>"
+                                    data-location="<?php echo htmlspecialchars($e['location']); ?>"
+                                    data-capacity="<?php echo $e['capacity']; ?>"
+                                    data-status="<?php echo $e['status']; ?>"
+                                    data-bs-target="#eventDetails"
+                                    data-bs-toggle="modal">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                     
                                     </td>
                                 </tr>
                             <?php endforeach; ?>
@@ -214,6 +245,52 @@ if(isset($_GET['msg'])){
         </div>
     </div>
 </div>
+<!-- Event Details Modal -->
+    <div class="modal fade" id="eventDetails" tabindex="-1">
+                    <div class="modal-dialog modal-lg">
+                        <div class="modal-content">
+
+                        <div class="modal-header" style="background-color: var(--primary-color); color:white;">
+                            <h5 class="modal-title">
+                            <i class="fas fa-calendar"></i> Event Details
+                            </h5>
+                            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                        </div>
+
+                        <div class="modal-body">
+                            <table class="table table-bordered">
+                            <tr><th>Title</th><td id="detail_title"></td></tr>
+                            <tr><th>Date</th><td id="detail_date"></td></tr>
+                            <tr><th>Location</th><td id="detail_location"></td></tr>
+                            <tr><th>Description</th><td id="detail_description"></td></tr>
+                            <tr><th>Capacity</th><td id="detail_capacity"></td></tr>
+                            <tr><th>Status</th><td id="detail_status"></td></tr>
+                            </table>
+                        </div>
+
+                        <div class="modal-footer d-flex justify-content-between">
+                            <?php if($role === 'Admin'): ?>
+                            
+                            <button class="btn btn-sm btn-outline-primary" id="openEditEvent">
+                                <i class="fas fa-edit"></i> Edit
+                            </button>
+                            <button class="btn btn-sm btn-outline-danger" id="openDeleteEvent">
+                                <i class="fas fa-trash"></i> Delete
+                            </button>
+                        <?php endif; ?>
+
+                            <!-- <button class="btn btn-primary" id="printExpenseBtn">
+                            <i class="fas fa-print"></i> Print Receipt
+                            </button> -->
+                        </div>
+
+                        </div>
+                    </div>
+    </div>
+
+        
+
+
 
 <!-- Add Event Modal -->
 <div class="modal fade" id="addEventModal" tabindex="-1">
@@ -334,12 +411,45 @@ if(isset($_GET['msg'])){
 
 <?php include 'footer.php'; ?>
 <script>
-    function confirmDelete(eventId) {
-        if (confirm('Are you sure you want to delete this event?')) {
-            window.location.href = '?delete=' + eventId;
-            console.log("Deleting event with ID: " + eventId);
-        }
-    }
+    // function confirmDelete(eventId) {
+    //     if (confirm('Are you sure you want to delete this event?')) {
+    //         window.location.href = '?delete=' + eventId;
+    //         console.log("Deleting event with ID: " + eventId);
+    //     }
+    // }
+    // ----- View Event Details Population -----
+document.querySelectorAll('.viewEventBtn').forEach(btn => {
+    btn.addEventListener('click', function () {
+        document.getElementById('detail_title').innerText = this.dataset.title;
+        document.getElementById('detail_description').innerText = this.dataset.description;
+        document.getElementById('detail_date').innerText = new Date(this.dataset.date).toLocaleString();
+        document.getElementById('detail_location').innerText = this.dataset.location || 'TBD';
+        document.getElementById('detail_capacity').innerText = this.dataset.capacity || '-';
+        document.getElementById('detail_status').innerText = this.dataset.status.charAt(0).toUpperCase() + this.dataset.status.slice(1);
+
+        // Set up Edit button
+        const editBtn = document.getElementById('openEditEvent');
+        editBtn.onclick = () => {
+            document.getElementById('edit_event_id').value = this.dataset.expenseId;
+            document.getElementById('edit_title').value = this.dataset.title;
+            document.getElementById('edit_description').value = this.dataset.description;
+            document.getElementById('edit_event_date').value = this.dataset.date.replace(" ", "T");
+            document.getElementById('edit_location').value = this.dataset.location;
+            document.getElementById('edit_capacity').value = this.dataset.capacity;
+            document.getElementById('edit_status').value = this.dataset.status;
+
+            new bootstrap.Modal(document.getElementById('editEventModal')).show();
+        };
+
+        // Set up Delete button
+        const deleteBtn = document.getElementById('openDeleteEvent');
+        deleteBtn.onclick = () => {
+            if (confirm('Are you sure you want to delete this event?')) {
+                window.location.href = '?delete=' + this.dataset.expenseId;
+            }
+        };
+    });
+});
 
 
     
@@ -356,6 +466,19 @@ document.querySelectorAll('.editBtn').forEach(btn => {
 
         new bootstrap.Modal(document.getElementById('editEventModal')).show();
     });
+});
+
+// Prevent edit model to be opened on top of details model
+document.getElementById("openEditEvent").addEventListener("click", () => {
+    const detailsModal = bootstrap.Modal.getInstance(
+        document.getElementById("eventDetails")
+    );
+    detailsModal.hide();
+
+    const editModal = new bootstrap.Modal(
+        document.getElementById("editEventModal")
+    );
+    editModal.show();
 });
 
 </script>

@@ -9,9 +9,7 @@ class Expense
         $this->conn = $db;
     }
 
-    /** 
-     * Create a new expense record 
-     */
+  
     public function create($expense_date, $category_id, $amount, $description = null, $receipt_path = null)
     {
         $sql = "INSERT INTO {$this->table} 
@@ -102,8 +100,10 @@ class Expense
     /**
      * Get total expenses by month
      */
-    public function getTotalByMonth($year, $month)
-    {
+    public function getTotalByMonth($year = null, $month = null)
+    { 
+        if(!$year) $year = date('Y');
+        if(!$month) $month = date('m');
         $sql = "SELECT COALESCE(SUM(amount), 0) AS total_expense
                 FROM {$this->table}
                 WHERE YEAR(expense_date) = :year

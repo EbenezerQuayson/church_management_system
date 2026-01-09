@@ -566,10 +566,28 @@ body {
    background: linear-gradient(135deg, #a8e063, #56ab2f);
     color: #fff;
 }
+
+@media (max-width: 767px) {
+  .stat-icon {
+    width: 60px;
+    height: 60px;
+    font-size: 1.75rem;
+  }
+
+  .stat-value {
+    font-size: 1.75rem;
+  }
+  .stat-card {
+    margin-bottom: 1.5rem;
+  }
+
+}
+
 /* Tables */
 .table-responsive {
   border-radius: 10px;
   overflow: hidden;
+  table-layout: fixed;
 }
 
 .table {
@@ -600,7 +618,48 @@ body {
   padding: 1rem;
   vertical-align: middle;
   border-bottom: 1px solid #e9ecef;
+  word-wrap: break-word;
 }
+
+/* Mobile-Friendly Tables */
+@media (max-width: 1240px) {
+
+ .table-responsive .table-mobile-friendly {
+    font-size: 0.85rem;
+  }
+
+  /* Hide less important columns */
+  .table-mobile-friendly .col-hide-mobile {
+    display: none;
+  }
+
+  /* Keep essentials visible */
+  .table-mobile-friendly .col-essential {
+    white-space: nowrap;
+  }
+
+  /* Reduce padding for mobile */
+  .table-mobile-friendly td,
+  .table-mobile-friendly th {
+    padding: 0.6rem 0.5rem;
+  }
+
+  /* Action buttons tighter */
+  .table-mobile-friendly .btn {
+    padding: 0.35rem 0.6rem;
+    font-size: 0.75rem;
+  }
+}
+@media (max-width: 768px) {
+  td.text-end {
+    display: flex;
+    gap: 0.25rem;
+    justify-content: flex-end;
+  }
+}
+
+
+
 
 /* Forms */
 .form-label {
@@ -715,7 +774,7 @@ body {
 }
 
 /* Responsive Design */
-@media (max-width: 768px) {
+@media (max-width: 883px) {
   :root {
     --sidebar-width: 0;
   }
@@ -898,3 +957,73 @@ body {
         border-radius: 0;
     }
 }
+
+/* Member Details */
+.member-header {
+    background: var(--primary-color);
+    color: #fff;
+}
+
+.member-avatar {
+    width: 70px;
+    height: 70px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid rgba(255,255,255,0.5);
+    background: #eee;
+}
+
+.detail-section {
+    margin-bottom: 1.5rem;
+}
+
+.section-title {
+    font-weight: 600;
+    margin-bottom: .75rem;
+    color: var(--primary-color);
+}
+
+.label {
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    color: #888;
+}
+
+.detail-section p {
+    margin: 0;
+    font-weight: 500;
+}
+
+/* Make edit modal scrollable on small screens */
+@media (max-width: 576px) {
+    #editMemberModal .modal-dialog {
+        max-height: 90vh;
+        margin: 0.75rem auto;
+    }
+
+    #editMemberModal .modal-content {
+        max-height: 90vh;
+    }
+
+    #editMemberModal .modal-body {
+        overflow-y: auto;
+        max-height: calc(90vh - 120px); /* header + footer space */
+    }
+}
+
+
+@media (max-width: 576px) {
+    #editMemberModal .nav-tabs {
+        flex-wrap: wrap;
+    }
+
+    #editMemberModal .nav-link {
+        flex: 1 1 auto;
+        text-align: center;
+        font-size: 0.85rem;
+        padding: 0.5rem;
+    }
+}
+
+
+

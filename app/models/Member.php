@@ -10,7 +10,7 @@ class Member {
     }
 
     public function update($id, $data, $ministries = []) {
-    // 1️⃣ Update member info
+    // Update member info
     $sql = "UPDATE {$this->table} 
             SET first_name = :first_name,
                 last_name  = :last_name,
@@ -24,7 +24,9 @@ class Member {
                 region     = :region,
                 area       = :area,
                 landmark   = :landmark,
-                gps        = :gps
+                gps        = :gps,
+                emergency_contact_name = :emergency_contact_name,
+                emergency_phone = :emergency_phone
             WHERE id = :id";
 
     $stmt = $this->db->prepare($sql);
@@ -42,13 +44,15 @@ class Member {
     $stmt->bindParam(':area', $data['area']);
     $stmt->bindParam(':landmark', $data['landmark']);
     $stmt->bindParam(':gps', $data['gps']);
+    $stmt->bindParam(':emergency_contact_name', $data['emergency_contact_name']);
+    $stmt->bindParam(':emergency_phone', $data['emergency_phone']);
     $stmt->bindParam(':id', $id, PDO::PARAM_INT);
 
     $updated = $stmt->execute();
 
     if (!$updated) return false;
 
-    // 2️⃣ Handle image update if needed
+    //Handle image update if needed
     if (!empty($data['member_img'])) {
         $imgSql = "UPDATE {$this->table} SET member_img = :member_img WHERE id = :id";
         $imgStmt = $this->db->prepare($imgSql);
@@ -57,7 +61,7 @@ class Member {
         $imgStmt->execute();
     }
 
-    // 3️⃣ Update ministries
+    //Update ministries
     // Delete previous entries
     $deleteSql = "DELETE FROM ministry_members WHERE member_id = :member_id";
     $deleteStmt = $this->db->prepare($deleteSql);
@@ -89,6 +93,10 @@ class Member {
 
 public function create($data)
 {
+
+    // Generate a unique member code
+    $memberCode = 'HEB-' . strtoupper(bin2hex(random_bytes(4))); // Example: HEB-A1B2C3D4
+
     // Check if email already exists
     $checkSql = "SELECT COUNT(*) FROM {$this->table} WHERE email = :email";
     $checkStmt = $this->db->prepare($checkSql);
@@ -100,6 +108,7 @@ public function create($data)
     }
 
     $sql = "INSERT INTO {$this->table} (
+        member_code,
         first_name,
         last_name,
         email,
@@ -117,6 +126,7 @@ public function create($data)
         emergency_phone,
         member_img
     ) VALUES (
+        :member_code,
         :first_name,
         :last_name,
         :email,
@@ -137,6 +147,7 @@ public function create($data)
 
     $stmt = $this->db->prepare($sql);
 
+    $stmt->bindParam(':member_code', $memberCode);
     $stmt->bindParam(':first_name', $data['first_name']);
     $stmt->bindParam(':last_name', $data['last_name']);
     $stmt->bindParam(':email', $data['email']);
@@ -156,6 +167,7 @@ public function create($data)
 
     if ($stmt->execute()) {
         return $this->db->lastInsertId();
+        return $memberCode;
     }
 
     return false;
@@ -385,6 +397,7 @@ public function getAllForExport()
             m.region,
             m.city,
             m.area,
+            m.address,
             m.emergency_contact_name,
             m.emergency_phone,
             GROUP_CONCAT(min.name SEPARATOR ', ') AS ministries
@@ -418,6 +431,25 @@ public function exists($firstName, $lastName, $email = null, $phone = null) {
     $result = $stmt->fetch(PDO::FETCH_ASSOC);
     return $result ? $result['id'] : false;
 }
+
+public function existsByMemberCode(string $code): bool
+{
+    $sql = "SELECT COUNT(*) FROM members WHERE member_code = :code";
+    $stmt = $this->db->prepare($sql);
+    $stmt->execute([':code' => $code]);
+    return $stmt->fetchColumn() > 0;
+}
+
+
+public function getByCode($code)
+{
+    $sql = "SELECT * FROM {$this->table} WHERE member_code = :code";
+    $stmt = $this->db->prepare($sql);
+    $stmt->bindParam(':code', $code);
+    $stmt->execute();
+    return $stmt->fetch(PDO::FETCH_ASSOC);
+}
+
 
 } 
 ?>
