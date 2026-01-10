@@ -62,6 +62,7 @@ $imgUrl  = BASE_URL . '/assets/uploads/members/' . ($m['member_img'] ?? '');
 
     <td class="col-essential text-end">
         <button class="btn btn-sm btn-outline-primary viewMemberBtn" data-member-id="<?= $m['id']; ?>"
+                                   data-member-code="<?php echo htmlspecialchars($m['member_code']); ?>"
                                    data-first-name="<?php echo htmlspecialchars($m['first_name']); ?>"
                                    data-last-name="<?php echo htmlspecialchars($m['last_name']); ?>"
                                    data-gender="<?php echo htmlspecialchars($m['gender']); ?>"
