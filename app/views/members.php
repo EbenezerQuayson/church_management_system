@@ -130,7 +130,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['update_member']) && 
 
 if ($newMemberId) {
     // Get selected ministries
-    $ministryIds = $_POST['ministries'] ?? [];
+    $ministryIds = array_values(array_unique($_POST['ministries'] ?? []));
     
     // If none selected, assign default ministry (e.g., id = 1)
     if (empty($ministryIds)) {
@@ -644,6 +644,7 @@ if(isset($_GET['msg'])){
                          class="member-avatar"
                          alt="Member photo">
                     <div>
+                        <small class="text-light opacity-90" id="detail_member_code"></small>
                         <h5 class="mb-0" id="detail_name"></h5>
                         <small id="detail_ministry" class="text-light opacity-75"></small>
                     </div>
@@ -818,7 +819,7 @@ document.getElementById('membersTable').addEventListener('click', function(e) {
         ? currentMemberData.memberImg
         : '/church_management_system/assets/images/avatar-placeholder.png';
     document.getElementById('detail_image').src = img;
-
+    document.getElementById('detail_member_code').innerText = currentMemberData.memberCode;
     document.getElementById('detail_name').innerText = currentMemberData.firstName + ' ' + currentMemberData.lastName;
     document.getElementById('detail_gender').innerText = currentMemberData.gender;
     document.getElementById('detail_phone').innerText = currentMemberData.phone || '-';
@@ -918,17 +919,28 @@ function removeBackdrops() {
     const backdrops = document.querySelectorAll('.modal-backdrop');
     backdrops.forEach(b => b.remove());
 }
-
 // Listen for any modal being hidden (works when close/cancel buttons are clicked)
-document.addEventListener('hidden.bs.modal', function (event) {
+document.addEventListener('hidden.bs.modal', function () {
     removeBackdrops();
+    if (!document.querySelector('.modal.show')) {
+        document.body.classList.remove('modal-open');
+        document.body.style.removeProperty('overflow');
+        document.body.style.removeProperty('padding-right');
+    }
 });
 
 // Also catch cancel buttons explicitly (if needed)
 document.querySelectorAll('[data-bs-dismiss="modal"]').forEach(btn => {
     btn.addEventListener('click', () => {
         // Give Bootstrap a tiny delay to finish hiding animation
-        setTimeout(removeBackdrops, 200);
+       setTimeout(() => {
+            removeBackdrops();
+            if (!document.querySelector('.modal.show')) {
+                document.body.classList.remove('modal-open');
+                document.body.style.removeProperty('overflow');
+                document.body.style.removeProperty('padding-right');
+            }
+        }, 200);
     });
 });
 
