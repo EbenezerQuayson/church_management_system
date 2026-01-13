@@ -60,9 +60,6 @@ class User {
 public function update($id, $data)
 {
     $sql = "UPDATE users SET
-                first_name = :first_name,
-                last_name  = :last_name,
-                email      = :email,
                 role_id    = :role_id,
                 is_active  = :status,
                 updated_at = NOW()
@@ -71,9 +68,6 @@ public function update($id, $data)
     $stmt = $this->db->prepare($sql);
 
     $stmt->bindValue(':id', $id, PDO::PARAM_INT);
-    $stmt->bindValue(':first_name', $data['first_name']);
-    $stmt->bindValue(':last_name', $data['last_name']);
-    $stmt->bindValue(':email', $data['email']);
     $stmt->bindValue(':role_id', $data['role_id'], PDO::PARAM_INT);
     $stmt->bindValue(':status', $data['status'], PDO::PARAM_INT);
 
