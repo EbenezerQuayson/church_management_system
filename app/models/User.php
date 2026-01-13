@@ -57,20 +57,23 @@ class User {
         return $stmt->fetch(PDO::FETCH_ASSOC);
     }
 
-    public function update($id, $data) {
-        $sql = "UPDATE {$this->table} SET first_name = :first_name, last_name = :last_name, 
-                phone = :phone, profile_photo = :profile_photo, updated_at = NOW() 
-                WHERE id = :id";
-        
-        $stmt = $this->db->prepare($sql);
-        $stmt->bindParam(':id', $id);
-        $stmt->bindParam(':first_name', $data['first_name'] ?? null);
-        $stmt->bindParam(':last_name', $data['last_name'] ?? null);
-        $stmt->bindParam(':phone', $data['phone'] ?? null);
-        $stmt->bindParam(':profile_photo', $data['profile_photo'] ?? null);
-        
-        return $stmt->execute();
-    }
+public function update($id, $data)
+{
+    $sql = "UPDATE users SET
+                role_id    = :role_id,
+                is_active  = :status,
+                updated_at = NOW()
+            WHERE id = :id";
+
+    $stmt = $this->db->prepare($sql);
+
+    $stmt->bindValue(':id', $id, PDO::PARAM_INT);
+    $stmt->bindValue(':role_id', $data['role_id'], PDO::PARAM_INT);
+    $stmt->bindValue(':status', $data['status'], PDO::PARAM_INT);
+
+    return $stmt->execute();
+}
+
 
     public function getAll($limit = null, $offset = 0) {
         $sql = "SELECT u.*, r.name as role_name FROM {$this->table} u
@@ -90,5 +93,25 @@ class User {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+public function getAllUsers() {
+        $sql = "SELECT u.id, u.first_name, u.last_name, u.email, u.is_active as status,
+                       r.name as role_name, u.role_id
+                FROM {$this->table} u
+                LEFT JOIN roles r ON u.role_id = r.id
+                ORDER BY u.created_at DESC";
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute();
+
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    }
+
+public function deactivate($id) {
+    $sql = "UPDATE users SET is_active = 0 WHERE id = :id";
+    $stmt = $this->db->prepare($sql);
+    $stmt->bindParam(':id', $id);
+    return $stmt->execute();
+}
+
 }
 ?>

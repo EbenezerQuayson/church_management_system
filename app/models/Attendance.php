@@ -1,6 +1,4 @@
 <?php
-// Attendance Model
-
 class Attendance {
     private $db;
     private $table = 'attendance';
@@ -45,5 +43,28 @@ class Attendance {
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
+
+  public function updateAttendance($id, $status, $notes = '', $date) {
+    $stmt = $this->db->prepare("
+        UPDATE attendance
+        SET status = :status, notes = :notes
+        WHERE id = :id AND attendance_date = :date
+    ");
+    return $stmt->execute([
+        ':status' => $status,
+        ':notes' => $notes,
+        ':id' => $id,
+        ':date' => $date
+    ]);
+}
+
+public function deleteAttendance($id){
+    $sql = "DELETE FROM {$this->table} WHERE id = :id";
+    $stmt = $this->db->prepare($sql);
+    $stmt->bindParam(':id', $id, PDO::PARAM_INT);
+    return $stmt->execute();
+}
+
+
 }
 ?>

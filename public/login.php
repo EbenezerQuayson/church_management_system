@@ -8,9 +8,35 @@ require_once __DIR__ . '/../app/controllers/AuthController.php';
 
 // If already logged in, redirect to dashboard
 if (isLoggedIn()) {
-    header('Location: ../app/views/dashboard.php');
+
+    $role = $_SESSION['user_role'] ?? 'Member';
+
+    if ($role === 'Treasurer') {
+        header('Location: ../app/views/overview.php');
+    } elseif ($role === 'Leader') {
+        header('Location: ../app/views/ministries.php');
+    } else {
+        header('Location: ../app/views/dashboard.php');
+    }
+
     exit;
 }
+
+
+$db = Database::getInstance();
+$settings = $db->fetchAll("SELECT * FROM settings");
+
+foreach ($settings as $setting){
+ if ($setting['setting_key'] === 'church_name') $church_name = $setting['setting_value'];
+  if ($setting['setting_key'] === 'church_logo') {
+            if($setting['setting_value'] != null ){
+            $church_logo = BASE_URL . '/assets/images/' . $setting['setting_value'];
+            } else{
+                $church_logo = BASE_URL . '/assets/images/methodist-logo.png';
+            }
+        }
+}
+
 
 $message = '';
 $message_type = '';
@@ -19,9 +45,28 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $auth = new AuthController();
     $result = $auth->login();
     
-    if ($result['success']) {
-        header('Location: ../app/views/dashboard.php');
-        exit;
+   if ($result['success']) {
+
+    $role = $_SESSION['user_role'] ?? 'Member';
+
+    switch ($role) {
+        case 'Treasurer':
+            header('Location: ../app/views/overview.php');
+            break;
+
+        case 'Leader':
+            header('Location: ../app/views/ministries.php');
+            break;
+
+        case 'Admin':
+            header('Location: ../app/views/dashboard.php');
+            break;
+
+        default:
+            header('Location: ../app/views/dashboard.php');
+    }
+
+    exit;
     } else {
         $message = $result['message'];
         $message_type = 'error';
@@ -36,9 +81,23 @@ if (isset($_GET['expired'])) {
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
+      <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>The Methodist Church Ghana - Login</title>
+
+    <title><?= htmlspecialchars($church_name) ?> - Login</title>
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" href="<?= BASE_URL ?>/assets/images/favicon.png">
+
+    <!-- SEO -->
+    <meta name="description" content="Church Management System for <?= htmlspecialchars($church_name) ?>. Manage members, donations, expenses, and church activities efficiently.">
+    <meta name="robots" content="index, follow">
+
+    <!-- Open Graph -->
+    <meta property="og:title" content="<?= htmlspecialchars($church_name) ?> - Management System">
+    <meta property="og:description" content="A modern church management system for members, finances, and administration.">
+    <meta property="og:image" content="<?= BASE_URL ?>/assets/images/og-image.png">
+    <meta property="og:url" content="<?= BASE_URL ?>">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
@@ -152,8 +211,8 @@ if (isset($_GET['expired'])) {
                 <div class="card-body">
                     <!-- Logo Section -->
                     <div class="logo-section">
-                        <img src="../assets/images/methodist-logo.png" alt="Methodist Church Logo">
-                        <h1>The Methodist Church Ghana</h1>
+                        <img src="<?= $church_logo ?> "alt="<?= $church_name ?> Logo">
+                        <h1><?= $church_name ?></h1>
                         <p>Church Management System</p>
                     </div>
 
@@ -193,9 +252,9 @@ if (isset($_GET['expired'])) {
                     </form>
 
                     <!-- Forgot Password and Registration Links -->
-                    <div class="forgot-password">
+                    <!-- <div class="forgot-password">
                         <a href="forgot-password.php">Forgot your password?</a> | <a href="register.php">Create Account</a>
-                    </div>
+                    </div> -->
                 </div>
             </div>
         </div>
