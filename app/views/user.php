@@ -41,10 +41,34 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST' && $role === 'Admin') {
 
     // EDIT USER
     if ($_POST['action'] === 'edit') {
-        $userModel->update($_POST['user_id'], $_POST);
-        header("Location: user.php?msg=updated");
+
+    // Ensure required fields exist
+    if (!isset($_POST['user_id'], $_POST['role_id'], $_POST['status'])) {
+        header("Location: user.php?msg=error");
         exit;
     }
+
+    // Cast values to prevent tampering
+    $userId  = (int) $_POST['user_id'];
+    $roleId  = (int) $_POST['role_id'];
+    $status  = (int) $_POST['status'];
+
+    // Optional: whitelist valid roles
+    $allowedRoles = [1, 3, 6];
+    if (!in_array($roleId, $allowedRoles, true)) {
+        header("Location: user.php?msg=error");
+        exit;
+    }
+
+    $userModel->update($userId, [
+        'role_id' => $roleId,
+        'status'  => $status
+    ]);
+
+    header("Location: user.php?msg=updated");
+    exit;
+}
+
 
     // DELETE USER (soft delete)
     if ($_POST['action'] === 'delete') {

@@ -167,7 +167,7 @@ if ($newMemberId) {
 exit();
 
 }
-
+//Update Member
 if (isset($_POST['update_member'])) {
     $editId = (int)$_POST['edit_id'];
 
