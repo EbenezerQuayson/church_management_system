@@ -58,6 +58,7 @@ if (!in_array($fileExtension, ['xlsx', 'xls', 'csv'])) {
 }
 
 /* ===== IMPORT ===== */
+/* ===== IMPORT ===== */
 try {
     $rows = IOFactory::load($fileTmpPath)->getActiveSheet()->toArray();
 
@@ -67,23 +68,16 @@ try {
 
     /* ===== NORMALIZE HEADERS ===== */
     $rawHeaders = array_shift($rows);
-
     $headers = array_map(function ($h) {
-        return strtolower(
-            str_replace([' ', '-'], '_', trim($h))
-        );
+        return strtolower(str_replace([' ', '-'], '_', trim($h)));
     }, $rawHeaders);
 
     /* ===== REQUIRED FIELDS ===== */
     $requiredFields = ['first_name', 'last_name', 'phone_number', 'gender'];
-
     $importedCount = 0;
-    
 
     foreach ($rows as $index => $row) {
-
         $rowData = array_combine($headers, $row);
-
         if ($rowData === false) continue;
 
         // Trim values
@@ -96,14 +90,11 @@ try {
                 $missing[] = $field;
             }
         }
+        if (!empty($missing)) continue;
 
-        if (!empty($missing)) {
-            // skip invalid row (optionally log)
-            continue;
-        }
-
-        /* ===== BUILD DATA ===== */
+        /* ===== BUILD DATA ARRAY ===== */
         $data = [
+            'member_code' => $rowData['member_code'] ?? null,
             'first_name' => $rowData['first_name'],
             'last_name'  => $rowData['last_name'],
             'email'      => $rowData['email'] ?? null,
@@ -120,21 +111,45 @@ try {
             'member_img' => null
         ];
 
-        /* ===== DUPLICATE CHECK ===== */
-        $existingId = $member->exists(
-            $data['first_name'],
-            $data['last_name'],
-            $data['email'],
-            $data['phone']
-        );
+        /* ===== DUPLICATE / EXISTENCE LOGIC ===== */
+        $memberId = false;
 
-        $memberId = $existingId ?: $member->create($data);
+        // 1. Check by Member Code first (Highest Accuracy)
+        if (!empty($data['member_code'])) {
+            $existing = $member->getByCode($data['member_code']);
+            if ($existing) {
+                $memberId = $existing['id'];
+            }
+        }
+
+        // 2. Fallback: Check by Name, Email, or Phone
+        if (!$memberId) {
+            $memberId = $member->exists(
+                $data['first_name'],
+                $data['last_name'],
+                $data['email'],
+                $data['phone']
+            );
+        }
+
+        /* ===== UPDATE OR CREATE ===== */
+        if ($memberId) {
+            // Update existing member info
+            $member->update($memberId, $data);
+        } else {
+            // Create new member (will generate HEB- code if member_code is null)
+            $memberId = $member->create($data);
+        }
+
         if (!$memberId) continue;
 
-        /* ===== MINISTRIES ===== */
-        $ministries = array_values(array_unique(explode(',', $rowData['ministries'] ?? '')));
+        /* ===== MINISTRIES PROCESSING ===== */
+        $ministryList = array_values(array_unique(explode(',', $rowData['ministries'] ?? '')));
+        
+        // Clear existing ministry links for this member before re-adding (to avoid duplicates)
+        $db->prepare("DELETE FROM ministry_members WHERE member_id = ?")->execute([$memberId]);
 
-        foreach ($ministries as $ministryName) {
+        foreach ($ministryList as $ministryName) {
             $ministryName = trim($ministryName);
             if (!$ministryName) continue;
 
@@ -156,10 +171,8 @@ try {
     foreach ($admins as $admin) {
         $notification->create(
             $admin['id'],
-            'Members Imported',
-            $importedCount > 0
-    ? "$importedCount members were successfully imported."
-    : "Member import completed, but no valid records were found.",
+            'Members Imported/Updated',
+            "$importedCount records were processed (imported or updated).",
             'members.php'
         );
     }
@@ -171,3 +184,117 @@ try {
     header("Location:" . BASE_URL . "/app/views/members.php?msg=import_failed");
     exit;
 }
+// try {
+//     $rows = IOFactory::load($fileTmpPath)->getActiveSheet()->toArray();
+
+//     if (count($rows) < 2) {
+//         throw new Exception('Empty file');
+//     }
+
+//     /* ===== NORMALIZE HEADERS ===== */
+//     $rawHeaders = array_shift($rows);
+
+//     $headers = array_map(function ($h) {
+//         return strtolower(
+//             str_replace([' ', '-'], '_', trim($h))
+//         );
+//     }, $rawHeaders);
+
+//     /* ===== REQUIRED FIELDS ===== */
+//     $requiredFields = ['first_name', 'last_name', 'phone_number', 'gender'];
+
+//     $importedCount = 0;
+    
+
+//     foreach ($rows as $index => $row) {
+
+//         $rowData = array_combine($headers, $row);
+
+//         if ($rowData === false) continue;
+
+//         // Trim values
+//         $rowData = array_map(fn($v) => trim((string)$v), $rowData);
+
+//         /* ===== VALIDATION ===== */
+//         $missing = [];
+//         foreach ($requiredFields as $field) {
+//             if (empty($rowData[$field])) {
+//                 $missing[] = $field;
+//             }
+//         }
+
+//         if (!empty($missing)) {
+//             // skip invalid row (optionally log)
+//             continue;
+//         }
+
+//         /* ===== BUILD DATA ===== */
+//         $data = [
+//             'member_code' => $rowData['member_code'] ?? null,
+//             'first_name' => $rowData['first_name'],
+//             'last_name'  => $rowData['last_name'],
+//             'email'      => $rowData['email'] ?? null,
+//             'phone'      => $rowData['phone_number'],
+//             'gender'     => ucfirst(strtolower($rowData['gender'])),
+//             'date_of_birth' => excelDateToYmd($rowData['date_of_birth'] ?? null),
+//             'join_date'  => excelDateToYmd($rowData['join_date'] ?? null) ?? date('Y-m-d'),
+//             'region'     => $rowData['region'] ?? null,
+//             'city'       => $rowData['city'] ?? null,
+//             'area'       => $rowData['area'] ?? null,
+//             'address'    => $rowData['address'] ?? null,
+//             'emergency_contact_name' => $rowData['emergency_contact'] ?? null,
+//             'emergency_phone'        => $rowData['emergency_phone'] ?? null,
+//             'member_img' => null
+//         ];
+
+//         /* ===== DUPLICATE CHECK ===== */
+//         $existingId = $member->exists(
+//             $data['first_name'],
+//             $data['last_name'],
+//             $data['email'],
+//             $data['phone']
+//         );
+
+//         $memberId = $existingId ?: $member->create($data);
+//         if (!$memberId) continue;
+
+//         /* ===== MINISTRIES ===== */
+//         $ministries = array_values(array_unique(explode(',', $rowData['ministries'] ?? '')));
+
+//         foreach ($ministries as $ministryName) {
+//             $ministryName = trim($ministryName);
+//             if (!$ministryName) continue;
+
+//             $ministryId = $ministryModel->getIdByName($ministryName)
+//                 ?? $ministryModel->create($ministryName);
+
+//             $stmt = $db->prepare("
+//                 INSERT IGNORE INTO ministry_members
+//                 (member_id, ministry_id, role, joined_date, created_at)
+//                 VALUES (?, ?, 'Member', ?, NOW())
+//             ");
+//             $stmt->execute([$memberId, $ministryId, $data['join_date']]);
+//         }
+
+//         $importedCount++;
+//     }
+
+//     /* ===== NOTIFICATIONS ===== */
+//     foreach ($admins as $admin) {
+//         $notification->create(
+//             $admin['id'],
+//             'Members Imported',
+//             $importedCount > 0
+//     ? "$importedCount members were successfully imported."
+//     : "Member import completed, but no valid records were found.",
+//             'members.php'
+//         );
+//     }
+
+//     header("Location:" . BASE_URL . "/app/views/members.php?msg=imported&count=$importedCount");
+//     exit;
+
+// } catch (Exception $e) {
+//     header("Location:" . BASE_URL . "/app/views/members.php?msg=import_failed");
+//     exit;
+// }

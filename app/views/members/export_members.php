@@ -21,20 +21,21 @@ $admins = $db->fetchAll("SELECT u.id FROM users u JOIN roles r ON u.role_id = r.
 /* ===== HEADERS ===== */
 $headers = [
     'A1' => 'Serial Number',
-    'B1' => 'First Name',
-    'C1' => 'Last Name',
-    'D1' => 'Email',
-    'E1' => 'Phone Number',
-    'F1' => 'Gender',
-    'G1' => 'Date of Birth',
-    'H1' => 'Join Date',
-    'I1' => 'Ministries',
-    'J1' => 'Region',
-    'K1' => 'City',
-    'L1' => 'Area',
-    'M1' => 'Address',
-    'N1' => 'Emergency Contact',
-    'O1' => 'Emergency Phone',
+    'B1' => 'Member Code',
+    'C1' => 'First Name',
+    'D1' => 'Last Name',
+    'E1' => 'Email',
+    'F1' => 'Phone Number',
+    'G1' => 'Gender',
+    'H1' => 'Date of Birth',
+    'I1' => 'Join Date',
+    'J1' => 'Ministries',
+    'K1' => 'Region',
+    'L1' => 'City',
+    'M1' => 'Area',
+    'N1' => 'Address',
+    'O1' => 'Emergency Contact',
+    'P1' => 'Emergency Phone',
 ];
 
 foreach ($headers as $cell => $text) {
@@ -46,20 +47,21 @@ $row = 2;
 $count = 1;
 foreach ($members as $m) {
     $sheet->setCellValue("A$row", $count++);
-    $sheet->setCellValue("B$row", $m['first_name']);
-    $sheet->setCellValue("C$row", $m['last_name']);
-    $sheet->setCellValue("D$row", $m['email']);
-    $sheet->setCellValue("E$row", $m['phone']);
-    $sheet->setCellValue("F$row", ucfirst($m['gender']));
-    $sheet->setCellValue("G$row", $m['date_of_birth']);
-    $sheet->setCellValue("H$row", $m['join_date']);
-    $sheet->setCellValue("I$row", $m['ministries'] ?: 'N/A');
-    $sheet->setCellValue("J$row", $m['region']);
-    $sheet->setCellValue("K$row", $m['city']);
-    $sheet->setCellValue("L$row", $m['area']);
-    $sheet->setCellValue("M$row", $m['address']);
-    $sheet->setCellValue("N$row", $m['emergency_contact_name']);
-    $sheet->setCellValue("O$row", $m['emergency_phone']);
+    $sheet->setCellValue("B$row", $m['member_code']);
+    $sheet->setCellValue("C$row", $m['first_name']);
+    $sheet->setCellValue("D$row", $m['last_name']);
+    $sheet->setCellValue("E$row", $m['email']);
+    $sheet->setCellValue("F$row", $m['phone']);
+    $sheet->setCellValue("G$row", ucfirst($m['gender']));
+    $sheet->setCellValue("H$row", $m['date_of_birth']);
+    $sheet->setCellValue("I$row", $m['join_date']);
+    $sheet->setCellValue("J$row", $m['ministries'] ?: 'N/A');
+    $sheet->setCellValue("K$row", $m['region']);
+    $sheet->setCellValue("L$row", $m['city']);
+    $sheet->setCellValue("M$row", $m['area']);
+    $sheet->setCellValue("N$row", $m['address']);
+    $sheet->setCellValue("O$row", $m['emergency_contact_name']);
+    $sheet->setCellValue("P$row", $m['emergency_phone']);
     $row++;
 }
 
