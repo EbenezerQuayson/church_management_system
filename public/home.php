@@ -85,6 +85,9 @@ try {
 } catch (Exception $e) {
     // Database not available, use defaults
 }
+
+$hasLocation = !empty(trim($church_address));
+
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -136,6 +139,7 @@ try {
                 <ul class="navbar-nav ms-auto">
                     <li class="nav-item"><a class="nav-link active" href="#home">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="#about">About</a></li>
+                    <li class="nav-item"><a class="nav-link" href="#location">Location</a></li>
                     <li class="nav-item"><a class="nav-link" href="#programs">Programs</a></li>
                     <li class="nav-item"><a class="nav-link" href="#ministries">Ministries</a></li>
                     <li class="nav-item"><a class="nav-link" href="#news">News</a></li>
@@ -192,6 +196,102 @@ try {
             </div>
         </div>
     </section>
+<!-- Location and Map -->
+<section id="location" class="location-section py-5">
+    <div class="container-lg">
+        <div class="text-center mb-5">
+            <h2 class="section-title mb-3">
+                <i class="fas fa-map-marker-alt me-2"></i>Find Us
+            </h2>
+            <p class="section-subtitle">
+                We look forward to welcoming you in person
+            </p>
+        </div>
+
+        <?php if ($hasLocation): ?>
+            <!-- Normal UI -->
+            <div class="row g-4 align-items-center">
+                <div class="col-lg-5">
+                    <div class="location-card p-4 shadow-sm rounded-3 bg-white">
+                        <h5 class="mb-3"><?= htmlspecialchars($church_name) ?></h5>
+
+                        <p class="mb-2">
+                            <i class="fas fa-map-marker-alt me-2 text-primary"></i>
+                            <?= htmlspecialchars($church_address) ?>
+                        </p>
+
+                        <p class="mb-2">
+                            <i class="fas fa-phone me-2 text-primary"></i>
+                            <?= htmlspecialchars($church_phone) ?>
+                        </p>
+
+                        <p class="mb-3">
+                            <i class="fas fa-envelope me-2 text-primary"></i>
+                            <?= htmlspecialchars($church_email) ?>
+                        </p>
+
+                        <a
+                            href="https://www.google.com/maps/search/?api=1&query=<?= urlencode($church_address) ?>"
+                            target="_blank"
+                            class="btn btn-outline-primary btn-sm"
+                        >
+                            <i class="fas fa-directions me-1"></i> Get Directions
+                        </a>
+                    </div>
+                </div>
+
+                <div class="col-lg-7">
+                    <div class="map-wrapper rounded-3 overflow-hidden shadow-sm">
+                        <iframe
+                            src="https://www.google.com/maps?q=<?= urlencode($church_address) ?>&output=embed"
+                            width="100%"
+                            height="350"
+                            style="border:0;"
+                            loading="lazy"
+                            allowfullscreen>
+                        </iframe>
+                    </div>
+                </div>
+            </div>
+
+        <?php else: ?>
+            <!-- Fallback UI -->
+            <div class="row justify-content-center">
+                <div class="col-md-10 col-lg-8">
+                    <div class="empty-state text-center py-5 px-4 bg-light rounded-3">
+                        <i class="fas fa-map-marked-alt fa-3x text-secondary mb-3"></i>
+
+                        <h5 class="fw-semibold mb-2">
+                            Location Coming Soon
+                        </h5>
+
+                        <p class="text-muted mb-3">
+                            Our church location will be available shortly.
+                            Please contact the church office for directions.
+                        </p>
+
+                        <div class="d-flex justify-content-center gap-3 flex-wrap">
+                            <?php if (!empty($church_phone)): ?>
+                                <span class="text-muted small">
+                                    <i class="fas fa-phone me-1"></i>
+                                    <?= htmlspecialchars($church_phone) ?>
+                                </span>
+                            <?php endif; ?>
+
+                            <?php if (!empty($church_email)): ?>
+                                <span class="text-muted small">
+                                    <i class="fas fa-envelope me-1"></i>
+                                    <?= htmlspecialchars($church_email) ?>
+                                </span>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        <?php endif; ?>
+    </div>
+</section>
+
 
     <!-- Programs Section -->
     <section id="programs" class="programs-section py-5 bg-light">
