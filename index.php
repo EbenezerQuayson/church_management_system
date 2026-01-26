@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . '/church_management_system/config/config.php';
+require_once __DIR__ . '/config/config.php';
 
 
 
@@ -11,7 +11,7 @@ $accent_color = '#F4C43F';
 $church_logo = BASE_URL . '/assets/images/methodist-logo.png';
 
 try {
-    require_once __DIR__ . '/church_management_system/config/database.php';
+    require_once __DIR__ . '/config/database.php';
     $db = Database::getInstance();
     $settings = $db->fetchAll("SELECT * FROM settings");
 
