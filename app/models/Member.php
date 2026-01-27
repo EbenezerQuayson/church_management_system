@@ -91,14 +91,19 @@ class Member {
     return true;
 }
 
-
 public function create($data)
 {
+    // 1. Check if a code was provided in the import/form, otherwise generate one
+    if (!empty($data['member_code'])) {
+        $memberCode = $data['member_code'];
+    } else {
+        // Generate a unique code and verify it doesn't already exist in DB
+        do {
+            $memberCode = 'HEB-' . strtoupper(bin2hex(random_bytes(4)));
+        } while ($this->existsByMemberCode($memberCode));
+    }
 
-    // Generate a unique member code
-    $memberCode = 'HEB-' . strtoupper(bin2hex(random_bytes(4))); // Example: HEB-A1B2C3D4
-
-    // Check if email already exists
+    // 2. Email uniqueness check
     $checkSql = "SELECT COUNT(*) FROM {$this->table} WHERE email = :email";
     $checkStmt = $this->db->prepare($checkSql);
     $checkStmt->bindParam(':email', $data['email']);
@@ -108,47 +113,23 @@ public function create($data)
         return false;
     }
 
+    // 3. Insert using the $memberCode determined above
     $sql = "INSERT INTO {$this->table} (
-        member_code,
-        first_name,
-        last_name,
-        email,
-        phone,
-        date_of_birth,
-        gender,
-        join_date,
-        address,
-        city,
-        region,
-        area,
-        landmark,
-        gps,
-        emergency_contact_name,
-        emergency_phone,
-        member_img
+        member_code, first_name, last_name, email, phone, 
+        date_of_birth, gender, join_date, address, city, 
+        region, area, landmark, gps, emergency_contact_name, 
+        emergency_phone, member_img
     ) VALUES (
-        :member_code,
-        :first_name,
-        :last_name,
-        :email,
-        :phone,
-        :date_of_birth,
-        :gender,
-        :join_date,
-        :address,
-        :city,
-        :region,
-        :area,
-        :landmark,
-        :gps,
-        :emergency_contact_name,
-        :emergency_phone,
-        :member_img
+        :member_code, :first_name, :last_name, :email, :phone, 
+        :date_of_birth, :gender, :join_date, :address, :city, 
+        :region, :area, :landmark, :gps, :emergency_contact_name, 
+        :emergency_phone, :member_img
     )";
 
     $stmt = $this->db->prepare($sql);
 
-    $stmt->bindParam(':member_code', $memberCode);
+    // Bind parameters...
+    $stmt->bindParam(':member_code', $memberCode); // Use the variable
     $stmt->bindParam(':first_name', $data['first_name']);
     $stmt->bindParam(':last_name', $data['last_name']);
     $stmt->bindParam(':email', $data['email']);
@@ -168,11 +149,91 @@ public function create($data)
 
     if ($stmt->execute()) {
         return $this->db->lastInsertId();
-        return $memberCode;
     }
 
     return false;
 }
+// public function create($data)
+// {
+
+//     // Generate a unique member code
+//     $memberCode = 'HEB-' . strtoupper(bin2hex(random_bytes(4))); // Example: HEB-A1B2C3D4
+
+//     // Check if email already exists
+//     $checkSql = "SELECT COUNT(*) FROM {$this->table} WHERE email = :email";
+//     $checkStmt = $this->db->prepare($checkSql);
+//     $checkStmt->bindParam(':email', $data['email']);
+//     $checkStmt->execute();
+
+//     if ($checkStmt->fetchColumn() > 0) {
+//         return false;
+//     }
+
+//     $sql = "INSERT INTO {$this->table} (
+//         member_code,
+//         first_name,
+//         last_name,
+//         email,
+//         phone,
+//         date_of_birth,
+//         gender,
+//         join_date,
+//         address,
+//         city,
+//         region,
+//         area,
+//         landmark,
+//         gps,
+//         emergency_contact_name,
+//         emergency_phone,
+//         member_img
+//     ) VALUES (
+//         :member_code,
+//         :first_name,
+//         :last_name,
+//         :email,
+//         :phone,
+//         :date_of_birth,
+//         :gender,
+//         :join_date,
+//         :address,
+//         :city,
+//         :region,
+//         :area,
+//         :landmark,
+//         :gps,
+//         :emergency_contact_name,
+//         :emergency_phone,
+//         :member_img
+//     )";
+
+//     $stmt = $this->db->prepare($sql);
+
+//     $stmt->bindParam(':member_code', $memberCode);
+//     $stmt->bindParam(':first_name', $data['first_name']);
+//     $stmt->bindParam(':last_name', $data['last_name']);
+//     $stmt->bindParam(':email', $data['email']);
+//     $stmt->bindParam(':phone', $data['phone']);
+//     $stmt->bindParam(':date_of_birth', $data['date_of_birth']);
+//     $stmt->bindParam(':gender', $data['gender']);
+//     $stmt->bindParam(':join_date', $data['join_date']);
+//     $stmt->bindParam(':address', $data['address']);
+//     $stmt->bindParam(':city', $data['city']);
+//     $stmt->bindParam(':region', $data['region']);
+//     $stmt->bindParam(':area', $data['area']);
+//     $stmt->bindParam(':landmark', $data['landmark']);
+//     $stmt->bindParam(':gps', $data['gps']);
+//     $stmt->bindParam(':emergency_contact_name', $data['emergency_contact_name']);
+//     $stmt->bindParam(':emergency_phone', $data['emergency_phone']);
+//     $stmt->bindParam(':member_img', $data['member_img']);
+
+//     if ($stmt->execute()) {
+//         return $this->db->lastInsertId();
+//         return $memberCode;
+//     }
+
+//     return false;
+// }
 
 
     public function assignMinistry($memberId, $ministryId)
@@ -389,6 +450,7 @@ public function getAllForExport()
     $sql = "
         SELECT 
             m.id,
+            m.member_code,
             m.first_name,
             m.last_name,
             m.email,
